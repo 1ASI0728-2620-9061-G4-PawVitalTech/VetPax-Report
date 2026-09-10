@@ -12,25 +12,25 @@ Los principales competidores identificados son **VetOS, PetSuite, GVET, VetFac y
  
 **VetOS**
 
-<img src="./feature/Chapter-2/VetOS.png" alt="Logo de VetOS" width="180" height="180">
+<img src="./feature/Chapter-2/vetOs.png" alt="Logo de VetOS" width="180" height="180">
 
 VetOS es un software veterinario orientado al mercado peruano que ofrece funcionalidades como historia clínica digital, agenda, farmacia, inventario y gestión de clientes. Además, incorpora un portal para los dueños de mascotas. Su principal fortaleza es ofrecer una solución integral para la administración de clínicas veterinarias, mientras que su enfoque se encuentra principalmente en la gestión operativa de la clínica. :contentReference[oaicite:0]{index=0} 
  
 **PetSuite**
 
-<img src="./feature/Chapter-2/PetSuite.png" alt="Logo de PetSuite" width="180" height="180">
+<img src="./feature/Chapter-2/petsuite-logo.png" alt="Logo de PetSuite" width="180" height="180">
 
 PetSuite permite administrar agendas, historias clínicas, inventario, ventas y facturación electrónica. También incorpora recordatorios de citas y vacunas, además de acceso desde diferentes dispositivos. Su propuesta está orientada a que las veterinarias puedan centralizar sus procesos administrativos y clínicos en una sola plataforma. :contentReference[oaicite:1]{index=1} 
  
 **GVET**
 
-<img src="./feature/Chapter-2/GVET.png" alt="Logo de GVET" width="180" height="180">
+<img src="./feature/Chapter-2/Gvet.png" alt="Logo de GVET" width="180" height="180">
 
 GVET ofrece un sistema de gestión integral para clínicas y hospitales veterinarios, incluyendo funcionalidades relacionadas con la administración de clientes y pacientes, información médica y acceso desde diferentes dispositivos. Su fortaleza se encuentra en centralizar la información necesaria para la operación de una veterinaria. :contentReference[oaicite:2]{index=2} 
  
 **VetFac**
 
-<img src="./feature/Chapter-2/VetFac.png" alt="Logo de VetFac" width="180" height="180">
+<img src="./feature/Chapter-2/vetfac.png" alt="Logo de VetFac" width="180" height="180">
 
 VetFac se enfoca en la digitalización de la historia clínica veterinaria, permitiendo registrar consultas, diagnósticos, tratamientos, vacunas y otros datos de las mascotas. También incorpora agenda de citas, recordatorios y funcionalidades de facturación electrónica. :contentReference[oaicite:3]{index=3} 
  
