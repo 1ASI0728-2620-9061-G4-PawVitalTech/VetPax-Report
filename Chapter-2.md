@@ -12,31 +12,31 @@ Los principales competidores identificados son **VetOS, PetSuite, GVET, VetFac y
  
 **VetOS**
 
-![Logo de VetOS](./feature/Chapter-2/VetOS.png)
+<img src="./VetOS.png" alt="Logo de VetOS" width="180" height="180">
 
 VetOS es un software veterinario orientado al mercado peruano que ofrece funcionalidades como historia clínica digital, agenda, farmacia, inventario y gestión de clientes. Además, incorpora un portal para los dueños de mascotas. Su principal fortaleza es ofrecer una solución integral para la administración de clínicas veterinarias, mientras que su enfoque se encuentra principalmente en la gestión operativa de la clínica. :contentReference[oaicite:0]{index=0} 
  
 **PetSuite**
 
-![Logo de PetSuite](./feature/Chapter-2/petsuite-logo.png)
+<img src="./PetSuite.png" alt="Logo de PetSuite" width="180" height="180">
 
 PetSuite permite administrar agendas, historias clínicas, inventario, ventas y facturación electrónica. También incorpora recordatorios de citas y vacunas, además de acceso desde diferentes dispositivos. Su propuesta está orientada a que las veterinarias puedan centralizar sus procesos administrativos y clínicos en una sola plataforma. :contentReference[oaicite:1]{index=1} 
  
 **GVET**
 
-![Logo de GVET](./feature/Chapter-2/Gvet.png)
+<img src="./GVET.png" alt="Logo de GVET" width="180" height="180">
 
 GVET ofrece un sistema de gestión integral para clínicas y hospitales veterinarios, incluyendo funcionalidades relacionadas con la administración de clientes y pacientes, información médica y acceso desde diferentes dispositivos. Su fortaleza se encuentra en centralizar la información necesaria para la operación de una veterinaria. :contentReference[oaicite:2]{index=2} 
  
 **VetFac**
 
-![Logo de VetFac](./feature/Chapter-2/vetfac.png)
+<img src="./VetFac.png" alt="Logo de VetFac" width="180" height="180">
 
 VetFac se enfoca en la digitalización de la historia clínica veterinaria, permitiendo registrar consultas, diagnósticos, tratamientos, vacunas y otros datos de las mascotas. También incorpora agenda de citas, recordatorios y funcionalidades de facturación electrónica. :contentReference[oaicite:3]{index=3} 
  
 **SmartVet360**
 
-![Logo de SmartVet360](./feature/Chapter-2/SmartVet360.png)
+<img src="./SmartVet360.png" alt="Logo de SmartVet360" width="180" height="180">
 
 SmartVet360 ofrece una plataforma en la nube con módulos de historia clínica, agenda, inventario, farmacia, punto de venta, facturación electrónica y gestión de múltiples sedes. Su propuesta está orientada principalmente a la administración integral de clínicas veterinarias de diferentes tamaños. :contentReference[oaicite:4]{index=4} 
  
