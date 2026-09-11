@@ -155,10 +155,97 @@ VetPax utilizará contenido relacionado con el cuidado de mascotas geriátricas 
  
 En síntesis, la estrategia competitiva de VetPax estará centrada en **especializarse en un problema concreto en lugar de competir únicamente por cantidad de funcionalidades**. La combinación de seguimiento clínico, recordatorios, planes nutricionales, conexión con veterinarias y gamificación permitirá construir una propuesta diferenciada frente a los sistemas veterinarios de gestión general.
 
-- 2.2. Entrevistas
-    - 2.2.1. Diseño de entrevistas
-    - 2.2.2. Registro de entrevistas
-    - 2.2.3. Análisis de entrevistas
+## 2.2. Entrevistas
+### 2.2.1. Diseño de entrevistas
+
+#### Entrevista – Dueños de mascotas geriátricas o con enfermedades crónicas
+
+##### 1. Contexto
+
+1. ¿Cuántas mascotas tiene actualmente y qué edades o condiciones de salud presentan?
+2. ¿Hace cuánto tiempo su mascota fue diagnosticada con una enfermedad crónica o entró en etapa geriátrica?
+3. ¿Con qué frecuencia lleva a su mascota a controles veterinarios?
+
+##### 2. Problema actual
+
+4. ¿Cómo lleva actualmente el historial clínico de su mascota (papeles, carpetas, memoria, apps)?
+5. ¿Qué herramientas utiliza para recordar citas o administrar medicamentos?
+6. ¿Qué dificultades ha tenido para mantener el tratamiento al día?
+7. ¿Ha olvidado alguna vez una cita o una dosis de medicación? ¿Qué consecuencias tuvo?
+8. ¿Ha cambiado alguna vez de veterinaria? ¿Qué pasó con el historial clínico de su mascota?
+
+##### 3. Necesidades
+
+9. ¿Qué información le gustaría tener siempre disponible sobre la salud de su mascota?
+10. ¿Qué tipo de recordatorios le resultarían realmente útiles (medicación, citas, dieta)?
+11. ¿Le interesaría recibir planes de alimentación personalizados según la condición de su mascota?
+12. ¿Qué tan importante es para usted poder consultar el historial desde el celular?
+
+##### 4. Motivación y constancia
+
+13. ¿Qué lo motiva a mantenerse constante en el cuidado de su mascota?
+14. ¿Le parecería atractivo un sistema de niveles o reconocimientos (Bronce, Plata, Oro) por su constancia?
+15. ¿Qué lo desmotivaría a seguir usando una aplicación de este tipo?
+
+##### 5. Validación de la solución
+
+16. ¿Qué función sería imprescindible en una aplicación de seguimiento clínico para su mascota?
+17. ¿Qué le generaría confianza para usar esta plataforma?
+18. ¿Estaría dispuesto a pagar por funciones adicionales (reportes avanzados, múltiples mascotas, soporte prioritario)? ¿Por qué?
+19. ¿Qué haría que dejara de usar la aplicación?
+
+---
+
+#### Entrevista – Veterinarias y clínicas especializadas
+
+##### 1. Contexto
+
+1. ¿Qué tipo de pacientes atiende con mayor frecuencia (geriátricos, crónicos, generales)?
+2. ¿Cuántos pacientes crónicos o geriátricos maneja aproximadamente al mes?
+3. ¿Qué herramientas utiliza actualmente para gestionar historiales clínicos y agenda de citas?
+
+##### 2. Problema actual
+
+4. ¿Qué dificultades enfrenta al dar seguimiento a un paciente crónico entre una consulta y otra?
+5. ¿Qué ocurre cuando un dueño no recuerda el historial médico previo de su mascota?
+6. ¿Ha perdido continuidad en algún tratamiento por falta de información centralizada?
+7. ¿Cómo se comunica actualmente con los dueños fuera de la consulta?
+
+##### 3. Necesidades
+
+8. ¿Qué información necesitaría ver de forma inmediata al recibir a un paciente crónico o geriátrico?
+9. ¿Qué tan útil sería contar con un panel para gestionar citas e historiales de forma centralizada?
+10. ¿Qué tipo de reportes o indicadores le gustaría recibir sobre la evolución de sus pacientes?
+11. ¿Le interesaría que los dueños reciban recordatorios automáticos de citas y medicación?
+
+##### 4. Adopción y fidelización
+
+12. ¿Qué le haría confiar en una plataforma digital para gestionar información clínica sensible?
+13. ¿Qué beneficios esperaría obtener al digitalizar la gestión de sus pacientes crónicos?
+14. ¿Estaría dispuesto a pagar una suscripción mensual según el volumen de pacientes gestionados? ¿Por qué?
+
+##### 5. Validación de la solución
+
+15. ¿Qué función sería imprescindible en un panel de gestión de pacientes crónicos/geriátricos?
+16. ¿Qué le preocuparía respecto a la seguridad o privacidad de los datos clínicos?
+17. ¿Participaría en un programa piloto para probar la plataforma antes de su lanzamiento oficial?
+18. ¿Qué haría que dejara de usar esta herramienta?
+
+### 2.2.2. Registro de entrevistas
+
+<table>
+  <tr><td><b>Apellidos</b></td><td>x</td></tr>
+  <tr><td><b>Edad</b></td><td>x</td></tr>
+  <tr><td><b>Distrito</b></td><td>x</td></tr>
+  <tr><td><b>Motivación</b></td><td>x</td></tr>
+  <tr><td><b>Frustración</b></td><td>x</td></tr>
+  <tr><td><b>Evidencia</b></td><td>x</td></tr>
+  <tr><td><b>Link</b></td><td>x</td></tr>
+  <tr><td><b>Duración</b></td><td>x</td></tr>
+  <tr><td><b>Resumen</b></td><td>x</td></tr>
+</table>
+
+### 2.2.3. Análisis de entrevistas
 
 - 2.3. Needfinding
     - 2.3.1. User Personas
