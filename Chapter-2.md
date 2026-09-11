@@ -234,15 +234,15 @@ En síntesis, la estrategia competitiva de VetPax estará centrada en **especial
 ### 2.2.2. Registro de entrevistas
 
 <table>
-  <tr><td><b>Apellidos</b></td><td>x</td></tr>
-  <tr><td><b>Edad</b></td><td>x</td></tr>
-  <tr><td><b>Distrito</b></td><td>x</td></tr>
-  <tr><td><b>Motivación</b></td><td>x</td></tr>
-  <tr><td><b>Frustración</b></td><td>x</td></tr>
-  <tr><td><b>Evidencia</b></td><td>x</td></tr>
-  <tr><td><b>Link</b></td><td>x</td></tr>
-  <tr><td><b>Duración</b></td><td>x</td></tr>
-  <tr><td><b>Resumen</b></td><td>x</td></tr>
+  <tr><td><b>Nombres y Apellidos</b></td><td>Daniel Monago Garcia</td></tr>
+  <tr><td><b>Edad</b></td><td>21</td></tr>
+  <tr><td><b>Distrito</b></td><td>Villa el salvador</td></tr>
+  <tr><td><b>Motivación</b></td><td>Poder cuidar a su mascota dia a dia</td></tr>
+  <tr><td><b>Frustración</b></td><td>No poder acordarse las fechas medicas para su mascota</td></tr>
+  <tr><td><b>Evidencia</b></td><td><img src="feature/Chapter-2/Evidencia1.png" width="300"></td></tr>
+  <tr><td><b>Link</b></td><td><a href="https://drive.google.com/drive/folders/1adbKDPv-OOfeYxu0JS2ttc6gVqFK-oC8?usp=sharing">Video Entrevista</a></td></tr>
+  <tr><td><b>Duración</b></td><td>5:29</td></tr>
+  <tr><td><b>Resumen</b></td><td>Daniel Monago es un estudiante de San Marcos que es muy atento con sus animales ya que le tiene un cariño enorme, el siempre trata de encontrar tiempo para cuidarlos mejor y cumplir con sus chequeos medicos.</td></tr>
 </table>
 
 ### 2.2.3. Análisis de entrevistas
