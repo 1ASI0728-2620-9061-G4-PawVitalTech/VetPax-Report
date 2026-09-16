@@ -49,7 +49,7 @@ En esta sección se especifican los Epic Stories, User Stories y Technical Stori
 | **TS12** | API de autenticación y autorización | **Como** desarrollador, **quiero** implementar servicios de autenticación y control de acceso, **para** que los productos digitales consuman recursos de acuerdo con el perfil autorizado. | **E01: Autenticación correcta.** Dado que la solicitud contiene credenciales válidas, cuando se invoca `POST /api/v1/auth/login`, entonces el servicio responde con `200 OK` y un mecanismo válido de autenticación.<br><br>**E02: Credenciales inválidas.** Dado que las credenciales no son válidas, cuando se intenta autenticar al usuario, entonces el servicio responde con `401 Unauthorized`.<br><br>**E03: Recurso no autorizado.** Dado que un usuario autenticado carece del permiso requerido, cuando intenta acceder a un recurso protegido, entonces el servicio responde con `403 Forbidden`. | EP06 |
 
 - 3.3. Impact Mapping
-
+![Impact Mapping](./feature/Chapter-3/VetPax.png)
 - 3.4. Product Backlog
 
 El Product Backlog de VetPax organiza y prioriza las historias de acuerdo con el **valor aportado al negocio y a los segmentos objetivo**. La priorización considera desde el primer sprint las historias asociadas con la Landing Page, conforme a las disposiciones del enunciado del curso. Las historias relacionadas con autenticación y seguridad se incluyen en el backlog, pero no se ubican automáticamente en las primeras posiciones, ya que el orden responde principalmente al valor de negocio.
