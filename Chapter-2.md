@@ -245,6 +245,18 @@ En síntesis, la estrategia competitiva de VetPax estará centrada en **especial
   <tr><td><b>Resumen</b></td><td>Daniel Monago es un estudiante de San Marcos que es muy atento con sus animales ya que le tiene un cariño enorme, el siempre trata de encontrar tiempo para cuidarlos mejor y cumplir con sus chequeos medicos.</td></tr>
 </table>
 
+<table>
+  <tr><td><b>Nombres y Apellidos</b></td><td>Felix Zegarra</td></tr>
+  <tr><td><b>Edad</b></td><td>21</td></tr>
+  <tr><td><b>Distrito</b></td><td>Villa el salvador</td></tr>
+  <tr><td><b>Motivación</b></td><td>Mantener saludable a su perro</td></tr>
+  <tr><td><b>Frustración</b></td><td>No tener mucho tiempo para el cuidado medico de su mascota</td></tr>
+  <tr><td><b>Evidencia</b></td><td><img src="feature/Chapter-2/Evidencia2.png" width="300"></td></tr>
+  <tr><td><b>Link</b></td><td><a href="https://drive.google.com/drive/folders/1adbKDPv-OOfeYxu0JS2ttc6gVqFK-oC8?usp=sharing">Video Entrevista</a></td></tr>
+  <tr><td><b>Duración</b></td><td>9:16</td></tr>
+  <tr><td><b>Resumen</b></td><td>Felix Zegarra es un estudiante universitario que tiene un golden al que quiere un monton y lo cuida con su dieta, el cuenta con un problema ya que lleva pocas veces al veterinario al golden debido a la falta de tiempo, por lo cual el necesitaria ayuda online para llevar el seguimiento medico de su mascota.</td></tr>
+</table>
+
 ### 2.2.3. Análisis de entrevistas
 
 - 2.3. Needfinding
