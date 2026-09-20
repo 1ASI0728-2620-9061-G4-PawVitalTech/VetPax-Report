@@ -31,6 +31,62 @@
         Estas funcionalidades representan los principales flujos del negocio y determinan la necesidad de componentes independientes para gestión clínica, identidad, notificaciones y comunicación entre usuarios.
 
         - 4.1.2.2. Quality Attribute Scenarios
+        Los atributos de calidad representan las características no funcionales que guían las decisiones arquitectónicas de VetPax. Debido a que la plataforma gestiona información clínica de mascotas, comunicación entre usuarios y servicios externos, se consideran como principales atributos de calidad la seguridad, disponibilidad, escalabilidad, mantenibilidad e interoperabilidad.
+        
+        ### Seguridad
+        
+        | Elemento | Descripción |
+        |---|---|
+        | **Fuente** | Usuario no autorizado |
+        | **Estímulo** | Intenta acceder al historial clínico de una mascota sin contar con los permisos correspondientes |
+        | **Entorno** | Usuario autenticado dentro de la plataforma móvil o panel web |
+        | **Artefacto** | Servicio de autenticación, autorización y módulo de gestión clínica |
+        | **Respuesta** | El sistema valida la identidad y permisos del usuario mediante el proveedor de identidad Keycloak, bloqueando accesos que no correspondan al rol asignado |
+        | **Medida de respuesta** | Las solicitudes no autorizadas deben ser rechazadas mediante mecanismos de control de acceso, retornando una respuesta de autorización denegada |
+        
+        ### Disponibilidad
+        
+        | Elemento | Descripción |
+        |---|---|
+        | **Fuente** | Dueño de mascota o veterinario |
+        | **Estímulo** | Solicita consultar información del historial clínico de una mascota |
+        | **Entorno** | Usuarios utilizando la aplicación móvil o panel web |
+        | **Artefacto** | Servicios backend y almacenamiento de información clínica |
+        | **Respuesta** | El sistema procesa la solicitud y devuelve los registros clínicos disponibles manteniendo la continuidad del seguimiento |
+        | **Medida de respuesta** | El servicio debe mantenerse operativo durante la interacción de los usuarios, permitiendo consultas de información clínica sin pérdida de datos |
+        
+        ### Escalabilidad
+        
+        | Elemento | Descripción |
+        |---|---|
+        | **Fuente** | Nuevos usuarios y veterinarias incorporadas a la plataforma |
+        | **Estímulo** | Incremento en la cantidad de usuarios registrados y solicitudes simultáneas |
+        | **Entorno** | Etapa de crecimiento de VetPax |
+        | **Artefacto** | Servicios backend, APIs y base de datos |
+        | **Respuesta** | La arquitectura permite ampliar la capacidad del sistema mediante la incorporación de nuevos recursos sin modificar la lógica principal del dominio |
+        | **Medida de respuesta** | El sistema debe soportar el crecimiento progresivo de usuarios manteniendo tiempos de respuesta adecuados |
+        
+        ### Mantenibilidad
+        
+        | Elemento | Descripción |
+        |---|---|
+        | **Fuente** | Equipo de desarrollo |
+        | **Estímulo** | Requiere modificar una funcionalidad existente o agregar nuevas capacidades |
+        | **Entorno** | Durante actividades de mantenimiento y evolución del sistema |
+        | **Artefacto** | Arquitectura interna del backend |
+        | **Respuesta** | La arquitectura hexagonal permite separar la lógica de negocio de componentes externos, facilitando modificaciones independientes |
+        | **Medida de respuesta** | Los cambios realizados deben afectar únicamente al componente correspondiente, reduciendo impactos sobre otros módulos del sistema |
+        
+        ### Interoperabilidad
+        
+        | Elemento | Descripción |
+        |---|---|
+        | **Fuente** | Servicios externos integrados |
+        | **Estímulo** | Comunicación con proveedores externos como Keycloak, Firebase Cloud Messaging o servicios de comunicación en tiempo real |
+        | **Entorno** | Operación normal de la plataforma |
+        | **Artefacto** | Capa de infraestructura y adaptadores externos |
+        | **Respuesta** | El sistema utiliza interfaces desacopladas para comunicarse con servicios externos, permitiendo reemplazar proveedores sin afectar el dominio principal |
+        | **Medida de respuesta** | Las integraciones externas deben funcionar mediante componentes independientes, manteniendo estable la lógica del negocio |   
         - 4.1.2.3. Constraints
         Las restricciones consideradas para el diseño arquitectónico son las siguientes:
 
