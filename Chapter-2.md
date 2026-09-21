@@ -285,6 +285,18 @@ En síntesis, la estrategia competitiva de VetPax estará centrada en **especial
   <tr><td><b>Resumen</b></td><td>Diego Bastidas es un profesional en sector de veterinaria, que actualmente le cuesta manejar las basta cantidad de clientes con las herramientas que le proporciona su veterinaria donde esta trabajando, lo que le genera estres laboral.</td></tr>
 </table>
 
+<table>
+  <tr><td><b>Nombres y Apellidos</b></td><td>Carlos Ramirez</td></tr>
+  <tr><td><b>Edad</b></td><td>25</td></tr>
+  <tr><td><b>Distrito</b></td><td>Cedros de Villa, Chorrillos</td></tr>
+  <tr><td><b>Motivación</b></td><td>Realizar su trabajo comodamente</td></tr>
+  <tr><td><b>Frustración</b></td><td>Incomodidad en los servicios actuales de su veterinaria</td></tr>
+  <tr><td><b>Evidencia</b></td><td><img src="feature/Chapter-2/adrian-segmento2.png" width="300"></td></tr>
+  <tr><td><b>Link</b></td><td><a href="https://1drv.ms/v/c/56ff8d3b67b8422d/IQDenWgapqdbQryCJaATPV3GAdUW-xoQWaJv_i50odSATzg?e=mA3xD5">Video Entrevista</a></td></tr>
+  <tr><td><b>Duración</b></td><td>3:45</td></tr>
+  <tr><td><b>Resumen</b></td><td>Carlos Ramirez, es un trabajador en una veterinaria el cual encuentra dificultades en su trabajo cuando los dueños de sus pacientes no recuerdan su historial médico o algunas de las citas de sus mascotas y cree que nuestra plataforma seria de gran ayuda</td></tr>
+</table>
+
 ### 2.2.3. Análisis de entrevistas
 
 - 2.3. Needfinding
