@@ -395,11 +395,261 @@ Estos escenarios refinados permiten validar que las decisiones arquitectónicas 
 
     - **4.2.2. Candidate Context Discovery**
     - **4.2.3. Domain Message Flows Modeling**
-    - **4.2.4. Bounded Context Canvases**
-    - **4.2.5. Context Mapping**
 
-- **4.3. Software Architecture**
-    - **4.3.1. Software Architecture System Landscape** Diagram
-    - **4.3.2. Software Architecture Context Level Diagrams**
-    - **4.3.3. Software Architecture Container Level Diagrams**
-    - **4.3.4. Software Architecture Deployment Diagrams**
+### 4.2.4. Bounded Context Canvases
+
+La definición detallada de cada Bounded Context Canvas permitió consolidar el diseño de los contextos identificados a partir de los siete flujos del EventStorming de **VetPax**. En cada canvas se establecieron los criterios de diseño necesarios para garantizar que los bounded contexts generen valor, operen de forma independiente y contribuyan a reducir la complejidad general de la solución: su propósito, su clasificación estratégica, los roles que cumple dentro del dominio, los mensajes que recibe y emite, el lenguaje ubicuo que utiliza y las decisiones de negocio, supuestos, métricas y preguntas abiertas que lo rodean.
+
+Se utilizó la plantilla *Bounded Context Canvas v5* de DDD Crew. En las secciones de comunicación de entrada y salida, los post-its **verdes** representan actores o contextos colaboradores, los **azules** comandos o consultas, los **naranjas** eventos de dominio y los **morados** decisiones de negocio.
+
+La siguiente tabla resume la clasificación estratégica de los siete contextos:
+
+| Bounded Context | Subdominio | Modelo de negocio | Evolución | Roles de dominio |
+| --- | --- | --- | --- | --- |
+| Pet & Clinical Care | Core | Revenue Generator / Engagement | Custom Built | Execution, Audit |
+| Appointment Management | Supporting | Engagement Creator | Custom Built | Execution |
+| Medication Treatment | Core | Engagement Creator | Custom Built | Execution |
+| Nutrition Management | Core | Revenue Generator / Engagement | Custom Built | Specification, Execution |
+| Clinic Management | Supporting | Cost Reduction | Custom Built | Specification |
+| Adherence & Gamification | Core | Engagement Creator | Custom Built | Analysis |
+| Identity & Access Management (IAM) | Generic | Compliance / Security | Commodity | Enforcer |
+
+
+#### Pet & Clinical Care
+
+![Canvas Pet & Clinical Care](./feature/Chapter-4/canvas-pet-clinical-care.png)
+
+
+Este contexto tiene como propósito registrar el perfil de cada mascota y mantener su historial clínico longitudinal y trazable (atenciones, diagnósticos, tratamientos y evolución), de modo que el tratamiento tenga continuidad aunque el dueño cambie de veterinaria. Se clasifica como subdominio **core**, ya que la continuidad clínica es la base de la propuesta de valor de VetPax, y su rol es el de *Execution Context* y *Audit Context* por la trazabilidad que ofrece.
+
+- **Comunicación de entrada:** los comandos `RegistrarMascota` y `RegistrarAtenciónClínica`, y las consultas `ConsultarHistorialClínico` y `ConsultarEvoluciónClínica`, iniciados por el dueño y el veterinario, con los permisos validados por IAM.
+- **Comunicación de salida:** los eventos `MascotaRegistrada`, `AtenciónClínicaRegistrada` e `HistorialClínicoActualizado`, y el suministro del identificador de la mascota y de los pacientes a Appointment Management, Medication Treatment, Nutrition Management y Clinic Management.
+- **Decisiones de negocio:** toda mascota debe estar asociada a la cuenta de un dueño; solo usuarios autorizados consultan el historial; una atención clínica solo se registra sobre una mascota existente.
+- **Preguntas abiertas:** qué indicadores clínicos se comparan en la evolución, cómo se vincula una mascota con una clínica, si el dueño puede ver notas internas del veterinario y si el borrado de mascotas es lógico o físico.
+
+#### Appointment Management
+
+![Canvas Appointment Management](./feature/Chapter-4/canvas-appointment-management.png)
+
+Su propósito es gestionar la programación, reprogramación, cancelación y atención de las citas de control veterinario, manteniendo la agenda de cada veterinario sin conflictos de horario. Es un subdominio de **soporte** con rol de *Execution Context*: no diferencia por sí mismo a VetPax, pero es necesario para sostener el seguimiento continuo y genera evidencia de cumplimiento para el sistema de gamificación.
+
+- **Comunicación de entrada:** los comandos `AgendarCitaVeterinaria`, `ReprogramarCita`, `CancelarCita` y `MarcarCitaComoAtendida`, y la consulta `ConsultarAgenda`, iniciados por el dueño y el veterinario; además consume los horarios de atención publicados por Clinic Management.
+- **Comunicación de salida:** los eventos `CitaVeterinariaProgramada`, `CitaVeterinariaReprogramada`, `CitaVeterinariaCancelada` y `CitaVeterinariaAtendida`; este último es consumido por Adherence & Gamification. También solicita la sincronización de citas confirmadas al servicio externo de calendario.
+- **Decisiones de negocio:** un horario ocupado no puede reservarse; una cita atendida o cancelada no puede modificarse; al cancelar una cita se libera su horario.
+- **Preguntas abiertas:** si la duración de la cita es fija o variable, si el dueño elige veterinario o solo clínica, qué contexto genera el recordatorio de cita y con cuánta anticipación puede cancelarse.
+
+#### Medication Treatment
+
+![Canvas Medication Treatment](./feature/Chapter-4/canvas-medication-treatment.png)
+
+Este contexto gestiona los tratamientos de medicación activos de cada mascota, programa los recordatorios de dosis y registra la administración de cada dosis por parte del dueño. Es un subdominio **core** con rol de *Execution Context*, ya que la adherencia a la medicación es el núcleo del problema que VetPax busca resolver.
+
+- **Comunicación de entrada:** los comandos `ActivarRecordatoriosDeMedicación`, `GenerarRecordatorioDeMedicación` (disparado por una policy al alcanzar el horario de una dosis pendiente) y `RegistrarDosisAdministrada`, y la consulta `ConsultarTratamientos`.
+- **Comunicación de salida:** los eventos `RecordatoriosDeMedicaciónActivados`, `RecordatorioDeMedicaciónGenerado` y `DosisDeMedicaciónAdministrada`; este último es consumido por Adherence & Gamification. La entrega del recordatorio se realiza mediante Firebase Cloud Messaging.
+- **Decisiones de negocio:** solo se activan recordatorios si el tratamiento tiene horarios definidos; una dosis no puede registrarse dos veces; la dosis debe pertenecer a un tratamiento activo.
+- **Preguntas abiertas:** quién crea el plan de medicación, qué ocurre si se omite una dosis, si el dueño puede ajustar horarios sin el veterinario y cuántos reintentos se realizan si falla la notificación.
+
+#### Nutrition Management
+
+![Canvas Nutrition Management](./feature/Chapter-4/canvas-nutrition-management.png)
+
+Permite que el veterinario prescriba y actualice planes de alimentación personalizados según la condición de la mascota, y genera recordatorios de alimentación para el dueño. Es un subdominio **core** con roles de *Specification Context* (define el plan) y *Execution Context* (genera los recordatorios), y sustenta las funcionalidades premium de dietas avanzadas del modelo freemium.
+
+- **Comunicación de entrada:** los comandos `PrescribirPlanNutricional`, `ActualizarPlanNutricional` y `GenerarRecordatorioDeAlimentación`, y la consulta `ConsultarPlanActivo`, con la mascota como referencia proveniente de Pet & Clinical Care.
+- **Comunicación de salida:** los eventos `PlanNutricionalRegistrado`, `PlanNutricionalActualizado` y `RecordatorioDeAlimentaciónGenerado`, con entrega de notificaciones mediante Firebase Cloud Messaging.
+- **Decisiones de negocio:** solo el veterinario prescribe planes nutricionales; cantidad y frecuencia deben ser valores válidos; un plan inactivo no genera notificaciones.
+- **Preguntas abiertas:** si los planes avanzados serán exclusivos de la suscripción premium, si se registrará el cumplimiento de cada comida, si habrá un catálogo de alimentos y si se conservará el historial de planes anteriores.
+
+#### Clinic Management
+
+![Canvas Clinic Management](./feature/Chapter-4/canvas-clinic-management.png)
+
+Administra la información institucional de cada veterinaria (datos generales y horarios de atención) y ofrece al veterinario el listado de los pacientes vinculados a su clínica. Es un subdominio de **soporte** con rol de *Specification Context*, porque define las condiciones (horarios) bajo las cuales otros contextos operan, y su modelo de negocio es la reducción de costos operativos de las veterinarias.
+
+- **Comunicación de entrada:** los comandos `ActualizarPerfilDeClínica` y las consultas `ConsultarPacientesDeLaClínica` y `ConsultarPerfilDeClínica`, iniciados por el administrador de la veterinaria y el veterinario.
+- **Comunicación de salida:** el evento `PerfilDeClínicaActualizado`, cuyos horarios de atención son utilizados por Appointment Management durante el agendamiento.
+- **Decisiones de negocio:** solo el administrador modifica el perfil de la clínica; los horarios registrados deben ser consistentes; un veterinario solo ve los pacientes de su propia clínica.
+- **Preguntas abiertas:** dónde se gestiona la suscripción de la clínica, si puede haber varios administradores, cómo se vincula un paciente a la clínica y si existen sedes con horarios distintos.
+
+#### Adherence & Gamification
+
+![Canvas Adherence & Gamification](./feature/Chapter-4/canvas-adherence-gamification.png)
+
+Evalúa la constancia del dueño en los controles y tratamientos de su mascota, calcula su nivel (Bronce, Plata u Oro) y reconoce sus ascensos para incentivar la adherencia. Es un subdominio **core** con rol de *Analysis Context*, pues no ejecuta operaciones clínicas sino que analiza el cumplimiento generado en otros contextos; constituye el principal diferenciador de VetPax frente a un simple registro de historiales.
+
+- **Comunicación de entrada:** los eventos `CitaVeterinariaAtendida` (de Appointment Management) y `DosisDeMedicaciónAdministrada` (de Medication Treatment), los comandos internos `CalcularAdherencia` y `ActualizarNivel`, y la consulta `ConsultarNivelDeConstancia` del dueño.
+- **Comunicación de salida:** los eventos `AdherenciaCalculada`, `NivelDeConstanciaActualizado`, `PropietarioAscendióDeNivel` y `ReconocimientoEnviado`, con entrega de la notificación de ascenso mediante Firebase Cloud Messaging.
+- **Decisiones de negocio:** el nivel se asigna según los umbrales vigentes; sin datos suficientes no existe un nivel definitivo; solo un ascenso genera notificación.
+- **Preguntas abiertas:** cuáles son los umbrales de cada nivel, si un dueño puede descender de nivel, qué periodo se evalúa y si el cumplimiento de la alimentación cuenta como evidencia.
+
+#### IAM (Identity & Access Management)
+
+![Canvas IAM](./feature/Chapter-4/canvas-iam.png)
+
+Gestiona el registro de cuentas, la autenticación y la autorización basada en roles (dueño de mascota, veterinario y administrador de veterinaria), delegando la gestión de identidad en Keycloak. Es un subdominio **genérico** de tipo *commodity* con rol de *Enforcer Context*: su funcionalidad es ajena a la operación clínica, por lo que se justifica separarlo para que las políticas de seguridad evolucionen de forma independiente.
+
+- **Comunicación de entrada:** los comandos `RegistrarCuenta`, `AutenticarUsuario` y `ValidarPermisosSegúnRol`, iniciados por los tres tipos de usuario.
+- **Comunicación de salida:** los eventos `CuentaDeUsuarioCreada` y `UsuarioAutenticado`, y la emisión de la identidad y los roles hacia todos los bounded contexts, apoyada en Keycloak.
+- **Decisiones de negocio:** todo usuario debe autenticarse para operar; el acceso depende del rol asignado; los cambios de rol se aplican en la siguiente sesión.
+- **Preguntas abiertas:** si un usuario puede tener varios roles, si se implementará autenticación multifactor, cómo se da de alta al veterinario en su clínica y cuál es el tiempo de expiración de la sesión.
+
+---
+
+### 4.2.5. Context Mapping
+
+El proceso de Context Mapping permitió representar las relaciones estructurales y los contratos de integración entre los bounded contexts definidos en VetPax. Mientras que los Bounded Context Canvases detallan cada contexto de manera aislada, el Context Map ofrece una visión sistémica de cómo colaboran e intercambian información dentro de los límites de la solución, identificando qué contexto es *upstream* (proveedor) y cuál es *downstream* (consumidor) en cada relación.
+
+Para su elaboración se aplicaron preguntas de exploración sugeridas en Domain-Driven Design, adaptadas al dominio de VetPax:
+
+- ¿Qué contexto es dueño de la información de la mascota y cuáles dependen de ella para operar?
+- ¿Qué eventos de un contexto constituyen evidencia para el cálculo de otro?
+- ¿Qué integraciones con servicios de terceros deben aislarse para no contaminar el modelo de dominio?
+- ¿Qué ocurre si un proveedor externo (identidad, notificaciones, calendario) debe ser reemplazado?
+
+A partir de este análisis se identificaron y aplicaron los siguientes patrones de relación:
+
+- **Customer/Supplier**, en la relación de **Pet & Clinical Care** con **Appointment Management, Medication Treatment, Nutrition Management y Clinic Management**, donde Pet & Clinical Care actúa como *supplier* al proveer el identificador y los datos de la mascota y de los pacientes vinculados. De igual forma, **Clinic Management** actúa como *supplier* de **Appointment Management** al proveer los horarios de atención de la clínica mediante el evento `PerfilDeClínicaActualizado`. Al pertenecer todos los contextos al mismo equipo, los contextos *customer* pueden negociar directamente los datos que necesitan.
+- **Open Host Service (OHS) y Published Language**, en el contexto **IAM**, que expone un mecanismo estandarizado de autenticación y autorización basado en roles (dueño de mascota, veterinario y administrador de veterinaria), consumido por el resto de contextos para proteger sus operaciones. Los contextos consumidores adoptan el modelo de identidad y roles definido por IAM sin imponer el suyo (**Conformist**).
+- **Event-Driven Consistency**, en la propagación de los eventos `CitaVeterinariaAtendida` (publicado por Appointment Management) y `DosisDeMedicaciónAdministrada` (publicado por Medication Treatment), ambos consumidos por **Adherence & Gamification** como evidencia de cumplimiento para recalcular la adherencia y el nivel de constancia del dueño. Adherence & Gamification se comporta como *conformist* frente al contrato de dichos eventos, lo que evita acoplar los contextos clínicos a la lógica de gamificación.
+- **Anticorruption Layer (ACL)**, mediante adaptadores en la capa de infraestructura, en la integración de **IAM** con **Keycloak**, de **Medication Treatment, Nutrition Management y Adherence & Gamification** con **Firebase Cloud Messaging** para el envío de notificaciones push, y de **Appointment Management** con el **servicio externo de calendario**. Esto aísla el modelo de dominio de los contratos de cada proveedor y permite reemplazarlos sin afectar el núcleo del sistema, en línea con la decisión arquitectónica ADD08 (patrón Adapter).
+
+La siguiente tabla detalla cada relación del Context Map:
+
+| N.º | Upstream | Downstream | Patrón | Mensaje o contrato | Tipo |
+| --- | --- | --- | --- | --- | --- |
+| 1 | Keycloak (externo) | IAM | Anticorruption Layer | Identidad, credenciales y roles del usuario | Síncrona |
+| 2 | IAM | Todos los contextos | Open Host Service, Published Language (downstream: Conformist) | Identidad autenticada y roles | Síncrona |
+| 3 | Pet & Clinical Care | Appointment Management | Customer/Supplier | Identificador de la mascota | Síncrona |
+| 4 | Pet & Clinical Care | Medication Treatment | Customer/Supplier | Identificador de la mascota | Síncrona |
+| 5 | Pet & Clinical Care | Nutrition Management | Customer/Supplier | Identificador de la mascota | Síncrona |
+| 6 | Pet & Clinical Care | Clinic Management | Customer/Supplier | Pacientes vinculados a la clínica | Síncrona |
+| 7 | Clinic Management | Appointment Management | Customer/Supplier, Published Language | `PerfilDeClínicaActualizado` (horarios de atención) | Asíncrona |
+| 8 | Appointment Management | Adherence & Gamification | Event-Driven Consistency (downstream: Conformist) | `CitaVeterinariaAtendida` | Asíncrona |
+| 9 | Medication Treatment | Adherence & Gamification | Event-Driven Consistency (downstream: Conformist) | `DosisDeMedicaciónAdministrada` | Asíncrona |
+| 10 | Medication Treatment, Nutrition Management, Adherence & Gamification | Firebase Cloud Messaging (externo) | Anticorruption Layer | Recordatorios de medicación y alimentación, notificación de ascenso | Síncrona |
+| 11 | Appointment Management | Servicio de calendario (externo) | Anticorruption Layer | Sincronización de citas confirmadas | Síncrona |
+
+![Context Map de VetPax](./feature/Chapter-4/4.2.5-context-map.png)
+
+El Context Map resultante refleja a **Pet & Clinical Care** como el contexto central de VetPax, del cual dependen estructuralmente Appointment Management, Medication Treatment, Nutrition Management y Clinic Management para operar con datos fiables de la mascota. **Pet & Clinical Care, Medication Treatment, Nutrition Management y Adherence & Gamification** conforman los subdominios *core* que diferencian la propuesta de valor: el seguimiento clínico-nutricional continuo y la motivación de la constancia del dueño. **Appointment Management y Clinic Management** operan como subdominios de soporte que organizan la agenda y la información institucional de las veterinarias, mientras que **IAM** actúa como subdominio genérico transversal que provee seguridad a toda la solución.
+
+Esta organización responde directamente a la decisión de aplicar Domain-Driven Design con bounded contexts (ADD07) y refuerza los atributos de calidad de mantenibilidad e interoperabilidad, ya que cada contexto puede evolucionar de forma independiente y las integraciones externas quedan encapsuladas. Por último, WebSockets, al ser un mecanismo técnico de comunicación en tiempo real y no una capacidad del dominio, no se representa como relación entre contextos.
+
+---
+
+## 4.3. Software Architecture
+
+La arquitectura de software de VetPax se documenta siguiendo el modelo C4, que describe el sistema en niveles sucesivos de detalle: el ecosistema completo (System Landscape), el sistema y su entorno (Context), las aplicaciones y almacenes de datos que lo componen (Container) y su despliegue en infraestructura (Deployment). Los diagramas se construyeron con Structurizr DSL a partir de las decisiones arquitectónicas definidas en el Strategic-Level Attribute-Driven Design: arquitectura hexagonal (ADD01 y ADD02), APIs RESTful (ADD04), comunicación en tiempo real mediante WebSockets (ADD05), autenticación con Keycloak (ADD03), notificaciones con Firebase Cloud Messaging (ADD06) y adaptadores para servicios externos (ADD08).
+
+### 4.3.1. Software Architecture System Landscape Diagram
+
+*Expone el ecosistema completo donde nuestro sistema interactúa con múltiples sistemas externos, identificando dependencias y límites organizacionales.*
+
+El System Landscape Diagram incluye todos los sistemas de la solución, las personas que interactúan con ellos y los sistemas externos de los que dependen. Además de la **plataforma VetPax** (aplicación móvil, panel web y API), el ecosistema contempla la **VetPax Landing Page**, un sitio informativo independiente donde el visitante conoce la propuesta de valor y registra su interés; la landing envía esos leads a la plataforma y dirige a cada segmento hacia la aplicación correspondiente.
+
+**Personas**
+
+| Persona | Descripción |
+| --- | --- |
+| Dueño de mascota | Dueño de una mascota geriátrica o con enfermedad crónica. Gestiona su historial, citas, medicación y dieta desde la aplicación móvil. |
+| Veterinario | Registra atenciones clínicas, prescribe planes de dieta y gestiona su agenda de citas desde el panel web. |
+| Administrador de veterinaria | Configura el perfil y los horarios de atención de la clínica desde el panel web. |
+| Visitante | Persona interesada en conocer VetPax que registra su interés en la landing page. |
+
+**Sistemas**
+
+| Sistema | Tipo | Descripción |
+| --- | --- | --- |
+| VetPax | Sistema propio | Plataforma de seguimiento clínico-nutricional continuo para mascotas geriátricas o con enfermedades crónicas. |
+| VetPax Landing Page | Sistema propio | Sitio informativo con propuesta de valor, testimonios y captura de leads. |
+| Keycloak | Sistema externo | Proveedor de identidad: registro, autenticación y control de acceso basado en roles. |
+| Firebase Cloud Messaging | Sistema externo | Servicio de notificaciones push para recordatorios de medicación, alimentación, citas y reconocimientos. |
+| Servicio de calendario | Sistema externo | Servicio donde se sincronizan las citas confirmadas del veterinario. |
+
+![System Landscape Diagram](./feature/Chapter-4/4.3.1-system-landscape.png)
+
+### 4.3.2. Software Architecture Context Level Diagrams
+
+El System Context Diagram se enfoca únicamente en la **plataforma VetPax**, dejando fuera la landing page, y muestra cómo cada tipo de usuario se relaciona con ella y con qué sistemas externos se comunica. Este nivel permite comprender el alcance del sistema y sus dependencias sin entrar en detalles técnicos.
+
+| Origen | Destino | Interacción |
+| --- | --- | --- |
+| Dueño de mascota | VetPax | Usa la plataforma desde la aplicación móvil. |
+| Veterinario | VetPax | Usa la plataforma desde el panel web. |
+| Administrador de veterinaria | VetPax | Usa la plataforma desde el panel web. |
+| VetPax | Keycloak | Autentica usuarios y valida roles. |
+| VetPax | Firebase Cloud Messaging | Envía notificaciones push de recordatorios y reconocimientos. |
+| Firebase Cloud Messaging | VetPax | Entrega las notificaciones push al dispositivo del dueño. |
+| VetPax | Servicio de calendario | Sincroniza las citas confirmadas. |
+
+Las dependencias externas reflejan los atributos de calidad de seguridad (el control de acceso se delega en Keycloak, evitando gestionar credenciales dentro del dominio clínico) e interoperabilidad (las notificaciones y el calendario se consumen a través de interfaces desacopladas que pueden reemplazarse).
+
+![System Context Diagram](./feature/Chapter-4/4.3.2-system-context.png)
+
+### 4.3.3. Software Architecture Container Level Diagrams
+
+El Container Diagram descompone la plataforma VetPax en las aplicaciones y almacenes de datos que la componen. Todos los clientes consumen la misma API, lo que asegura coherencia de la información entre el dueño y la veterinaria. La Landing Page, como sistema independiente, se comunica con la API únicamente para registrar leads.
+
+**Contenedores**
+
+| Contenedor | Tecnología | Responsabilidad |
+| --- | --- | --- |
+| Mobile Application | Aplicación móvil | Permite al dueño gestionar el historial de su mascota, citas, recordatorios, dietas y su nivel de constancia. |
+| Web Application | Aplicación web (SPA) | Panel de la veterinaria: pacientes, agenda, historial clínico, planes de dieta y perfil de la clínica. |
+| Backend API | REST API + WebSocket, arquitectura hexagonal | Expone los casos de uso de los siete bounded contexts y las actualizaciones en tiempo real. |
+| Database | Base de datos | Almacena mascotas, historiales clínicos, citas, tratamientos, planes nutricionales, clínicas y progreso de adherencia. |
+
+**Comunicación entre contenedores**
+
+| Origen | Destino | Descripción | Protocolo |
+| --- | --- | --- | --- |
+| Mobile Application, Web Application | Backend API | Consumen los servicios de la plataforma | HTTPS/REST, JSON |
+| Mobile Application, Web Application | Backend API | Reciben actualizaciones clínicas en tiempo real | WebSocket |
+| Mobile Application, Web Application | Keycloak | Autentican al usuario | OpenID Connect/HTTPS |
+| Backend API | Keycloak | Valida tokens y roles | HTTPS |
+| Backend API | Database | Lee y escribe datos | Acceso a datos |
+| Backend API | Firebase Cloud Messaging | Envía notificaciones push | HTTPS |
+| Firebase Cloud Messaging | Mobile Application | Entrega notificaciones push | Push |
+| Backend API | Servicio de calendario | Sincroniza citas confirmadas | HTTPS |
+| VetPax Landing Page | Backend API | Registra leads | HTTPS/REST, JSON |
+
+**Organización interna del Backend API.** El backend aplica arquitectura hexagonal: cada bounded context se organiza en capas de dominio, aplicación e infraestructura, y las integraciones externas (Keycloak, Firebase Cloud Messaging, calendario) se implementan como adaptadores en la capa de infraestructura, de modo que el dominio no depende de ningún proveedor. La siguiente tabla relaciona cada bounded context con los recursos que expone la API y sus adaptadores:
+
+| Bounded Context | Recursos expuestos | Adaptadores de infraestructura |
+| --- | --- | --- |
+| Pet & Clinical Care | `/api/v1/pets`, `/api/v1/pets/{petId}/clinical-records`, `/api/v1/pets/{petId}/evolution` | Persistencia |
+| Appointment Management | `/api/v1/appointments` | Servicio de calendario (TS04), persistencia |
+| Medication Treatment | `/api/v1/pets/{petId}/medication-plans`, `/api/v1/medication-doses/{doseId}/administrations` | Firebase Cloud Messaging (TS06), persistencia |
+| Nutrition Management | `/api/v1/pets/{petId}/nutrition-plans` | Firebase Cloud Messaging (TS06), persistencia |
+| Clinic Management | `/api/v1/clinics/{clinicId}`, `/api/v1/clinics/{clinicId}/patients` | Persistencia |
+| Adherence & Gamification | Servicio de cálculo de adherencia (TS10) | Firebase Cloud Messaging (TS06), persistencia |
+| IAM | Autenticación y autorización con roles (TS12) | Keycloak |
+| Captación de leads | `/api/v1/leads` (TS11) | Persistencia |
+
+La comunicación en tiempo real mediante WebSockets (TS13) sincroniza las actualizaciones clínicas, los cambios de tratamiento y otros eventos relevantes entre la aplicación móvil del dueño y el panel web de la veterinaria, evitando consultas constantes al servidor.
+
+![Container Diagram](./feature/Chapter-4/4.3.3-container-diagram.png)
+
+### 4.3.4. Software Architecture Deployment Diagrams
+
+El Deployment Diagram muestra el entorno de producción y dónde se ejecuta cada contenedor. Separar el backend y la base de datos en nodos distintos permite escalar cada uno de forma independiente conforme crezca la cantidad de usuarios, mascotas y veterinarias afiliadas (ADD09), y mantener las integraciones externas fuera del núcleo desplegado.
+
+| Nodo de despliegue | Elemento desplegado | Tecnología |
+| --- | --- | --- |
+| Dispositivo móvil del dueño | Mobile Application | Android / iOS |
+| Navegador del veterinario | Web Application | Navegador web |
+| Hosting de la landing page | VetPax Landing Page | Hosting web |
+| Proveedor cloud → Servidor de aplicaciones | Backend API | Servicio de hosting del backend |
+| Proveedor cloud → Servidor de base de datos | Database | Servicio de base de datos administrado |
+| Proveedor cloud → Servidor de identidad | Keycloak | Keycloak Server |
+| Google Cloud | Firebase Cloud Messaging | Firebase |
+| Proveedor de calendario | Servicio de calendario | Servicio externo |
+
+Las consideraciones principales del despliegue son las siguientes:
+
+- **Seguridad:** toda la comunicación entre clientes, backend y servicios externos se realiza mediante HTTPS, y el acceso a los recursos protegidos se controla con la identidad y los roles gestionados por Keycloak.
+- **Escalabilidad:** el backend se despliega de forma independiente de la base de datos, por lo que puede ampliarse su capacidad sin modificar la lógica del dominio.
+- **Disponibilidad:** la información clínica se centraliza en una única base de datos gestionada, accesible desde la aplicación móvil y el panel web, lo que garantiza continuidad en el seguimiento.
+- **Interoperabilidad:** Firebase Cloud Messaging y el servicio de calendario se consumen mediante adaptadores, por lo que pueden reemplazarse sin afectar los nodos propios de VetPax.
+
+![Deployment Diagram](./feature/Chapter-4/4.3.4-deployment-diagram.png)
