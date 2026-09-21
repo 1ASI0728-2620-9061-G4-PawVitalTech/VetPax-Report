@@ -31,7 +31,7 @@
         Estas funcionalidades representan los principales flujos del negocio y determinan la necesidad de componentes independientes para gestión clínica, identidad, notificaciones y comunicación entre usuarios.
 
         - 4.1.2.2. Quality Attribute Scenarios
-          Los atributos de calidad representan las características no funcionales que guían las decisiones arquitectónicas de VetPax. Debido a que la plataforma gestiona información clínica de mascotas, comunicación entre usuarios y servicios externos, se consideran como principales atributos de calidad la seguridad, disponibilidad, escalabilidad, mantenibilidad e interoperabilidad.
+        - Los atributos de calidad representan las características no funcionales que guían las decisiones arquitectónicas de VetPax. Debido a que la plataforma gestiona información clínica de mascotas, comunicación entre usuarios y servicios externos, se consideran como principales atributos de calidad la seguridad, disponibilidad, escalabilidad, mantenibilidad e interoperabilidad.
         
         ### Seguridad
         
@@ -100,7 +100,7 @@
         | Gestión de información clínica | La solución debe conservar la trazabilidad de historiales, tratamientos y planes nutricionales asociados a cada mascota. |
         | Separación de responsabilidades | Los componentes del sistema deben mantener independencia entre dominio, aplicación e infraestructura para facilitar mantenimiento y evolución futura. |
     - 4.1.3. Architectural Drivers Backlog
-      El Architectural Drivers Backlog identifica y prioriza los principales factores que influyen en las decisiones arquitectónicas de VetPax. Estos drivers incluyen requerimientos funcionales críticos, atributos de calidad y restricciones técnicas que determinan la estructura del sistema.
+    - El Architectural Drivers Backlog identifica y prioriza los principales factores que influyen en las decisiones arquitectónicas de VetPax. Estos drivers incluyen requerimientos funcionales críticos, atributos de calidad y restricciones técnicas que determinan la estructura del sistema.
         
         La priorización considera el impacto arquitectónico de cada elemento, donde los drivers con mayor prioridad representan aquellos que condicionan directamente la selección de estilos arquitectónicos, componentes y tecnologías utilizadas.
         
@@ -118,7 +118,23 @@
         | AD10 | Integración con servicios externos | Restricción / Interoperabilidad | La plataforma debe comunicarse con servicios externos para autenticación, notificaciones y comunicación. | Requiere una capa de infraestructura desacoplada mediante adaptadores externos. |
         
         Los drivers arquitectónicos identificados orientan las siguientes decisiones de diseño, definiendo la arquitectura hexagonal, la separación por dominios funcionales, la integración con servicios externos y los mecanismos necesarios para garantizar seguridad, mantenibilidad y escalabilidad.
+      
     - 4.1.4. Architectural Design Decisions
+    - Las decisiones de diseño arquitectónico de VetPax fueron definidas considerando los principales drivers arquitectónicos identificados previamente. Estas decisiones buscan garantizar una solución escalable, segura, mantenible y capaz de integrar diferentes servicios tecnológicos necesarios para el seguimiento clínico-nutricional de mascotas geriátricas o con enfermedades crónicas.
+
+| ID | Decisión arquitectónica | Drivers relacionados | Justificación | Beneficio esperado |
+|---|---|---|---|---|
+| ADD01 | Implementación de arquitectura hexagonal | AD01, AD08 | Se utilizará arquitectura hexagonal para separar la lógica del dominio clínico de componentes externos como bases de datos, frameworks e integraciones con terceros. | Facilita la mantenibilidad, pruebas del sistema y evolución independiente de componentes. |
+| ADD02 | Separación del sistema en capas de dominio, aplicación e infraestructura | AD01, AD08 | El sistema será organizado separando reglas del negocio, casos de uso e implementaciones técnicas externas. | Reduce el acoplamiento entre componentes y permite modificar tecnologías sin afectar la lógica principal. |
+| ADD03 | Implementación de autenticación y autorización mediante Keycloak | AD02 | Se utilizará Keycloak como proveedor de identidad para gestionar usuarios, autenticación y permisos según roles. | Permite proteger información clínica y controlar accesos diferenciados entre propietarios, veterinarios y administradores. |
+| ADD04 | Exposición de servicios mediante APIs RESTful | AD03, AD04, AD06 | Las funcionalidades principales del backend serán consumidas mediante APIs REST que permitirán la comunicación entre la aplicación móvil, panel web y servicios internos. | Facilita la integración entre clientes y backend, además de permitir crecimiento futuro de la plataforma. |
+| ADD05 | Implementación de comunicación en tiempo real mediante WebSockets | AD04 | Se utilizarán WebSockets para mantener una comunicación bidireccional entre usuarios y permitir actualizaciones inmediatas de información clínica y eventos relevantes. | Mejora la experiencia de usuario al reflejar cambios sin necesidad de realizar consultas constantes. |
+| ADD06 | Integración con Firebase Cloud Messaging para notificaciones | AD05 | Se utilizará Firebase Cloud Messaging para enviar recordatorios relacionados con medicación, alimentación y citas veterinarias. | Permite automatizar comunicaciones importantes y mejorar la adherencia al tratamiento. |
+| ADD07 | Separación del dominio mediante bounded contexts | AD03, AD07, AD08 | Se aplicará Domain-Driven Design para dividir el sistema en contextos delimitados como historial clínico, citas, nutrición, usuarios y gamificación. | Permite organizar mejor la lógica del negocio y facilita la evolución independiente de cada módulo. |
+| ADD08 | Uso del patrón Adapter para integraciones externas | AD10 | Las conexiones con servicios externos serán encapsuladas mediante adaptadores independientes dentro de la capa de infraestructura. | Permite reemplazar proveedores externos sin modificar el núcleo del sistema. |
+| ADD09 | Diseño orientado a escalabilidad | AD06, AD09 | Los componentes principales serán diseñados de manera modular para permitir crecimiento de usuarios, mascotas registradas y veterinarias afiliadas. | Permite ampliar la capacidad del sistema manteniendo estabilidad y rendimiento. |
+
+En conjunto, estas decisiones arquitectónicas permiten que VetPax mantenga una estructura flexible y preparada para futuras ampliaciones, asegurando que las funcionalidades clínicas, nutricionales y de comunicación puedan evolucionar sin comprometer la estabilidad del sistema.
     - 4.1.5. Quality Attribute Scenario Refinements
 
 - 4.2. Strategic-Level Domain-Driven Design
