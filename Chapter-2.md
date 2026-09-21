@@ -235,17 +235,6 @@ En síntesis, la estrategia competitiva de VetPax estará centrada en **especial
 
 #### Segmento 1: Dueños de mascotas geriátricas o con enfermedades crónicas
 
-<table>
-  <tr><td><b>Nombres y Apellidos</b></td><td>Daniel Monago Garcia</td></tr>
-  <tr><td><b>Edad</b></td><td>21</td></tr>
-  <tr><td><b>Distrito</b></td><td>Villa el salvador</td></tr>
-  <tr><td><b>Motivación</b></td><td>Poder cuidar a su mascota dia a dia</td></tr>
-  <tr><td><b>Frustración</b></td><td>No poder acordarse las fechas medicas para su mascota</td></tr>
-  <tr><td><b>Evidencia</b></td><td><img src="feature/Chapter-2/Evidencia1.png" width="300"></td></tr>
-  <tr><td><b>Link</b></td><td><a href="https://drive.google.com/drive/folders/1adbKDPv-OOfeYxu0JS2ttc6gVqFK-oC8?usp=sharing">Video Entrevista</a></td></tr>
-  <tr><td><b>Duración</b></td><td>5:29</td></tr>
-  <tr><td><b>Resumen</b></td><td>Daniel Monago es un estudiante de San Marcos que es muy atento con sus animales ya que le tiene un cariño enorme, el siempre trata de encontrar tiempo para cuidarlos mejor y cumplir con sus chequeos medicos.</td></tr>
-</table>
 
 <table>
   <tr><td><b>Nombres y Apellidos</b></td><td>Felix Zegarra</td></tr>
@@ -254,20 +243,34 @@ En síntesis, la estrategia competitiva de VetPax estará centrada en **especial
   <tr><td><b>Motivación</b></td><td>Mantener saludable a su perro</td></tr>
   <tr><td><b>Frustración</b></td><td>No tener mucho tiempo para el cuidado medico de su mascota</td></tr>
   <tr><td><b>Evidencia</b></td><td><img src="feature/Chapter-2/Evidencia2.png" width="300"></td></tr>
-  <tr><td><b>Link</b></td><td><a href="https://drive.google.com/drive/folders/1adbKDPv-OOfeYxu0JS2ttc6gVqFK-oC8?usp=sharing">Video Entrevista</a></td></tr>
-  <tr><td><b>Duración</b></td><td>9:16</td></tr>
+  <tr><td><b>Link</b></td><td><a href="https://upcedupe-my.sharepoint.com/:v:/g/personal/u202312318_upc_edu_pe/IQDtK3qsU4bdR7dBQlJ9PcFtAWoVd9_egjrSC54FS-W7Kyk?e=Zh15yT&nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJTdHJlYW1XZWJBcHAiLCJyZWZlcnJhbFZpZXciOiJTaGFyZURpYWxvZy1MaW5rIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXcifX0%3D">Video Entrevista</a></td></tr>
+  <tr><td><b>Duración</b></td><td>0:00 - 9:16</td></tr>
   <tr><td><b>Resumen</b></td><td>Felix Zegarra es un estudiante universitario que tiene un golden al que quiere un monton y lo cuida con su dieta, el cuenta con un problema ya que lleva pocas veces al veterinario al golden debido a la falta de tiempo, por lo cual el necesitaria ayuda online para llevar el seguimiento medico de su mascota.</td></tr>
 </table>
 
 <table>
-  <tr><td><b>Nombres y Apellidos</b></td><td>Diego Vilca</td></tr>
+  <tr><td><b>Nombres y Apellidos</b></td><td>Daniel Monago Garcia</td></tr>
   <tr><td><b>Edad</b></td><td>21</td></tr>
   <tr><td><b>Distrito</b></td><td>Villa el salvador</td></tr>
+  <tr><td><b>Motivación</b></td><td>Poder cuidar a su mascota dia a dia</td></tr>
+  <tr><td><b>Frustración</b></td><td>No poder acordarse las fechas medicas para su mascota</td></tr>
+  <tr><td><b>Evidencia</b></td><td><img src="feature/Chapter-2/Evidencia1.png" width="300"></td></tr>
+  <tr><td><b>Link</b></td><td><a href="https://upcedupe-my.sharepoint.com/:v:/g/personal/u202312318_upc_edu_pe/IQDtK3qsU4bdR7dBQlJ9PcFtAWoVd9_egjrSC54FS-W7Kyk?e=Zh15yT&nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJTdHJlYW1XZWJBcHAiLCJyZWZlcnJhbFZpZXciOiJTaGFyZURpYWxvZy1MaW5rIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXcifX0%3D">Video Entrevista</a></td></tr>
+  <tr><td><b>Duración</b></td><td>9:17 - 14:45 </td></tr>
+  <tr><td><b>Resumen</b></td><td>Daniel Monago es un estudiante de San Marcos que es muy atento con sus animales ya que le tiene un cariño enorme, el siempre trata de encontrar tiempo para cuidarlos mejor y cumplir con sus chequeos medicos.</td></tr>
+</table>
+
+
+
+<table>
+  <tr><td><b>Nombres y Apellidos</b></td><td>Diego Vilca</td></tr>
+  <tr><td><b>Edad</b></td><td>21</td></tr>
+  <tr><td><b>Distrito</b></td><td>La Victoria</td></tr>
   <tr><td><b>Motivación</b></td><td>Lograr que sus perros vivan mas tiempo</td></tr>
   <tr><td><b>Frustración</b></td><td>No tener mucho tiempo para llevarlo seguidamente al veterinario</td></tr>
   <tr><td><b>Evidencia</b></td><td><img src="feature/Chapter-2/Evidencia3.png" width="300"></td></tr>
-  <tr><td><b>Link</b></td><td><a href="">Video Entrevista</a></td></tr>
-  <tr><td><b>Duración</b></td><td>4:14</td></tr>
+  <tr><td><b>Link</b></td><td><a href="https://upcedupe-my.sharepoint.com/:v:/g/personal/u202312318_upc_edu_pe/IQDtK3qsU4bdR7dBQlJ9PcFtAWoVd9_egjrSC54FS-W7Kyk?e=Zh15yT&nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJTdHJlYW1XZWJBcHAiLCJyZWZlcnJhbFZpZXciOiJTaGFyZURpYWxvZy1MaW5rIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXcifX0%3D">Video Entrevista</a></td></tr>
+  <tr><td><b>Duración</b></td><td>14:46 - 19:00</td></tr>
   <tr><td><b>Resumen</b></td><td>Diego Vilca es un estudiante universitario que actualmente lleva muchas dificultades en el cuidado de sus 2 perritos por temas de la universidad y sobre todo en sus visitas periodicas a la veterinaria..</td></tr>
 </table>
 
@@ -276,12 +279,12 @@ En síntesis, la estrategia competitiva de VetPax estará centrada en **especial
 <table>
   <tr><td><b>Nombres y Apellidos</b></td><td>Diego Bastidas</td></tr>
   <tr><td><b>Edad</b></td><td>24</td></tr>
-  <tr><td><b>Distrito</b></td><td>Villa el salvador</td></tr>
+  <tr><td><b>Distrito</b></td><td>Miraflores</td></tr>
   <tr><td><b>Motivación</b></td><td>Desarrollarse laboralmente</td></tr>
   <tr><td><b>Frustración</b></td><td>Incomodidad en los servicios actuales de su veterinaria</td></tr>
   <tr><td><b>Evidencia</b></td><td><img src="feature/Chapter-2/Evidencia4.png" width="300"></td></tr>
-  <tr><td><b>Link</b></td><td><a href="">Video Entrevista</a></td></tr>
-  <tr><td><b>Duración</b></td><td>4:37</td></tr>
+  <tr><td><b>Link</b></td><td><a href="https://upcedupe-my.sharepoint.com/:v:/g/personal/u202312318_upc_edu_pe/IQDtK3qsU4bdR7dBQlJ9PcFtAWoVd9_egjrSC54FS-W7Kyk?e=Zh15yT&nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJTdHJlYW1XZWJBcHAiLCJyZWZlcnJhbFZpZXciOiJTaGFyZURpYWxvZy1MaW5rIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXcifX0%3D">Video Entrevista</a></td></tr>
+  <tr><td><b>Duración</b></td><td>19:01 - 23:40</td></tr>
   <tr><td><b>Resumen</b></td><td>Diego Bastidas es un profesional en sector de veterinaria, que actualmente le cuesta manejar las basta cantidad de clientes con las herramientas que le proporciona su veterinaria donde esta trabajando, lo que le genera estres laboral.</td></tr>
 </table>
 
@@ -292,9 +295,21 @@ En síntesis, la estrategia competitiva de VetPax estará centrada en **especial
   <tr><td><b>Motivación</b></td><td>Realizar su trabajo comodamente</td></tr>
   <tr><td><b>Frustración</b></td><td>Incomodidad en los servicios actuales de su veterinaria</td></tr>
   <tr><td><b>Evidencia</b></td><td><img src="feature/Chapter-2/adrian-segmento2.png" width="300"></td></tr>
-  <tr><td><b>Link</b></td><td><a href="https://1drv.ms/v/c/56ff8d3b67b8422d/IQDenWgapqdbQryCJaATPV3GAdUW-xoQWaJv_i50odSATzg?e=mA3xD5">Video Entrevista</a></td></tr>
-  <tr><td><b>Duración</b></td><td>3:45</td></tr>
+  <tr><td><b>Link</b></td><td><a href="https://upcedupe-my.sharepoint.com/:v:/g/personal/u202312318_upc_edu_pe/IQDtK3qsU4bdR7dBQlJ9PcFtAWoVd9_egjrSC54FS-W7Kyk?e=Zh15yT&nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJTdHJlYW1XZWJBcHAiLCJyZWZlcnJhbFZpZXciOiJTaGFyZURpYWxvZy1MaW5rIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXcifX0%3D">Video Entrevista</a></td></tr>
+  <tr><td><b>Duración</b></td><td>23:40 - 27:25</td></tr>
   <tr><td><b>Resumen</b></td><td>Carlos Ramirez, es un trabajador en una veterinaria el cual encuentra dificultades en su trabajo cuando los dueños de sus pacientes no recuerdan su historial médico o algunas de las citas de sus mascotas y cree que nuestra plataforma seria de gran ayuda</td></tr>
+</table>
+
+<table>
+  <tr><td><b>Nombres y Apellidos</b></td><td>Vivian Chipiama</td></tr>
+  <tr><td><b>Edad</b></td><td>21</td></tr>
+  <tr><td><b>Distrito</b></td><td>San Isidro</td></tr>
+  <tr><td><b>Motivación</b></td><td>La buena salud de su mascota</td></tr>
+  <tr><td><b>Frustración</b></td><td>La falta economica para el cuidado de las mascotas</td></tr>
+  <tr><td><b>Evidencia</b></td><td><img src="feature/Chapter-2/Evidencia6.png" width="300"></td></tr>
+  <tr><td><b>Link</b></td><td><a href="https://upcedupe-my.sharepoint.com/:v:/g/personal/u202312318_upc_edu_pe/IQDtK3qsU4bdR7dBQlJ9PcFtAWoVd9_egjrSC54FS-W7Kyk?e=Zh15yT&nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJTdHJlYW1XZWJBcHAiLCJyZWZlcnJhbFZpZXciOiJTaGFyZURpYWxvZy1MaW5rIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXcifX0%3D">Video Entrevista</a></td></tr>
+  <tr><td><b>Duración</b></td><td>27:25 - 32:34</td></tr>
+  <tr><td><b>Resumen</b></td><td>Vivian Chipiama, es una estudiante de veterinaria el cual encuentra dificultades en su trabajo por la plataforma la cuel le provee su veterinaria</td></tr>
 </table>
 
 ### 2.2.3. Análisis de entrevistas
