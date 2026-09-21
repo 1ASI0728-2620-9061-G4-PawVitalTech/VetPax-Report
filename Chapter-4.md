@@ -135,7 +135,21 @@
 | ADD09 | Diseño orientado a escalabilidad | AD06, AD09 | Los componentes principales serán diseñados de manera modular para permitir crecimiento de usuarios, mascotas registradas y veterinarias afiliadas. | Permite ampliar la capacidad del sistema manteniendo estabilidad y rendimiento. |
 
 En conjunto, estas decisiones arquitectónicas permiten que VetPax mantenga una estructura flexible y preparada para futuras ampliaciones, asegurando que las funcionalidades clínicas, nutricionales y de comunicación puedan evolucionar sin comprometer la estabilidad del sistema.
-    - 4.1.5. Quality Attribute Scenario Refinements
+
+- 4.1.5. Quality Attribute Scenario Refinements
+- Los escenarios de atributos de calidad definidos anteriormente son refinados considerando las decisiones arquitectónicas adoptadas para VetPax. Este refinamiento permite establecer cómo la arquitectura propuesta responde a los principales requerimientos de calidad relacionados con seguridad, disponibilidad, escalabilidad, mantenibilidad e interoperabilidad.
+
+| Atributo de calidad | Escenario refinado | Decisión arquitectónica aplicada | Resultado esperado |
+|---|---|---|---|
+| **Seguridad** | Cuando un usuario intenta acceder a información clínica de una mascota, el sistema debe validar su identidad y permisos antes de permitir el acceso. | Integración con Keycloak para autenticación y autorización basada en roles, diferenciando propietarios, veterinarios y administradores. | Garantizar que cada usuario acceda únicamente a la información y funcionalidades correspondientes a sus permisos. |
+| **Disponibilidad** | Cuando un propietario o veterinario consulta información clínica, el sistema debe responder mostrando los registros disponibles sin interrupciones durante la operación normal. | Uso de servicios backend independientes y persistencia centralizada de información clínica. | Mantener disponible la información necesaria para el seguimiento continuo de mascotas con enfermedades crónicas o geriátricas. |
+| **Escalabilidad** | Cuando aumenta la cantidad de usuarios, mascotas registradas y veterinarias afiliadas, el sistema debe incrementar su capacidad sin afectar sus funcionalidades principales. | Diseño modular basado en arquitectura hexagonal y separación de responsabilidades entre componentes. | Permitir el crecimiento progresivo de VetPax sin realizar modificaciones importantes en la lógica del negocio. |
+| **Mantenibilidad** | Cuando el equipo de desarrollo necesita modificar una funcionalidad o reemplazar una tecnología externa, los cambios deben estar aislados del núcleo del sistema. | Implementación de arquitectura hexagonal con separación entre dominio, aplicación e infraestructura. | Facilitar la evolución del sistema, pruebas independientes y reducción del impacto de cambios futuros. |
+| **Interoperabilidad** | Cuando VetPax necesita comunicarse con servicios externos para autenticación, notificaciones o comunicación en tiempo real, la integración debe realizarse sin afectar el dominio principal. | Uso de adaptadores para servicios externos como Keycloak y Firebase Cloud Messaging. | Permitir integrar o reemplazar proveedores externos manteniendo estable la lógica interna del sistema. |
+| **Rendimiento** | Cuando un usuario consulta información clínica o realiza una acción frecuente dentro de la plataforma, el sistema debe procesar la solicitud en tiempos adecuados. | Uso de APIs REST para comunicación eficiente entre clientes y servicios backend. | Mejorar la experiencia de usuario mediante respuestas rápidas en operaciones frecuentes. |
+| **Comunicación en tiempo real** | Cuando un veterinario registra o actualiza información clínica, los usuarios autorizados deben recibir la actualización correspondiente. | Implementación de WebSockets para comunicación bidireccional entre aplicaciones cliente y servicios backend. | Permitir sincronización inmediata de cambios clínicos, tratamientos y eventos relevantes. |
+
+Estos escenarios refinados permiten validar que las decisiones arquitectónicas seleccionadas responden a las necesidades principales de VetPax, asegurando una plataforma preparada para gestionar seguimiento clínico-nutricional continuo, integración con servicios externos y crecimiento futuro.
 
 - 4.2. Strategic-Level Domain-Driven Design
     - 4.2.1. EventStorming
