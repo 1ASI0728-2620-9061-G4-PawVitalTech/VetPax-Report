@@ -233,6 +233,8 @@ En síntesis, la estrategia competitiva de VetPax estará centrada en **especial
 
 ### 2.2.2. Registro de entrevistas
 
+#### Segmento 1: Dueños de mascotas geriátricas o con enfermedades crónicas
+
 <table>
   <tr><td><b>Nombres y Apellidos</b></td><td>Daniel Monago Garcia</td></tr>
   <tr><td><b>Edad</b></td><td>21</td></tr>
@@ -255,6 +257,32 @@ En síntesis, la estrategia competitiva de VetPax estará centrada en **especial
   <tr><td><b>Link</b></td><td><a href="https://drive.google.com/drive/folders/1adbKDPv-OOfeYxu0JS2ttc6gVqFK-oC8?usp=sharing">Video Entrevista</a></td></tr>
   <tr><td><b>Duración</b></td><td>9:16</td></tr>
   <tr><td><b>Resumen</b></td><td>Felix Zegarra es un estudiante universitario que tiene un golden al que quiere un monton y lo cuida con su dieta, el cuenta con un problema ya que lleva pocas veces al veterinario al golden debido a la falta de tiempo, por lo cual el necesitaria ayuda online para llevar el seguimiento medico de su mascota.</td></tr>
+</table>
+
+<table>
+  <tr><td><b>Nombres y Apellidos</b></td><td>Diego Vilca</td></tr>
+  <tr><td><b>Edad</b></td><td>21</td></tr>
+  <tr><td><b>Distrito</b></td><td>Villa el salvador</td></tr>
+  <tr><td><b>Motivación</b></td><td>Lograr que sus perros vivan mas tiempo</td></tr>
+  <tr><td><b>Frustración</b></td><td>No tener mucho tiempo para llevarlo seguidamente al veterinario</td></tr>
+  <tr><td><b>Evidencia</b></td><td><img src="feature/Chapter-2/Evidencia3.png" width="300"></td></tr>
+  <tr><td><b>Link</b></td><td><a href="">Video Entrevista</a></td></tr>
+  <tr><td><b>Duración</b></td><td>4:14</td></tr>
+  <tr><td><b>Resumen</b></td><td>Diego Vilca es un estudiante universitario que actualmente lleva muchas dificultades en el cuidado de sus 2 perritos por temas de la universidad y sobre todo en sus visitas periodicas a la veterinaria..</td></tr>
+</table>
+
+### Segmento 2: Veterinarias y clínicas especializadas
+
+<table>
+  <tr><td><b>Nombres y Apellidos</b></td><td>Diego Bastidas</td></tr>
+  <tr><td><b>Edad</b></td><td>24</td></tr>
+  <tr><td><b>Distrito</b></td><td>Villa el salvador</td></tr>
+  <tr><td><b>Motivación</b></td><td>Desarrollarse laboralmente</td></tr>
+  <tr><td><b>Frustración</b></td><td>Incomodidad en los servicios actuales de su veterinaria</td></tr>
+  <tr><td><b>Evidencia</b></td><td><img src="feature/Chapter-2/Evidencia4.png" width="300"></td></tr>
+  <tr><td><b>Link</b></td><td><a href="">Video Entrevista</a></td></tr>
+  <tr><td><b>Duración</b></td><td>4:37</td></tr>
+  <tr><td><b>Resumen</b></td><td>Diego Bastidas es un profesional en sector de veterinaria, que actualmente le cuesta manejar las basta cantidad de clientes con las herramientas que le proporciona su veterinaria donde esta trabajando, lo que le genera estres laboral.</td></tr>
 </table>
 
 ### 2.2.3. Análisis de entrevistas
