@@ -51,7 +51,7 @@ En esta sección se especifican los Epic Stories, User Stories y Technical Stori
 | **TS13** | Implementación de comunicación en tiempo real mediante WebSockets | **Como** desarrollador, **quiero** implementar comunicación bidireccional mediante WebSockets, **para** sincronizar actualizaciones clínicas, cambios de tratamiento y eventos relevantes entre la aplicación móvil del dueño y el panel web veterinario. | **E01: Conexión establecida.** Dado que un usuario autenticado accede a la plataforma, cuando establece conexión WebSocket, entonces el sistema mantiene un canal activo de comunicación en tiempo real.<br><br>**E02: Actualización clínica inmediata.** Dado que un veterinario registra o modifica información clínica, cuando se confirma el cambio, entonces el sistema envía la actualización a los usuarios autorizados conectados.<br><br>**E03: Reconexión controlada.** Dado que un cliente pierde conexión, cuando intenta reconectarse, entonces el sistema restablece la comunicación sin pérdida de información pendiente. | EP01 / EP03 / EP04 |
 
 - 3.3. Impact Mapping
-![Impact Mapping](/../feature/Chapter-3/VetPax.png)
+<img src="./feature/Chapter-3/VetPax.png" alt="Impact mapping">
 - 3.4. Product Backlog
 
 El Product Backlog de VetPax organiza y prioriza las historias de acuerdo con el **valor aportado al negocio y a los segmentos objetivo**. La priorización considera desde el primer sprint las historias asociadas con la Landing Page, conforme a las disposiciones del enunciado del curso. Las historias relacionadas con autenticación y seguridad se incluyen en el backlog, pero no se ubican automáticamente en las primeras posiciones, ya que el orden responde principalmente al valor de negocio.
