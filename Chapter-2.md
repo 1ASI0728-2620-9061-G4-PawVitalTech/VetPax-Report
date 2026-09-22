@@ -329,6 +329,45 @@ Ficha de User Persona 2 — Segmento 2: Veterinarias y clínicas especializadas
 <img src="./feature/Chapter-2/Userpersona_Rosa.png" alt="User Persona Segmento 2" width="340" height="410">
 
 ### 2.3.2. User Task Matrix
+
+Se presenta la matriz de tareas de usuario (User Task Matrix), la cual relaciona las tareas
+identificadas para cada User Persona con la frecuencia con la que las realizarían y el nivel de importancia
+que tienen dentro de la plataforma VetPax. Esta matriz permite priorizar las funcionalidades que deberán
+implementarse según las necesidades reales de cada perfil de usuario.
+
+**Escala de Frecuencia:** Diaria (D) / Semanal (S) / Mensual (M) / Ocasional (O)
+**Escala de Importancia:** Alta / Media / Baja
+
+#### Matriz de Tareas – Jorge (Dueño de mascota)
+
+| Tarea | Frecuencia | Importancia | Comentario |
+|---|---|---|---|
+| Consultar el estado de salud de su mascota | Diaria | Alta | Su principal objetivo (Goal): saber el estado de sus mascotas en todo momento. |
+| Recibir recordatorios de medicación | Diaria | Alta | Su rutina laboral le deja poco tiempo, por lo que depende de alertas automáticas. |
+| Recibir recordatorios de citas veterinarias | Semanal | Alta | Le ayuda a no perjudicar la salud de su mascota por falta de tiempo. |
+| Consultar el historial clínico de su mascota | Semanal | Alta | Le da tranquilidad y evita depender únicamente de la memoria. |
+| Seguir el plan de alimentación indicado por la veterinaria | Semanal | Alta | Relacionado con su meta de recibir informes alimenticios sobre sus mascotas. |
+| Registrar el cumplimiento de actividades de cuidado | Semanal | Media | Le permite sentir que está cumpliendo adecuadamente con el tratamiento. |
+| Contactar a la veterinaria por dudas puntuales | Ocasional | Media | Busca recibir una atención personalizada, uno de sus objetivos principales. |
+| Revisar su progreso en el sistema de gamificación (Bronce, Plata, Oro) | Ocasional | Media | Sirve como incentivo, aunque no es una tarea prioritaria frente al cuidado directo. |
+| Actualizar datos o agregar una nueva mascota al perfil | Ocasional | Baja | Tarea puntual, no recurrente en el uso diario de la aplicación. |
+
+
+#### Matriz de Tareas – Rosa (Veterinaria)
+
+| Tarea | Frecuencia | Importancia | Comentario |
+|---|---|---|---|
+| Actualizar historial clínico de pacientes crónicos/geriátricos | Diaria | Alta | Tarea central de su rol; necesita registrar consultas, diagnósticos y tratamientos de forma rápida. |
+| Gestionar agenda de citas de la clínica | Diaria | Alta | Requiere organizar controles frecuentes de pacientes crónicos. |
+| Consultar historial clínico previo de una mascota | Diaria | Alta | Necesario para dar continuidad al tratamiento, incluso si el dueño cambió de veterinaria. |
+| Prescribir planes de alimentación personalizados | Semanal | Alta | Parte de su motivación por brindar un seguimiento nutricional detallado. |
+| Registrar recordatorios de medicación y controles para el dueño | Semanal | Media | Apoya la adherencia del dueño al tratamiento. |
+| Generar reportes de evolución de la mascota | Mensual | Alta | Vinculado a su meta de crear informes detallados sobre el estado de salud. |
+| Comunicarse con el dueño de la mascota (chat/soporte) | Semanal | Media | Ayuda a reducir la desinformación que percibe como un "pain" frecuente. |
+| Difundir información educativa sobre cuidado y nutrición | Mensual | Media | Relacionado con su motivación de incentivar el cuidado en los dueños. |
+| Revisar el nivel de gamificación (Bronce, Plata, Oro) del dueño | Ocasional | Baja | Le permite identificar qué tan comprometidos están sus clientes con el tratamiento. |
+
+
 ### 2.3.3. Empathy Mapping
 ### 2.3.4. As-is Scenario Mapping
 
