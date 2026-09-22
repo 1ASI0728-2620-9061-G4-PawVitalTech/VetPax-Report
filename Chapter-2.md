@@ -369,6 +369,12 @@ implementarse según las necesidades reales de cada perfil de usuario.
 
 
 ### 2.3.3. Empathy Mapping
+
+![Jorge Empathy Mapping](feature/Chapter-2/Jorge_em.png)
+
+![Rosa Empathy Mapping](feature/Chapter-2/Rosa_em.png)
+
+
 ### 2.3.4. As-is Scenario Mapping
 
 - 2.4. Ubiquitous Language
