@@ -317,16 +317,14 @@ En síntesis, la estrategia competitiva de VetPax estará centrada en **especial
 ## 2.3. Needfinding
 ### 2.3.1. User Personas
       
-Ficha de User Persona 1 — Segmento 1: Dueños de mascotas geriátricas o con enfermedades crónicas
+#### Ficha de User Persona 1 — Segmento 1: Dueños de mascotas geriátricas o con enfermedades crónicas
 
-<img src="./feature/Chapter-2/Userpersona_Jorge.png" alt="User Persona Segmento 1" width="340" height="410">
+![User Persona Segmento 1](feature/Chapter-2/Userpersona_Jorge.png)
 
-<br>
-<br>
 
-Ficha de User Persona 2 — Segmento 2: Veterinarias y clínicas especializadas
+#### Ficha de User Persona 2 — Segmento 2: Veterinarias y clínicas especializadas
 
-<img src="./feature/Chapter-2/Userpersona_Rosa.png" alt="User Persona Segmento 2" width="340" height="410">
+![User Persona Segmento 2](feature/Chapter-2/Userpersona_Rosa.png)
 
 ### 2.3.2. User Task Matrix
 
