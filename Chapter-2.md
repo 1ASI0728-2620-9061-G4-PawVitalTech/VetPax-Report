@@ -386,3 +386,26 @@ implementarse según las necesidades reales de cada perfil de usuario.
 ![Segmento 2 As-is Scenario Mapping](feature/Chapter-2/Segmento2_ASis.png)
 
 ## 2.4. Ubiquitous Language
+
+| **Palabra** | **Descripción** |
+|---|---|
+| **Pet Owner / Dueño de mascota** | Persona a cargo de una mascota geriátrica o crónica que usa la app para gestionar historial, recordatorios y alimentación. |
+| **Geriatric Pet / Mascota Geriátrica** | Mascota de edad avanzada que requiere controles médicos y nutricionales más frecuentes. |
+| **Chronic Condition / Enfermedad Crónica** | Condición de salud prolongada (diabetes, insuficiencia renal, artritis, hipotiroidismo) que exige seguimiento continuo. |
+| **Clinical History / Historial Clínico** | Registro centralizado de consultas, diagnósticos y tratamientos de una mascota a lo largo del tiempo. |
+| **Veterinary Clinic / Veterinaria** | Clínica o profesional de salud animal que atiende mascotas y gestiona pacientes desde el panel web. |
+| **Appointment / Cita** | Consulta programada entre el dueño y la veterinaria para un control o tratamiento. |
+| **Medication Reminder / Recordatorio de Medicación** | Notificación automática que avisa al dueño la administración de un medicamento a su mascota. |
+| **Appointment Reminder / Recordatorio de Cita** | Notificación automática que avisa al dueño sobre una próxima cita veterinaria. |
+| **Nutrition Plan / Plan de Alimentación** | Indicaciones nutricionales personalizadas, avaladas por la veterinaria, según la condición de la mascota. |
+| **Treatment Adherence / Adherencia al Tratamiento** | Nivel de cumplimiento del dueño respecto a controles y medicación indicados. |
+| **Treatment Continuity / Continuidad del Tratamiento** | Seguimiento clínico ininterrumpido de una mascota, aun al cambiar de veterinaria. |
+| **Gamification Level / Nivel de Gamificación** | Categoría (Bronce, Plata, Oro) que reconoce la constancia del dueño en el cuidado de su mascota. |
+| **Diagnosis / Diagnóstico** | Determinación del estado de salud de una mascota realizada por la veterinaria. |
+| **Consultation / Consulta** | Atención brindada a una mascota en la que se registran diagnósticos y tratamientos. |
+| **Evolution Report / Reporte de Evolución** | Resumen del progreso de salud de una mascota generado a partir de su historial clínico. |
+| **Patient Management Panel / Panel de Gestión de Pacientes** | Herramienta de la veterinaria para administrar agenda e historiales de sus pacientes. |
+| **Pet Profile / Perfil de Mascota** | Datos básicos de una mascota (especie, edad, condición) registrados en la plataforma. |
+| **Freemium Model / Modelo Freemium** | Modelo de negocio con funciones básicas gratuitas y funciones avanzadas mediante suscripción. |
+| **Premium Subscription / Suscripción Premium** | Plan de pago con acceso a planes de dieta avanzados, reportes y múltiples mascotas. |
+| **Pilot Veterinary Clinic / Veterinaria Piloto** | Clínica que participa en la validación temprana de la plataforma antes de su lanzamiento. |
