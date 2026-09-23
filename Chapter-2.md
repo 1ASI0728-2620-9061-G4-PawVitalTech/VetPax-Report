@@ -377,4 +377,12 @@ implementarse según las necesidades reales de cada perfil de usuario.
 
 ### 2.3.4. As-is Scenario Mapping
 
-- 2.4. Ubiquitous Language
+#### Segmento 1: Dueños de mascotas geriátricas o con enfermedades crónicas
+
+![Segmento 1 As-is Scenario Mapping](feature/Chapter-2/Segmento1_ASis.png)
+
+#### Segmento 2: Veterinarias y clínicas especializadas
+
+![Segmento 2 As-is Scenario Mapping](feature/Chapter-2/Segmento2_ASis.png)
+
+## 2.4. Ubiquitous Language
