@@ -1,6 +1,11 @@
 ## **Capítulo III: Requirements Specification**
 
 - 3.1. To-Be Scenario Mapping
+#### Segmento objetivo 1 : Dueño de mascotas geriátricas o con enfermedad cronica
+<img src="./feature/Chapter-3/Scenario Mapping Template-Jorge.jpg" alt="Scenario mapping">
+
+#### Segmento objetivo 2 : Veterinaria y clinicas especializadas
+<img src="./feature/Chapter-3/Scenario Mapping Template-Rosa.jpg" alt="Scenario mapping">
 
 - 3.2. User Stories 
 
