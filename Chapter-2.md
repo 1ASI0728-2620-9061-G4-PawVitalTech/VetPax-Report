@@ -20,25 +20,25 @@ VetOS es un software veterinario orientado al mercado peruano que ofrece funcion
 
 <img src="./feature/Chapter-2/petsuite-logo.png" alt="Logo de PetSuite" width="180" height="180">
 
-PetSuite permite administrar agendas, historias clínicas, inventario, ventas y facturación electrónica. También incorpora recordatorios de citas y vacunas, además de acceso desde diferentes dispositivos. Su propuesta está orientada a que las veterinarias puedan centralizar sus procesos administrativos y clínicos en una sola plataforma. :contentReference[oaicite:1]{index=1} 
+PetSuite permite administrar agendas, historias clínicas, inventario, ventas y facturación electrónica. También incorpora recordatorios de citas y vacunas, además de acceso desde diferentes dispositivos. Su propuesta está orientada a que las veterinarias puedan centralizar sus procesos administrativos y clínicos en una sola plataforma.
  
 **GVET**
 
 <img src="./feature/Chapter-2/Gvet.png" alt="Logo de GVET" width="180" height="180">
 
-GVET ofrece un sistema de gestión integral para clínicas y hospitales veterinarios, incluyendo funcionalidades relacionadas con la administración de clientes y pacientes, información médica y acceso desde diferentes dispositivos. Su fortaleza se encuentra en centralizar la información necesaria para la operación de una veterinaria. :contentReference[oaicite:2]{index=2} 
+GVET ofrece un sistema de gestión integral para clínicas y hospitales veterinarios, incluyendo funcionalidades relacionadas con la administración de clientes y pacientes, información médica y acceso desde diferentes dispositivos. Su fortaleza se encuentra en centralizar la información necesaria para la operación de una veterinaria. 
  
 **VetFac**
 
 <img src="./feature/Chapter-2/vetfac.png" alt="Logo de VetFac" width="180" height="180">
 
-VetFac se enfoca en la digitalización de la historia clínica veterinaria, permitiendo registrar consultas, diagnósticos, tratamientos, vacunas y otros datos de las mascotas. También incorpora agenda de citas, recordatorios y funcionalidades de facturación electrónica. :contentReference[oaicite:3]{index=3} 
+VetFac se enfoca en la digitalización de la historia clínica veterinaria, permitiendo registrar consultas, diagnósticos, tratamientos, vacunas y otros datos de las mascotas. También incorpora agenda de citas, recordatorios y funcionalidades de facturación electrónica.
  
 **SmartVet360**
 
 <img src="./feature/Chapter-2/SmartVet360.png" alt="Logo de SmartVet360" width="180" height="180">
 
-SmartVet360 ofrece una plataforma en la nube con módulos de historia clínica, agenda, inventario, farmacia, punto de venta, facturación electrónica y gestión de múltiples sedes. Su propuesta está orientada principalmente a la administración integral de clínicas veterinarias de diferentes tamaños. :contentReference[oaicite:4]{index=4} 
+SmartVet360 ofrece una plataforma en la nube con módulos de historia clínica, agenda, inventario, farmacia, punto de venta, facturación electrónica y gestión de múltiples sedes. Su propuesta está orientada principalmente a la administración integral de clínicas veterinarias de diferentes tamaños.
  
 A partir de este análisis, se observa que los competidores cuentan con funcionalidades importantes para la gestión veterinaria, pero existe una oportunidad de diferenciación en el acompañamiento del dueño fuera de la consulta. VetPax busca cubrir este espacio mediante una experiencia centrada en mascotas geriátricas y con enfermedades crónicas, integrando historial clínico, recordatorios, planes de alimentación personalizados y gamificación. 
  
