@@ -30,10 +30,6 @@
                 <td>Alvarez Falen, Esteban Valentino</td>
             </tr>
             <tr>
-                <td>U20211g192</td>
-                <td>Armas Sánchez, Oscar Javier</td>
-            </tr>
-            <tr>
                 <td>U201819674</td>
                 <td>Diaz Gutierrez, Henry Kevin</td>
             </tr>
