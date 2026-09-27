@@ -14,7 +14,7 @@ Los principales competidores identificados son **VetOS, PetSuite, GVET, VetFac y
 
 <img src="./feature/Chapter-2/vetOs.png" alt="Logo de VetOS" width="180" height="180">
 
-VetOS es un software veterinario orientado al mercado peruano que ofrece funcionalidades como historia clínica digital, agenda, farmacia, inventario y gestión de clientes. Además, incorpora un portal para los dueños de mascotas. Su principal fortaleza es ofrecer una solución integral para la administración de clínicas veterinarias, mientras que su enfoque se encuentra principalmente en la gestión operativa de la clínica. :contentReference[oaicite:0]{index=0} 
+VetOS es un software veterinario orientado al mercado peruano que ofrece funcionalidades como historia clínica digital, agenda, farmacia, inventario y gestión de clientes. Además, incorpora un portal para los dueños de mascotas. Su principal fortaleza es ofrecer una solución integral para la administración de clínicas veterinarias, mientras que su enfoque se encuentra principalmente en la gestión operativa de la clínica.
  
 **PetSuite**
 
