@@ -393,8 +393,116 @@ Estos escenarios refinados permiten validar que las decisiones arquitectónicas 
 
     En la siguiente sección, **4.2.2. Candidate Context Discovery**, estas agrupaciones serán analizadas con mayor detalle para identificar los límites, responsabilidades y relaciones de los posibles Bounded Contexts que conformarán el diseño estratégico de VetPax.
 
-    - **4.2.2. Candidate Context Discovery**
-    - **4.2.3. Domain Message Flows Modeling**
+#### 4.2.2. Candidate Context Discovery**
+
+##### 1. Contexto de Pet & Clinical Care
+
+- **Límite:** Cubre el registro maestro de mascotas, la gestión del historial clínico, el registro de
+  atenciones médicas realizadas por la veterinaria y la consulta de la evolución clínica del paciente.
+  Excluye explícitamente la programación de citas, la prescripción de medicación y de planes
+  nutricionales, y el cálculo de adherencia o gamificación.
+- **Eventos clave:** MascotaRegistrada, AtencionClinicaRegistrada, HistorialClinicoActualizado,
+  EvolucionClinicaDelPacienteConsultada.
+- **Justificación:** Este bounded context concentra el core del negocio de VetPax —el seguimiento
+  clínico continuo de mascotas geriátricas o crónicas— y actúa como fuente de verdad para otros
+  contextos como Appointments y Adherence & Gamification, que dependen del identificador de la
+  mascota y de eventos de su historial para ejecutar su propia lógica, sin necesidad de acoplarse a
+  los detalles internos de su gestión.
+
+![Pet & Clinical Care](feature/Chapter-4/eventstorming1.png)
+
+##### 2. Contexto de Appointments
+
+- **Límite:** Cubre la programación, reprogramación, cancelación y confirmación de asistencia de
+  citas veterinarias, así como la consulta de la agenda por parte de la veterinaria. Excluye el
+  registro clínico resultante de la cita y cualquier lógica de facturación.
+- **Eventos clave:** CitaVeterinariaProgramada, CitaVeterinariaReprogramada,
+  CitaVeterinariaCancelada, CitaVeterinariaAtendida.
+- **Justificación:** Este bounded context administra el ciclo de vida propio de una cita (programada
+  → reprogramada/cancelada → atendida) y se sincroniza con un servicio externo de calendario. El
+  evento CitaVeterinariaAtendida funciona como disparador hacia otros contextos —Pet & Clinical
+  Care y Adherence & Gamification—, sin que estos deban conocer las reglas internas de
+  agendamiento de VetPax.
+
+![Appointments](feature/Chapter-4/eventstorming2.png)
+
+##### 3. Contexto de Medication
+
+- **Límite:** Cubre la activación de recordatorios de medicación, la generación automática de
+  notificaciones cuando se alcanza el horario de una dosis pendiente, y el registro de las dosis
+  administradas por el dueño. Excluye la prescripción del tratamiento (definida por la veterinaria en
+  el contexto clínico) y el cálculo de adherencia.
+- **Eventos clave:** RecordatoriosDeMedicacionActivados, RecordatorioDeMedicacionGenerado,
+  DosisDeMedicacionAdministrada.
+- **Justificación:** Este bounded context aísla la lógica temporal de recordatorios y su despacho a
+  través de un servicio externo (Firebase Cloud Messaging), permitiendo que las políticas de
+  notificación evolucionen de forma independiente. El evento DosisDeMedicacionAdministrada es
+  consumido por Adherence & Gamification para calcular la constancia del dueño, sin acoplar ambas
+  lógicas de negocio.
+
+![Medication](feature/Chapter-4/eventstorming3.png)
+
+##### 4. Contexto de Nutrition
+
+- **Límite:** Cubre la prescripción y actualización de planes de alimentación personalizados por
+  parte de la veterinaria, y la generación de recordatorios de alimentación asociados a dichos
+  planes. Excluye el registro del cumplimiento por parte del dueño y el diagnóstico clínico que da
+  origen al plan.
+- **Eventos clave:** PlanNutricionalRegistrado, PlanNutricionalActualizado,
+  RecordatorioDeAlimentacionGenerado.
+- **Justificación:** Este bounded context encapsula las reglas de negocio propias de la nutrición
+  animal (planes según la condición diagnosticada), manteniéndolas independientes del registro
+  clínico general. Al igual que Medication, depende de un servicio externo (Firebase Cloud
+  Messaging) para el despacho de notificaciones, por lo que ambos comparten un patrón de
+  integración similar, aunque conservan reglas de negocio y agregados propios.
+
+![Nutrition](feature/Chapter-4/eventstorming4.png)
+
+##### 5. Contexto de Clinic
+
+- **Límite:** Cubre la administración del perfil de la clínica veterinaria y la consulta del listado de
+  pacientes atendidos por sus veterinarios. Excluye el historial clínico detallado de cada mascota y
+  la gestión de citas.
+- **Eventos clave:** PerfilDeClinicaActualizado, ListadoDePacientesConsultado.
+- **Justificación:** Este bounded context representa la identidad organizacional de la veterinaria
+  dentro de la plataforma (perfil, pacientes asociados), funcionando como un subdominio de soporte
+  que permite a los administradores gestionar la información institucional de la clínica sin
+  mezclarla con la lógica clínica de cada paciente individual.
+
+![Clinic](feature/Chapter-4/eventstorming5.png)
+
+##### 6. Contexto de Adherence & Gamification
+
+- **Límite:** Cubre el cálculo de la adherencia del dueño a partir de eventos generados en otros
+  contextos (citas atendidas, dosis administradas, actividades de tratamiento cumplidas), la
+  evaluación y actualización del nivel de constancia (Bronce, Plata, Oro), y el envío de
+  reconocimientos. Excluye la ejecución misma de las citas o tratamientos que originan dichos
+  eventos.
+- **Eventos clave:** AdherenciaCalculada, NivelDeConstanciaActualizado, ReconocimientoEnviado.
+- **Justificación:** Este bounded context representa el principal diferenciador competitivo de
+  VetPax frente a las soluciones veterinarias tradicionales analizadas (VetOS, PetSuite, GVET,
+  VetFac, SmartVet360), ninguna de las cuales ofrece gamificación. Al consumir eventos publicados
+  por Appointments, Medication y Nutrition en lugar de acceder directamente a sus datos internos,
+  se mantiene desacoplado y puede evolucionar sus reglas de puntuación sin afectar a los demás
+  contextos.
+
+![Adherence & Gamification](feature/Chapter-4/eventstorming6.png)
+
+##### 7. Contexto de IAM
+
+- **Límite:** Se encarga exclusivamente de la gestión de identidades, el registro de cuentas, la
+  autenticación y la validación de permisos según el rol del usuario (dueño de mascota, veterinario,
+  administrador de veterinaria). Gestiona la emisión de credenciales que protegen el acceso a los
+  demás bounded contexts.
+- **Eventos clave:** CuentaUsuarioCreada, UsuarioAutenticado.
+- **Justificación:** Se justifica su separación como subdominio genérico porque la autenticación y
+  autorización son funcionalidades estándar, ajenas al dominio veterinario, resueltas mediante un
+  proveedor externo (Keycloak). Esto permite que el resto de los contextos confíen en la identidad
+  ya validada, sin necesidad de implementar su propia lógica de seguridad.
+
+![IAM](feature/Chapter-4/eventstorming7.png)
+
+#### 4.2.3. Domain Message Flows Modeling
 
 ### 4.2.4. Bounded Context Canvases
 
