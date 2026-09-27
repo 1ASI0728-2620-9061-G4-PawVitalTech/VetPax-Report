@@ -393,7 +393,7 @@ Estos escenarios refinados permiten validar que las decisiones arquitectónicas 
 
     En la siguiente sección, **4.2.2. Candidate Context Discovery**, estas agrupaciones serán analizadas con mayor detalle para identificar los límites, responsabilidades y relaciones de los posibles Bounded Contexts que conformarán el diseño estratégico de VetPax.
 
-#### 4.2.2. Candidate Context Discovery**
+#### 4.2.2. Candidate Context Discovery
 
 ##### 1. Contexto de Pet & Clinical Care
 
@@ -409,7 +409,7 @@ Estos escenarios refinados permiten validar que las decisiones arquitectónicas 
   mascota y de eventos de su historial para ejecutar su propia lógica, sin necesidad de acoplarse a
   los detalles internos de su gestión.
 
-![Pet & Clinical Care](feature/Chapter-4/eventstorming1.png)
+![Pet & Clinical Care](feature/Chapter-4/EventStorming-Clinical-Care.png)
 
 ##### 2. Contexto de Appointments
 
@@ -424,7 +424,7 @@ Estos escenarios refinados permiten validar que las decisiones arquitectónicas 
   Care y Adherence & Gamification—, sin que estos deban conocer las reglas internas de
   agendamiento de VetPax.
 
-![Appointments](feature/Chapter-4/eventstorming2.png)
+![Appointments](feature/Chapter-4/EventStorming-Appointments.png)
 
 ##### 3. Contexto de Medication
 
@@ -440,7 +440,7 @@ Estos escenarios refinados permiten validar que las decisiones arquitectónicas 
   consumido por Adherence & Gamification para calcular la constancia del dueño, sin acoplar ambas
   lógicas de negocio.
 
-![Medication](feature/Chapter-4/eventstorming3.png)
+![Medication](feature/Chapter-4/EventStorming-Medication.png)
 
 ##### 4. Contexto de Nutrition
 
@@ -456,7 +456,7 @@ Estos escenarios refinados permiten validar que las decisiones arquitectónicas 
   Messaging) para el despacho de notificaciones, por lo que ambos comparten un patrón de
   integración similar, aunque conservan reglas de negocio y agregados propios.
 
-![Nutrition](feature/Chapter-4/eventstorming4.png)
+![Nutrition](feature/Chapter-4/EventStorming-Nutrition.png)
 
 ##### 5. Contexto de Clinic
 
@@ -469,7 +469,7 @@ Estos escenarios refinados permiten validar que las decisiones arquitectónicas 
   que permite a los administradores gestionar la información institucional de la clínica sin
   mezclarla con la lógica clínica de cada paciente individual.
 
-![Clinic](feature/Chapter-4/eventstorming5.png)
+![Clinic](feature/Chapter-4/EventStorming-Clinic.png)
 
 ##### 6. Contexto de Adherence & Gamification
 
@@ -486,7 +486,7 @@ Estos escenarios refinados permiten validar que las decisiones arquitectónicas 
   se mantiene desacoplado y puede evolucionar sus reglas de puntuación sin afectar a los demás
   contextos.
 
-![Adherence & Gamification](feature/Chapter-4/eventstorming6.png)
+![Adherence & Gamification](feature/Chapter-4/EventStorming-Adherence.png)
 
 ##### 7. Contexto de IAM
 
@@ -500,9 +500,80 @@ Estos escenarios refinados permiten validar que las decisiones arquitectónicas 
   proveedor externo (Keycloak). Esto permite que el resto de los contextos confíen en la identidad
   ya validada, sin necesidad de implementar su propia lógica de seguridad.
 
-![IAM](feature/Chapter-4/eventstorming7.png)
+![IAM](feature/Chapter-4/EventStorming-IAM.png)
 
 #### 4.2.3. Domain Message Flows Modeling
+
+Para esta sección, el objetivo del equipo fue visualizar cómo colaboran los Bounded Contexts
+identificados en el Candidate Context Discovery (Pet & Clinical Care, Appointments, Medication,
+Nutrition, Clinic, Adherence & Gamification e IAM) mediante comandos, eventos de dominio y
+solicitudes sincrónicas, para resolver los principales casos de uso de VetPax. Se aplicó la técnica
+de **Domain Storytelling** para describir estas interacciones, tanto humanas (dueño, veterinario)
+como de sistemas (contextos, sistemas externos).
+
+##### Historia A — Cita Atendida: Actualización de Historial y Cálculo de Adherencia
+
+1. El dueño marca la cita de su mascota como atendida desde la App Móvil.
+2. La App Móvil envía el command `MarcarCitaComoAtendida` al contexto **Appointment**.
+3. Appointment persiste el nuevo estado de la cita y publica el evento de dominio
+   `CitaVeterinariaAtendida`.
+4. El contexto **Pet & Clinical Record** consume el evento y actualiza el historial clínico,
+   incorporando la atención registrada.
+5. En paralelo, el contexto **Adherence & Gamification** también consume el evento
+   `CitaVeterinariaAtendida`, calcula la adherencia del dueño y evalúa si corresponde actualizar
+   su nivel de constancia (Bronce, Plata, Oro).
+6. Adherence & Gamification publica el evento `NivelDeConstanciaActualizado`.
+7. La App Móvil refresca la vista, mostrando al dueño el historial actualizado y su progreso de
+   constancia.
+
+![Storytelling 1](feature/Chapter-4/Storytelling1.png)
+
+##### Historia B — Registro de Dosis de Medicación y Actualización de Adherencia
+
+1. El dueño administra la dosis de medicación indicada a su mascota y lo registra desde la App
+   Móvil.
+2. La App Móvil envía el command `RegistrarDosisAdministrada` al contexto **Medication**.
+3. Medication persiste la dosis administrada y publica el evento de dominio
+   `DosisDeMedicacionAdministrada`.
+4. El contexto **Adherence & Gamification** consume el evento, recalcula la adherencia del
+   propietario y evalúa su nivel de constancia, publicando el evento
+   `NivelDeConstanciaActualizado`.
+5. Adherence & Gamification despacha una notificación de reconocimiento a través del sistema
+   externo **Firebase Cloud Messaging**.
+6. Firebase Cloud Messaging entrega la notificación push a la App Móvil.
+7. La App Móvil muestra al dueño el nuevo nivel alcanzado.
+
+![Storytelling 2](feature/Chapter-4/Storytelling2.png)
+
+##### Historia C — Prescripción de Plan Nutricional con Recordatorio Automático
+
+1. El veterinario revisa el diagnóstico de la mascota y prescribe un plan de alimentación
+   personalizado desde el Panel Web.
+2. El Panel Web envía el command `PrescribirPlanNutricional` al contexto **Nutrition**.
+3. Nutrition crea el plan nutricional, lo persiste y publica el evento
+   `PlanNutricionalRegistrado`.
+4. Una policy interna del contexto evalúa continuamente los horarios de alimentación: al
+   llegar el horario correspondiente, genera el evento `RecordatorioDeAlimentacionGenerado`.
+5. Nutrition despacha la notificación correspondiente a través de **Firebase Cloud Messaging**.
+6. Firebase Cloud Messaging entrega el recordatorio de alimentación a la App Móvil del dueño.
+
+![Storytelling 3](feature/Chapter-4/Storytelling3.png)
+
+##### Historia D — Registro de Mascota y Agendamiento de la Primera Cita
+
+1. El dueño registra a su mascota geriátrica o con enfermedad crónica desde la App Móvil.
+2. La App Móvil envía el command `RegistrarMascota` al contexto **Pet & Clinical Record**.
+3. Pet & Clinical Record persiste el perfil de la mascota y publica el evento
+   `MascotaRegistrada`.
+4. Con la mascota ya registrada, la App Móvil envía el command `AgendarCitaVeterinaria` al
+   contexto **Appointment**.
+5. Appointment crea la cita en estado "Programada" y se sincroniza con el **servicio externo de
+   calendario** para reservar la fecha y hora seleccionadas.
+6. Una vez confirmada la reserva, Appointment publica el evento `CitaVeterinariaProgramada`.
+7. La App Móvil confirma al dueño el registro de la mascota y la programación de su primera
+   cita.
+
+![Storytelling 4](feature/Chapter-4/Storytelling4.png)
 
 ### 4.2.4. Bounded Context Canvases
 
