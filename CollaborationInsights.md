@@ -7,3 +7,9 @@ Enlace de la organización para el reporte del proyecto: [https://github.com/1AS
 
 TB1:
 
+<img src="./feature/CollaborationInsight/Insight_1.png">
+
+<img src="./feature/CollaborationInsight/Collaboration_1.png">
+
+<img src="./feature/CollaborationInsight/NetworkGraph_1.png">
+
