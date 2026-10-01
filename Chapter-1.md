@@ -187,7 +187,7 @@ A continuación, se presenta el Lean UX Canvas elaborado para VetPax, en el cual
 
 ![LeanUxCanvas](./feature/Chapter-1/Lean_Ux_Canvas_Arqui.jpg)
 
-Link: [*https://canva.link/g44lfftx768imrj*](https://canva.link/g44lfftx768imrj)
+Link: [*miro*](https://miro.com/app/board/uXjVEf6ehVk=/?share_link_id=947885639582)
 
 ## **1.3. Segmentos objetivo**
 
