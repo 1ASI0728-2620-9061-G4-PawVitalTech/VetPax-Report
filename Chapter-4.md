@@ -1,508 +1,839 @@
-## **Capítulo IV: Strategic-Level Software Design**
+# Capítulo IV: Strategic-Level Software Design
 
-- **4.1. Strategic-Level Attribute-Driven Design**
-    - **4.1.1. Design Purpose**
-    El propósito del diseño arquitectónico es definir una solución tecnológica que permita implementar una plataforma digital multicanal orientada al seguimiento clínico-nutricional de mascotas geriátricas y con enfermedades crónicas, garantizando la integración entre los usuarios propietarios, profesionales veterinarios y los servicios tecnológicos asociados.
+## **4.1. Strategic-Level Attribute-Driven Design**
 
-    La arquitectura propuesta busca establecer una estructura flexible y mantenible mediante el uso de una arquitectura hexagonal, permitiendo separar la lógica de negocio del dominio clínico de los componentes externos de infraestructura, interfaces de usuario y servicios de terceros.
+En esta sección se aplica el enfoque de **Attribute-Driven Design (ADD)** para orientar el diseño arquitectónico de VetPax a partir de los requisitos funcionales, atributos de calidad y restricciones identificados previamente.
 
-    Asimismo, el diseño considera la necesidad de gestionar información clínica longitudinal, facilitar la comunicación entre veterinarios y propietarios de mascotas, y asegurar la entrega oportuna de recordatorios y actualizaciones mediante mecanismos de autenticación segura, comunicación en tiempo real y servicios de notificación móvil.
+El proceso permite reconocer aquellos elementos que poseen mayor influencia sobre la arquitectura de la solución y utilizarlos posteriormente como Architectural Drivers. A partir de estos drivers se evaluarán alternativas de diseño y se establecerán decisiones arquitectónicas que permitan responder a las necesidades de los segmentos objetivo y a los objetivos del negocio.
 
-    - **4.1.2. Attribute-Driven Design Inputs**
+El análisis considera principalmente las funcionalidades relacionadas con el seguimiento clínico, tratamientos, citas veterinarias, planes de alimentación y gestión de pacientes, junto con atributos de calidad como seguridad, disponibilidad, rendimiento, escalabilidad, mantenibilidad e interoperabilidad.
 
-        El diseño arquitectónico toma como entradas principales las funcionalidades críticas del sistema, los atributos de calidad requeridos y las restricciones tecnológicas definidas para la solución.
-        - **4.1.2.1. Primary Functionality (Primary User Stories)**
+De esta manera, el diseño arquitectónico se desarrolla progresivamente a partir de las necesidades previamente identificadas, evitando establecer decisiones tecnológicas antes de analizar los factores que condicionan la arquitectura.
 
-        Las funcionalidades principales seleccionadas como impulsores arquitectónicos corresponden a aquellas User Stories que tienen mayor impacto en la definición de la estructura del sistema.
 
-        | User Story | Funcionalidad principal | Impacto arquitectónico |
-        |---|---|---|
-        | US01 | Registrar mascota | Requiere un módulo de gestión de pacientes que permita almacenar y consultar información básica de las mascotas. |
-        | US02 | Consultar historial clínico | Requiere una estructura de persistencia capaz de gestionar información clínica histórica y trazabilidad de registros. |
-        | US03 | Registrar atención clínica | Requiere un dominio clínico independiente para administrar consultas, tratamientos y evolución del paciente. |
-        | US04 | Agendar cita veterinaria | Requiere servicios para gestionar disponibilidad, programación y actualización de citas. |
-        | US07 | Configurar recordatorios de medicación | Requiere integración con servicios de notificación para automatizar avisos relacionados con tratamientos. |
-        | US08 | Prescribir plan de dieta | Requiere un módulo especializado para gestionar información nutricional asociada a cada mascota. |
-        | US10 | Visualizar listado de pacientes | Requiere una interfaz orientada al veterinario para consultar pacientes y realizar seguimiento clínico. |
-        | US11 | Consultar evolución de un paciente | Requiere mecanismos para representar indicadores clínicos y analizar cambios durante el tratamiento. |
-        | US21 | Iniciar sesión mediante autenticación segura | Requiere un mecanismo centralizado de identidad y control de acceso para proteger la información del sistema. |
-        | US22 | Gestionar acceso según rol de usuario | Requiere autorización basada en roles para diferenciar permisos entre propietarios, veterinarios y administradores. |
+### **4.1.1. Design Purpose**
 
-        Estas funcionalidades representan los principales flujos del negocio y determinan la necesidad de componentes independientes para gestión clínica, identidad, notificaciones y comunicación entre usuarios.
+El propósito del proceso de diseño arquitectónico de VetPax es definir una solución capaz de soportar el seguimiento continuo de mascotas geriátricas o con enfermedades crónicas, facilitando la interacción entre propietarios y profesionales veterinarios durante los periodos comprendidos entre consultas.
 
-        - **4.1.2.2. Quality Attribute Scenarios**
+La solución debe permitir gestionar información clínica histórica, tratamientos de medicación, planes de alimentación, citas veterinarias y actividades de seguimiento, manteniendo disponible la información relevante para los usuarios autorizados.
 
-        - Los atributos de calidad representan las características no funcionales que guían las decisiones arquitectónicas de VetPax. Debido a que la plataforma gestiona información clínica de mascotas, comunicación entre usuarios y servicios externos, se consideran como principales atributos de calidad la seguridad, disponibilidad, escalabilidad, mantenibilidad e interoperabilidad.
-        
-        ### Seguridad
-        
-        | Elemento | Descripción |
-        |---|---|
-        | **Fuente** | Usuario no autorizado |
-        | **Estímulo** | Intenta acceder al historial clínico de una mascota sin contar con los permisos correspondientes |
-        | **Entorno** | Usuario autenticado dentro de la plataforma móvil o panel web |
-        | **Artefacto** | Servicio de autenticación, autorización y módulo de gestión clínica |
-        | **Respuesta** | El sistema valida la identidad y permisos del usuario mediante el proveedor de identidad Keycloak, bloqueando accesos que no correspondan al rol asignado |
-        | **Medida de respuesta** | Las solicitudes no autorizadas deben ser rechazadas mediante mecanismos de control de acceso, retornando una respuesta de autorización denegada |
-        
-        ### Disponibilidad
-        
-        | Elemento | Descripción |
-        |---|---|
-        | **Fuente** | Dueño de mascota o veterinario |
-        | **Estímulo** | Solicita consultar información del historial clínico de una mascota |
-        | **Entorno** | Usuarios utilizando la aplicación móvil o panel web |
-        | **Artefacto** | Servicios backend y almacenamiento de información clínica |
-        | **Respuesta** | El sistema procesa la solicitud y devuelve los registros clínicos disponibles manteniendo la continuidad del seguimiento |
-        | **Medida de respuesta** | El servicio debe mantenerse operativo durante la interacción de los usuarios, permitiendo consultas de información clínica sin pérdida de datos |
-        
-        ### Escalabilidad
-        
-        | Elemento | Descripción |
-        |---|---|
-        | **Fuente** | Nuevos usuarios y veterinarias incorporadas a la plataforma |
-        | **Estímulo** | Incremento en la cantidad de usuarios registrados y solicitudes simultáneas |
-        | **Entorno** | Etapa de crecimiento de VetPax |
-        | **Artefacto** | Servicios backend, APIs y base de datos |
-        | **Respuesta** | La arquitectura permite ampliar la capacidad del sistema mediante la incorporación de nuevos recursos sin modificar la lógica principal del dominio |
-        | **Medida de respuesta** | El sistema debe soportar el crecimiento progresivo de usuarios manteniendo tiempos de respuesta adecuados |
-        
-        ### Mantenibilidad
-        
-        | Elemento | Descripción |
-        |---|---|
-        | **Fuente** | Equipo de desarrollo |
-        | **Estímulo** | Requiere modificar una funcionalidad existente o agregar nuevas capacidades |
-        | **Entorno** | Durante actividades de mantenimiento y evolución del sistema |
-        | **Artefacto** | Arquitectura interna del backend |
-        | **Respuesta** | La arquitectura hexagonal permite separar la lógica de negocio de componentes externos, facilitando modificaciones independientes |
-        | **Medida de respuesta** | Los cambios realizados deben afectar únicamente al componente correspondiente, reduciendo impactos sobre otros módulos del sistema |
-        
-        ### Interoperabilidad
-        
-        | Elemento | Descripción |
-        |---|---|
-        | **Fuente** | Servicios externos integrados |
-        | **Estímulo** | Comunicación con proveedores externos como Keycloak, Firebase Cloud Messaging o servicios de comunicación en tiempo real |
-        | **Entorno** | Operación normal de la plataforma |
-        | **Artefacto** | Capa de infraestructura y adaptadores externos |
-        | **Respuesta** | El sistema utiliza interfaces desacopladas para comunicarse con servicios externos, permitiendo reemplazar proveedores sin afectar el dominio principal |
-        | **Medida de respuesta** | Las integraciones externas deben funcionar mediante componentes independientes, manteniendo estable la lógica del negocio |   
-        - **4.1.2.3. Constraints**
-        Las restricciones consideradas para el diseño arquitectónico son las siguientes:
+Desde la perspectiva de los propietarios, el diseño debe permitir consultar información relacionada con la salud de sus mascotas, mantener organizadas las actividades asociadas con tratamientos y controles, y recibir apoyo para dar continuidad a las indicaciones establecidas por los profesionales veterinarios.
 
-        | Restricción | Descripción |
-        |---|---|
-        | Arquitectura del sistema | La solución debe implementarse bajo una arquitectura hexagonal para desacoplar la lógica de negocio de frameworks, bases de datos y servicios externos. |
-        | Plataforma multicanal | El sistema debe permitir interacción mediante una aplicación móvil orientada a propietarios y una aplicación web orientada a veterinarios. |
-        | Seguridad de acceso | La autenticación y autorización deben gestionarse mediante un proveedor externo de identidad basado en Keycloak, permitiendo administrar usuarios y roles. |
-        | Comunicación en tiempo real | La plataforma debe permitir actualizaciones bidireccionales entre clientes mediante WebSockets para reflejar cambios clínicos y eventos relevantes. |
-        | Notificaciones móviles | El sistema debe integrar Firebase Cloud Messaging para enviar recordatorios relacionados con medicación, alimentación y citas. |
-        | Gestión de información clínica | La solución debe conservar la trazabilidad de historiales, tratamientos y planes nutricionales asociados a cada mascota. |
-        | Separación de responsabilidades | Los componentes del sistema deben mantener independencia entre dominio, aplicación e infraestructura para facilitar mantenimiento y evolución futura. |
-    - **4.1.3. Architectural Drivers Backlog**
+Desde la perspectiva del segmento veterinario, la solución debe facilitar el registro y consulta de información clínica, la gestión de pacientes y citas, el seguimiento de la evolución de las mascotas y la comunicación de indicaciones relacionadas con tratamientos y alimentación.
 
-    - El Architectural Drivers Backlog identifica y prioriza los principales factores que influyen en las decisiones arquitectónicas de VetPax. Estos drivers incluyen requerimientos funcionales críticos, atributos de calidad y restricciones técnicas que determinan la estructura del sistema.
-        
-        La priorización considera el impacto arquitectónico de cada elemento, donde los drivers con mayor prioridad representan aquellos que condicionan directamente la selección de estilos arquitectónicos, componentes y tecnologías utilizadas.
-        
-        | Prioridad | Architectural Driver | Tipo | Descripción | Impacto arquitectónico |
-        |---|---|---|---|---|
-        | AD01 | Separación de responsabilidades mediante arquitectura hexagonal | Restricción / Mantenibilidad | El sistema debe separar la lógica del dominio clínico de componentes externos como bases de datos, interfaces y servicios de terceros. | Define la estructura principal del backend mediante capas de dominio, aplicación e infraestructura. |
-        | AD02 | Seguridad y control de acceso basado en roles | Calidad / Seguridad | La plataforma debe proteger la información clínica permitiendo diferentes permisos para dueños, veterinarios y administradores. | Requiere integración con un proveedor de identidad como Keycloak y mecanismos de autorización por roles. |
-        | AD03 | Gestión del historial clínico de mascotas | Funcionalidad crítica | El sistema debe permitir registrar, consultar y mantener la trazabilidad de información clínica de mascotas geriátricas o con enfermedades crónicas. | Requiere un dominio clínico independiente con modelos de persistencia adecuados. |
-        | AD04 | Comunicación entre veterinarios y propietarios | Funcionalidad / Interoperabilidad | La plataforma debe permitir sincronizar información entre la aplicación móvil y el panel web veterinario. | Requiere APIs y mecanismos de comunicación en tiempo real mediante WebSockets. |
-        | AD05 | Sistema de notificaciones automáticas | Funcionalidad / Disponibilidad | Los usuarios deben recibir recordatorios relacionados con medicación, alimentación y citas. | Requiere integración con servicios externos como Firebase Cloud Messaging. |
-        | AD06 | Escalabilidad del sistema | Calidad / Escalabilidad | La solución debe soportar el crecimiento progresivo de usuarios, mascotas registradas y veterinarias afiliadas. | Influye en la modularidad de servicios y diseño desacoplado de componentes. |
-        | AD07 | Gestión de planes nutricionales personalizados | Funcionalidad crítica | Los veterinarios deben registrar planes alimenticios asociados a la condición de cada mascota. | Requiere un módulo especializado para administrar información nutricional y evolución del tratamiento. |
-        | AD08 | Evolución independiente de componentes | Calidad / Mantenibilidad | La plataforma debe permitir modificar funcionalidades e integrar nuevos servicios sin afectar el núcleo del negocio. | Justifica el uso de interfaces, adaptadores y bajo acoplamiento entre módulos. |
-        | AD09 | Disponibilidad del sistema | Calidad / Disponibilidad | Los usuarios deben acceder continuamente a información clínica y recordatorios necesarios para el seguimiento. | Requiere mecanismos para evitar pérdida de información y garantizar continuidad operativa. |
-        | AD10 | Integración con servicios externos | Restricción / Interoperabilidad | La plataforma debe comunicarse con servicios externos para autenticación, notificaciones y comunicación. | Requiere una capa de infraestructura desacoplada mediante adaptadores externos. |
-        
-        Los drivers arquitectónicos identificados orientan las siguientes decisiones de diseño, definiendo la arquitectura hexagonal, la separación por dominios funcionales, la integración con servicios externos y los mecanismos necesarios para garantizar seguridad, mantenibilidad y escalabilidad.
-      
-    - **4.1.4. Architectural Design Decisions**
-    - Las decisiones de diseño arquitectónico de VetPax fueron definidas considerando los principales drivers arquitectónicos identificados previamente. Estas decisiones buscan garantizar una solución escalable, segura, mantenible y capaz de integrar diferentes servicios tecnológicos necesarios para el seguimiento clínico-nutricional de mascotas geriátricas o con enfermedades crónicas.
+Asimismo, el diseño debe responder a los atributos de calidad identificados para VetPax, especialmente aquellos relacionados con seguridad, disponibilidad, rendimiento, escalabilidad, mantenibilidad e interoperabilidad.
 
-| ID | Decisión arquitectónica | Drivers relacionados | Justificación | Beneficio esperado |
+El propósito del proceso ADD consiste, por tanto, en transformar estas necesidades funcionales y de calidad en drivers arquitectónicos que orienten posteriormente la evaluación de alternativas y la toma de decisiones de diseño.
+
+
+### **4.1.2. Attribute-Driven Design Inputs**
+
+El proceso de Attribute-Driven Design utiliza como entrada aquellos requisitos que poseen mayor influencia sobre la estructura y comportamiento de la arquitectura de VetPax.
+
+Los inputs considerados se organizan en tres categorías principales:
+
+- **Primary Functionality:** Epics o User Stories que representan funcionalidades críticas del sistema y cuya implementación genera un impacto relevante sobre la arquitectura.
+- **Quality Attribute Scenarios:** escenarios asociados con atributos de calidad que establecen condiciones medibles relacionadas con seguridad, disponibilidad, rendimiento, escalabilidad, mantenibilidad e interoperabilidad.
+- **Constraints:** restricciones no negociables que condicionan las alternativas tecnológicas o de diseño disponibles para la solución.
+
+Estos elementos se derivan de los requisitos especificados previamente y constituyen la base para identificar y priorizar los Architectural Drivers utilizados durante las siguientes etapas del proceso de diseño.
+
+
+#### **4.1.2.1. Primary Functionality (Primary User Stories)**
+
+Las Primary User Stories corresponden a las funcionalidades de VetPax que presentan mayor relevancia arquitectónica. La selección no incluye todas las historias definidas en el capítulo de Requirements Specification, sino únicamente aquellas cuya implementación condiciona de manera significativa la estructura del sistema, la persistencia de información, la comunicación entre componentes o la integración entre los productos digitales.
+
+Se consideran principalmente las funcionalidades relacionadas con la gestión clínica, tratamientos, citas, alimentación, gestión de pacientes e identidad de usuarios.
+
+| **Epic / User Story ID** | **Título** | **Descripción** | **Criterios de Aceptación** | **Relacionado con (Epic ID)** |
 |---|---|---|---|---|
-| ADD01 | Implementación de arquitectura hexagonal | AD01, AD08 | Se utilizará arquitectura hexagonal para separar la lógica del dominio clínico de componentes externos como bases de datos, frameworks e integraciones con terceros. | Facilita la mantenibilidad, pruebas del sistema y evolución independiente de componentes. |
-| ADD02 | Separación del sistema en capas de dominio, aplicación e infraestructura | AD01, AD08 | El sistema será organizado separando reglas del negocio, casos de uso e implementaciones técnicas externas. | Reduce el acoplamiento entre componentes y permite modificar tecnologías sin afectar la lógica principal. |
-| ADD03 | Implementación de autenticación y autorización mediante Keycloak | AD02 | Se utilizará Keycloak como proveedor de identidad para gestionar usuarios, autenticación y permisos según roles. | Permite proteger información clínica y controlar accesos diferenciados entre propietarios, veterinarios y administradores. |
-| ADD04 | Exposición de servicios mediante APIs RESTful | AD03, AD04, AD06 | Las funcionalidades principales del backend serán consumidas mediante APIs REST que permitirán la comunicación entre la aplicación móvil, panel web y servicios internos. | Facilita la integración entre clientes y backend, además de permitir crecimiento futuro de la plataforma. |
-| ADD05 | Implementación de comunicación en tiempo real mediante WebSockets | AD04 | Se utilizarán WebSockets para mantener una comunicación bidireccional entre usuarios y permitir actualizaciones inmediatas de información clínica y eventos relevantes. | Mejora la experiencia de usuario al reflejar cambios sin necesidad de realizar consultas constantes. |
-| ADD06 | Integración con Firebase Cloud Messaging para notificaciones | AD05 | Se utilizará Firebase Cloud Messaging para enviar recordatorios relacionados con medicación, alimentación y citas veterinarias. | Permite automatizar comunicaciones importantes y mejorar la adherencia al tratamiento. |
-| ADD07 | Separación del dominio mediante bounded contexts | AD03, AD07, AD08 | Se aplicará Domain-Driven Design para dividir el sistema en contextos delimitados como historial clínico, citas, nutrición, usuarios y gamificación. | Permite organizar mejor la lógica del negocio y facilita la evolución independiente de cada módulo. |
-| ADD08 | Uso del patrón Adapter para integraciones externas | AD10 | Las conexiones con servicios externos serán encapsuladas mediante adaptadores independientes dentro de la capa de infraestructura. | Permite reemplazar proveedores externos sin modificar el núcleo del sistema. |
-| ADD09 | Diseño orientado a escalabilidad | AD06, AD09 | Los componentes principales serán diseñados de manera modular para permitir crecimiento de usuarios, mascotas registradas y veterinarias afiliadas. | Permite ampliar la capacidad del sistema manteniendo estabilidad y rendimiento. |
+| **US01** | Registrar mascota | Como propietario de mascota, quiero registrar a mi mascota, para mantener organizada su información básica y facilitar su seguimiento. | **E01: Registro válido.** Dado que el propietario se encuentra autenticado y proporciona los datos obligatorios, cuando registra la mascota, entonces el sistema crea el perfil y lo asocia con su cuenta.<br><br>**E02: Datos incompletos.** Dado que faltan datos obligatorios, cuando intenta registrar la mascota, entonces el sistema rechaza la operación e informa los campos pendientes. | EP01 |
+| **US02** | Consultar historial clínico | Como propietario de mascota, quiero consultar el historial clínico de mi mascota, para conocer su evolución y los tratamientos registrados. | **E01: Historial disponible.** Dado que existen registros clínicos, cuando el propietario consulta el historial, entonces el sistema presenta las atenciones ordenadas cronológicamente.<br><br>**E02: Acceso no autorizado.** Dado que el usuario no posee autorización sobre la mascota, cuando intenta consultar su historial, entonces el sistema deniega el acceso. | EP01 |
+| **US03** | Registrar atención clínica | Como profesional veterinario, quiero registrar una atención clínica de una mascota, para mantener actualizada su evolución y tratamiento. | **E01: Registro válido.** Dado que el profesional se encuentra autorizado y proporciona la información clínica requerida, cuando registra la atención, entonces el sistema la incorpora al historial clínico.<br><br>**E02: Información incompleta.** Dado que faltan datos obligatorios, cuando intenta registrar la atención, entonces el sistema rechaza la operación. | EP01 |
+| **US04** | Agendar cita veterinaria | Como propietario de mascota, quiero agendar una cita veterinaria para mi mascota, para asegurar la continuidad de sus controles. | **E01: Horario disponible.** Dado que existe disponibilidad, cuando el propietario selecciona mascota, fecha, hora y motivo, entonces el sistema registra la cita.<br><br>**E02: Conflicto de horario.** Dado que el horario solicitado ya se encuentra ocupado, cuando intenta confirmar la cita, entonces el sistema rechaza la reserva. | EP02 |
+| **US17** | Registrar tratamiento de medicación | Como profesional veterinario, quiero registrar un tratamiento de medicación, para que el propietario disponga de indicaciones claras sobre medicamentos, dosis y horarios. | **E01: Tratamiento válido.** Dado que el profesional se encuentra autorizado y proporciona medicamento, dosis, frecuencia y duración, cuando registra el tratamiento, entonces el sistema lo asocia con la mascota.<br><br>**E02: Datos incompletos.** Dado que faltan datos obligatorios, cuando intenta registrar el tratamiento, entonces el sistema rechaza la operación. | EP03 |
+| **US07** | Configurar recordatorios de medicación | Como propietario de mascota, quiero activar recordatorios asociados al tratamiento prescrito, para recordar los horarios de medicación de mi mascota. | **E01: Activación válida.** Dado que existe un tratamiento activo con horarios definidos, cuando el propietario activa los recordatorios, entonces el sistema programa las notificaciones correspondientes.<br><br>**E02: Tratamiento sin horario.** Dado que no existen horarios definidos, cuando intenta activar recordatorios, entonces el sistema informa que no pueden ser programados. | EP03 |
+| **US08** | Registrar plan de alimentación | Como profesional veterinario, quiero registrar un plan de alimentación para una mascota, para establecer indicaciones nutricionales acordes con su condición. | **E01: Registro válido.** Dado que el profesional establece alimento, cantidad y frecuencia, cuando registra el plan, entonces el sistema lo asocia con la mascota.<br><br>**E02: Actualización.** Dado que existe un plan vigente, cuando registra una modificación, entonces el sistema actualiza el plan conservando la trazabilidad necesaria. | EP03 |
+| **US10** | Visualizar listado de pacientes | Como profesional veterinario, quiero consultar los pacientes vinculados con mi clínica, para identificar aquellos que requieren seguimiento. | **E01: Pacientes disponibles.** Dado que existen pacientes vinculados a la clínica, cuando el profesional consulta el listado, entonces el sistema presenta su información resumida.<br><br>**E02: Acceso restringido.** Dado que intenta consultar pacientes de otra clínica sin autorización, cuando realiza la solicitud, entonces el sistema deniega el acceso. | EP04 |
+| **US11** | Consultar evolución clínica | Como profesional veterinario, quiero consultar la evolución clínica de un paciente, para evaluar cambios registrados durante su tratamiento. | **E01: Información disponible.** Dado que existen registros históricos comparables, cuando consulta la evolución, entonces el sistema presenta los datos de manera cronológica.<br><br>**E02: Información insuficiente.** Dado que no existen registros suficientes, cuando realiza la consulta, entonces el sistema informa que todavía no es posible establecer una evolución. | EP04 |
+| **US20** | Registrarse en VetPax | Como usuario nuevo, quiero crear una cuenta en VetPax, para acceder a las funcionalidades correspondientes a mi perfil. | **E01: Registro válido.** Dado que el usuario proporciona los datos requeridos y un correo no registrado, cuando crea su cuenta, entonces el sistema registra al usuario.<br><br>**E02: Correo existente.** Dado que el correo ya pertenece a una cuenta, cuando intenta registrarse, entonces el sistema rechaza la operación. | EP07 |
+| **US21** | Iniciar sesión | Como usuario registrado, quiero iniciar sesión de forma segura, para acceder a la información y funcionalidades correspondientes a mi perfil. | **E01: Credenciales válidas.** Dado que el usuario proporciona credenciales correctas, cuando inicia sesión, entonces el sistema autentica su identidad y permite el acceso.<br><br>**E02: Credenciales incorrectas.** Dado que proporciona credenciales inválidas, cuando intenta iniciar sesión, entonces el sistema rechaza el acceso sin revelar información sensible. | EP07 |
 
-En conjunto, estas decisiones arquitectónicas permiten que VetPax mantenga una estructura flexible y preparada para futuras ampliaciones, asegurando que las funcionalidades clínicas, nutricionales y de comunicación puedan evolucionar sin comprometer la estabilidad del sistema.
+Las funcionalidades seleccionadas representan los principales flujos que condicionan el diseño de VetPax. La gestión del historial clínico requiere persistencia y trazabilidad de información longitudinal; la gestión de citas y tratamientos requiere coordinación entre diferentes procesos del dominio; los recordatorios requieren mecanismos de procesamiento de eventos; la gestión de pacientes exige control sobre las relaciones entre clínicas, profesionales y mascotas; y las funcionalidades de identidad requieren mecanismos de autenticación y autorización.
 
-- **4.1.5. Quality Attribute Scenario Refinements**
+Estas necesidades funcionales serán consideradas posteriormente, junto con los escenarios de atributos de calidad y las restricciones del proyecto, para establecer los Architectural Drivers que orientarán las decisiones de diseño.
 
-- Los escenarios de atributos de calidad definidos anteriormente son refinados considerando las decisiones arquitectónicas adoptadas para VetPax. Este refinamiento permite establecer cómo la arquitectura propuesta responde a los principales requerimientos de calidad relacionados con seguridad, disponibilidad, escalabilidad, mantenibilidad e interoperabilidad.
+#### **4.1.2.2. Quality Attribute Scenarios**
 
-| Atributo de calidad | Escenario refinado | Decisión arquitectónica aplicada | Resultado esperado |
-|---|---|---|---|
-| **Seguridad** | Cuando un usuario intenta acceder a información clínica de una mascota, el sistema debe validar su identidad y permisos antes de permitir el acceso. | Integración con Keycloak para autenticación y autorización basada en roles, diferenciando propietarios, veterinarios y administradores. | Garantizar que cada usuario acceda únicamente a la información y funcionalidades correspondientes a sus permisos. |
-| **Disponibilidad** | Cuando un propietario o veterinario consulta información clínica, el sistema debe responder mostrando los registros disponibles sin interrupciones durante la operación normal. | Uso de servicios backend independientes y persistencia centralizada de información clínica. | Mantener disponible la información necesaria para el seguimiento continuo de mascotas con enfermedades crónicas o geriátricas. |
-| **Escalabilidad** | Cuando aumenta la cantidad de usuarios, mascotas registradas y veterinarias afiliadas, el sistema debe incrementar su capacidad sin afectar sus funcionalidades principales. | Diseño modular basado en arquitectura hexagonal y separación de responsabilidades entre componentes. | Permitir el crecimiento progresivo de VetPax sin realizar modificaciones importantes en la lógica del negocio. |
-| **Mantenibilidad** | Cuando el equipo de desarrollo necesita modificar una funcionalidad o reemplazar una tecnología externa, los cambios deben estar aislados del núcleo del sistema. | Implementación de arquitectura hexagonal con separación entre dominio, aplicación e infraestructura. | Facilitar la evolución del sistema, pruebas independientes y reducción del impacto de cambios futuros. |
-| **Interoperabilidad** | Cuando VetPax necesita comunicarse con servicios externos para autenticación, notificaciones o comunicación en tiempo real, la integración debe realizarse sin afectar el dominio principal. | Uso de adaptadores para servicios externos como Keycloak y Firebase Cloud Messaging. | Permitir integrar o reemplazar proveedores externos manteniendo estable la lógica interna del sistema. |
-| **Rendimiento** | Cuando un usuario consulta información clínica o realiza una acción frecuente dentro de la plataforma, el sistema debe procesar la solicitud en tiempos adecuados. | Uso de APIs REST para comunicación eficiente entre clientes y servicios backend. | Mejorar la experiencia de usuario mediante respuestas rápidas en operaciones frecuentes. |
-| **Comunicación en tiempo real** | Cuando un veterinario registra o actualiza información clínica, los usuarios autorizados deben recibir la actualización correspondiente. | Implementación de WebSockets para comunicación bidireccional entre aplicaciones cliente y servicios backend. | Permitir sincronización inmediata de cambios clínicos, tratamientos y eventos relevantes. |
+Los Quality Attribute Scenarios representan las condiciones de calidad con mayor influencia sobre la arquitectura de VetPax. Estos escenarios se derivan de los requisitos no funcionales identificados previamente y permiten establecer respuestas y medidas verificables frente a estímulos relevantes para la operación de la solución.
 
-Estos escenarios refinados permiten validar que las decisiones arquitectónicas seleccionadas responden a las necesidades principales de VetPax, asegurando una plataforma preparada para gestionar seguimiento clínico-nutricional continuo, integración con servicios externos y crecimiento futuro.
+Para esta primera versión se consideran principalmente escenarios relacionados con rendimiento, disponibilidad, seguridad, escalabilidad, mantenibilidad, interoperabilidad y confiabilidad de la información clínica.
 
-- **4.2. Strategic-Level Domain-Driven Design**
-    - **4.2.1. EventStorming**
+| **ID** | **Atributo** | **Fuente** | **Estímulo** | **Artefacto** | **Entorno** | **Respuesta** | **Medida** |
+|---|---|---|---|---|---|---|---|
+| **QAS01** | Rendimiento | Propietario o profesional veterinario | Realiza una consulta o registro frecuente, como consultar el historial clínico, registrar una atención o revisar una cita. | Servicios backend y almacenamiento de datos | Operación normal | El sistema procesa la solicitud y retorna el resultado correspondiente. | Al menos el **95% de las solicitudes de consulta y registro** debe completarse en un tiempo menor o igual a **2 segundos**. |
+| **QAS02** | Rendimiento | Profesional veterinario | Registra una actualización clínica que debe estar disponible para otros usuarios autorizados conectados. | Servicios backend y mecanismo de comunicación en tiempo real | Operación normal con clientes conectados | El sistema confirma la actualización y comunica el cambio a los clientes autorizados. | Al menos el **95% de las actualizaciones en tiempo real** debe reflejarse en los clientes conectados en un tiempo menor o igual a **3 segundos**. |
+| **QAS03** | Disponibilidad | Propietario o profesional veterinario | Solicita acceder a funcionalidades principales como historial clínico, citas, tratamientos o pacientes. | Servicios backend y almacenamiento de información | Operación habitual del sistema | El sistema permanece disponible y procesa las solicitudes de los usuarios. | La solución debe mantener una disponibilidad mensual mínima de **99%**, excluyendo periodos de mantenimiento planificado. |
+| **QAS04** | Seguridad | Usuario no autenticado | Intenta acceder a un recurso protegido de VetPax. | Mecanismo de autenticación y servicios backend | Operación normal | El sistema verifica la autenticación antes de permitir el acceso y rechaza la solicitud cuando el usuario no está autenticado. | El **100% de las solicitudes a recursos protegidos** debe validar autenticación. Las solicitudes no autenticadas deben ser rechazadas con una respuesta equivalente a **401 Unauthorized**. |
+| **QAS05** | Seguridad | Usuario autenticado sin autorización | Intenta consultar o modificar información clínica de una mascota para la cual no posee permisos. | Servicios de autorización y módulo de gestión clínica | Operación normal | El sistema verifica los permisos del usuario y deniega el acceso al recurso solicitado. | El **100% de los intentos detectados como no autorizados** debe ser rechazado, sin exponer información clínica protegida. |
+| **QAS06** | Escalabilidad | Incremento de usuarios y clínicas incorporadas a VetPax | Aumenta la cantidad de usuarios concurrentes y solicitudes realizadas al sistema. | Servicios backend, APIs y almacenamiento de datos | Periodo de alta carga | El sistema incrementa su capacidad manteniendo el funcionamiento de las funcionalidades principales. | En una prueba con al menos **500 usuarios concurrentes**, el **95% de las solicitudes** debe responder en un tiempo menor o igual a **3 segundos**. |
+| **QAS07** | Mantenibilidad | Equipo de desarrollo | Se requiere sustituir una integración externa por otra que implemente el mismo contrato. | Componentes responsables de las integraciones externas y lógica de dominio | Evolución o mantenimiento del sistema | El equipo sustituye el componente de integración sin modificar las reglas de negocio del dominio. | La sustitución debe requerir **0 modificaciones en las reglas de negocio del dominio**, limitando los cambios al componente de integración y su configuración. |
+| **QAS08** | Interoperabilidad | Aplicación móvil, aplicación web o servicio externo | Requiere intercambiar información con los servicios de VetPax. | APIs expuestas por el backend | Operación normal | El sistema recibe y entrega información utilizando interfaces y formatos estandarizados. | El **100% de los servicios HTTP expuestos a los clientes** debe utilizar interfaces RESTful y **JSON** como formato principal de intercambio de información. |
+| **QAS09** | Confiabilidad | Servicio externo integrado | Presenta una indisponibilidad temporal o devuelve un error durante una operación. | Componente de integración con servicios externos | Falla de un proveedor externo | El sistema controla la falla, registra el incidente y evita que afecte funcionalidades que no dependan directamente del servicio externo. | Ante una falla controlada, deben producirse **0 pérdidas de datos previamente persistidos** y la falla no debe propagarse hacia módulos independientes de la integración afectada. |
+| **QAS10** | Integridad / Trazabilidad | Profesional veterinario o propietario autorizado | Registra o modifica información clínica relacionada con una mascota. | Servicios de gestión clínica y almacenamiento de datos | Operación normal | El sistema persiste la modificación e identifica al usuario responsable y el momento de la operación. | El **100% de los registros y modificaciones clínicas** debe almacenar como mínimo el identificador del usuario responsable y la **fecha y hora** de la operación. |
 
-    Con el objetivo de comprender el comportamiento del dominio de **VetPax** y establecer una primera aproximación a la división funcional de la solución, se aplicó la técnica de **EventStorming**.
+#### **4.1.2.3. Constraints**
 
-    El análisis se centró en los principales procesos relacionados con el seguimiento clínico-nutricional de mascotas geriátricas o con enfermedades crónicas, considerando la interacción entre propietarios, veterinarios, administradores de clínicas y los servicios tecnológicos que permiten mantener la continuidad del tratamiento.
+Los Constraints representan condiciones no negociables que limitan las alternativas disponibles durante el diseño e implementación de VetPax. Estas restricciones provienen principalmente de las disposiciones tecnológicas y de desarrollo establecidas para el proyecto y, por tanto, deben ser consideradas independientemente de las decisiones arquitectónicas que posteriormente adopte el equipo.
 
-    A partir de las necesidades identificadas previamente, se analizaron los principales flujos relacionados con el registro de mascotas, historial clínico, citas veterinarias, tratamientos de medicación, planes nutricionales, gestión de clínicas, recordatorios, seguimiento de adherencia y control de acceso.
+Para su especificación, los Constraints se representan mediante Technical Stories, permitiendo establecer de manera verificable las condiciones que deben cumplirse durante la implementación de los productos digitales de VetPax.
 
-    El EventStorming permitió representar visualmente los hechos relevantes que ocurren dentro del dominio, las acciones que los originan, los actores involucrados y las reglas que reaccionan ante determinados eventos. Asimismo, permitió establecer agrupaciones funcionales iniciales que serán analizadas posteriormente durante el proceso de Candidate Context Discovery.
+| **Technical Story ID** | **Título** | **Descripción** | **Criterios de Aceptación** | **Relacionado con (Epic ID)** |
+|---|---|---|---|---|
+| **TS-C01** | Servicios web bajo estilo RESTful | Como desarrollador, quiero implementar los servicios web de VetPax utilizando el estilo arquitectónico RESTful y uno de los frameworks permitidos por el proyecto, para cumplir con las restricciones tecnológicas establecidas para el backend. | **E01: Estilo RESTful.** Dado que se implementa un servicio web de VetPax, cuando se expone una operación a los productos cliente, entonces debe utilizar recursos y operaciones HTTP siguiendo el estilo RESTful.<br><br>**E02: Framework permitido.** Dado que se implementa el backend, cuando se selecciona el framework de desarrollo, entonces debe utilizarse Spring Boot, ASP.NET Core o Nest Framework.<br><br>**E03: Documentación.** Dado que existe un servicio web expuesto, cuando se documenta su contrato, entonces debe utilizar OpenAPI Specification mediante Swagger. | Transversal (EP01–EP07) |
+| **TS-C02** | Tecnologías de Landing Page | Como desarrollador, quiero implementar la Landing Page utilizando las tecnologías establecidas para el proyecto, para cumplir con las restricciones definidas para la presencia digital de VetPax. | **E01: Tecnologías permitidas.** Dado que se desarrolla la Landing Page, cuando se implementa su estructura, presentación y comportamiento, entonces deben utilizarse HTML5, CSS3 y JavaScript.<br><br>**E02: Lenguaje de diseño.** Dado que se diseñan los componentes visuales de la Landing Page, cuando se define su presentación, entonces debe utilizarse Material Design como referencia de diseño. | EP06 |
+| **TS-C03** | Tecnologías de aplicación web | Como desarrollador, quiero implementar la aplicación web utilizando uno de los frameworks permitidos por el proyecto, para mantener el cumplimiento de las restricciones tecnológicas establecidas. | **E01: Framework permitido.** Dado que se implementa la aplicación web, cuando se selecciona el framework frontend, entonces debe utilizarse Angular o Vue.<br><br>**E02: Tecnologías web.** Dado que se desarrollan las vistas y funcionalidades de la aplicación, cuando se implementan sus componentes, entonces deben utilizarse HTML5, CSS3 y JavaScript o TypeScript según corresponda.<br><br>**E03: Componentes de interfaz.** Dado que se utiliza una biblioteca de componentes, cuando el proyecto utiliza Angular debe emplearse Angular Material o PrimeNG, y cuando utiliza Vue debe emplearse PrimeVue o Vuetify. | EP01 / EP02 / EP03 / EP04 / EP07 |
+| **TS-C04** | Estrategia tecnológica de aplicación móvil | Como desarrollador, quiero implementar la aplicación móvil utilizando una estrategia tecnológica permitida por el proyecto, para cumplir con las restricciones establecidas para productos móviles. | **E01: Desarrollo nativo.** Dado que la aplicación se desarrolla de forma nativa para Android, cuando se implementan sus funcionalidades, entonces debe utilizarse Kotlin.<br><br>**E02: Desarrollo cross-platform.** Dado que el equipo justifique una estrategia cross-platform, cuando se implemente la aplicación, entonces debe utilizarse una de las tecnologías permitidas para dicha estrategia.<br><br>**E03: Tecnologías híbridas.** Dado que se selecciona la tecnología móvil, cuando se evalúan las alternativas disponibles, entonces no deben utilizarse tecnologías híbridas. | EP01 / EP02 / EP03 / EP05 / EP07 |
+| **TS-C05** | Internacionalización de productos digitales | Como desarrollador, quiero incorporar capacidades de internacionalización en los productos digitales de VetPax, para cumplir con el enfoque inclusivo establecido para el proyecto. | **E01: Locales soportados.** Dado que se implementa contenido susceptible de internacionalización, cuando se configuran los recursos de idioma, entonces deben contemplarse como mínimo **English (en_US)** y **Latin American Spanish (es_419)**.<br><br>**E02: Idioma por defecto.** Dado que un usuario accede por primera vez a un producto de VetPax sin una preferencia configurada, cuando se determina el idioma inicial, entonces debe utilizarse inglés como idioma por defecto.<br><br>**E03: Productos aplicables.** Dado que se desarrollan la Landing Page, aplicación web y servicios web, cuando se incorporan mensajes o contenidos, entonces deben estar preparados para internacionalización. | Transversal (EP01–EP07) |
+| **TS-C06** | Accesibilidad de experiencias web | Como desarrollador, quiero aplicar criterios de accesibilidad en las experiencias web de VetPax, para permitir una interacción inclusiva y cumplir con las disposiciones establecidas para el proyecto. | **E01: Atributos ARIA.** Dado que se desarrolla un componente interactivo en la Landing Page o aplicación web, cuando sea necesario describir su propósito o estado, entonces deben configurarse los atributos ARIA correspondientes.<br><br>**E02: Accesibilidad.** Dado que se desarrolla una experiencia web, cuando se implementan sus elementos de interacción, entonces deben considerarse prácticas de accesibilidad a11y. | EP01 / EP02 / EP03 / EP04 / EP06 / EP07 |
+| **TS-C07** | Control de versiones y flujo de trabajo | Como desarrollador, quiero gestionar el código fuente de VetPax mediante las herramientas y prácticas de control de versiones establecidas, para mantener la trazabilidad y colaboración durante el desarrollo. | **E01: Repositorio.** Dado que se desarrolla código fuente de VetPax, cuando se almacena y versiona el proyecto, entonces debe utilizarse Git gestionado mediante GitHub.<br><br>**E02: Flujo de trabajo.** Dado que se desarrollan nuevas funcionalidades o correcciones, cuando se gestionan las ramas del repositorio, entonces debe aplicarse GitFlow Workflow. | Transversal (EP01–EP07) |
+| **TS-C08** | Términos y condiciones de servicio | Como desarrollador, quiero proporcionar acceso a los términos y condiciones de servicio desde los productos digitales de VetPax, para cumplir con las responsabilidades éticas y profesionales establecidas para el proyecto. | **E01: Landing Page.** Dado que un visitante accede a la Landing Page, cuando consulta su footer, entonces debe existir un enlace hacia los términos y condiciones de servicio.<br><br>**E02: Aplicaciones.** Dado que un usuario utiliza alguno de los productos digitales de VetPax, cuando accede a la sección correspondiente del producto, entonces debe poder consultar los términos y condiciones de servicio.<br><br>**E03: Contenido.** Dado que se redactan los términos y condiciones, cuando son publicados, entonces deben considerar los principios de responsabilidad ética y profesional definidos para el proyecto. | Transversal (EP01–EP07) |
 
-    #### Convención utilizada
+### **4.1.3. Architectural Drivers Backlog**
 
-    Para la elaboración del EventStorming se utilizó la siguiente convención visual:
+El Architectural Drivers Backlog consolida los factores que presentan mayor influencia sobre el diseño arquitectónico de VetPax. Para su elaboración se consideran como entradas las Primary User Stories, los Quality Attribute Scenarios y los Constraints identificados previamente durante el proceso de Attribute-Driven Design.
 
-    - **Post-it amarillo:** Actor.
-    - **Post-it azul:** Command.
-    - **Post-it naranja:** Domain Event.
-    - **Post-it morado:** Policy o regla que reacciona ante un evento.
-    - **Post-it verde:** Aggregate o Read Model.
-    - **Post-it rosado:** External System.
-    - **Delimitaciones:** agrupaciones funcionales que posteriormente serán evaluadas como posibles Bounded Contexts.
+Para esta versión del backlog, los drivers fueron valorados considerando dos dimensiones: la **Importancia para Stakeholders**, que representa el nivel de relevancia del driver para los segmentos objetivo y los objetivos del producto, y el **Impacto en Architecture Technical Complexity**, que representa el grado en que el driver condiciona la estructura, componentes, integraciones o decisiones técnicas de la solución.
 
-    Las tecnologías específicas de la solución, como **Keycloak**, **Firebase Cloud Messaging** y **WebSockets**, se consideran mecanismos de soporte de la arquitectura. Por ello, no se representan como capacidades del dominio. Keycloak y Firebase Cloud Messaging pueden aparecer como External Systems, mientras que WebSockets representa un mecanismo técnico de comunicación.
+El backlog incluye los Functional Drivers seleccionados, los Quality Attribute Drivers de mayor relevancia arquitectónica y la totalidad de los Constraints definidos para el proyecto. Los drivers con importancia **High** para los stakeholders y complejidad técnica **High** se presentan primero debido a su mayor influencia sobre las decisiones arquitectónicas posteriores.
 
-    A continuación, se presenta la vista general del EventStorming desarrollado para VetPax.
+| **Driver ID** | **Título de Driver** | **Descripción** | **Importancia para Stakeholders** | **Impacto en Architecture Technical Complexity** |
+|---|---|---|:---:|:---:|
+| **AD01** | Gestión de identidad y control de acceso | VetPax debe permitir el registro y autenticación de usuarios, así como restringir el acceso a información y funcionalidades según los permisos correspondientes. Este driver se relaciona con las funcionalidades de registro e inicio de sesión y con los escenarios de seguridad definidos para los recursos protegidos. | High | High |
+| **AD02** | Gestión y trazabilidad del historial clínico | La solución debe permitir registrar, consultar y mantener información clínica histórica de las mascotas, conservando la relación entre el paciente, el profesional responsable y el momento en que se realizaron las modificaciones. | High | High |
+| **AD03** | Gestión de tratamientos y seguimiento de medicación | Los profesionales veterinarios deben poder registrar tratamientos de medicación y los propietarios deben disponer de mecanismos para consultar y dar seguimiento a las indicaciones y horarios establecidos. | High | High |
+| **AD04** | Sincronización oportuna de actualizaciones | Los cambios clínicos relevantes deben estar disponibles oportunamente para los usuarios autorizados que utilizan la aplicación móvil y la aplicación web, evitando inconsistencias entre los productos digitales. | High | High |
+| **AD05** | Rendimiento de operaciones frecuentes | Las operaciones habituales de consulta y registro deben procesarse con tiempos de respuesta que permitan una interacción fluida. Al menos el 95% de estas solicitudes debe completarse en un tiempo menor o igual a 2 segundos bajo condiciones normales. | High | High |
+| **AD06** | Escalabilidad de la solución | VetPax debe soportar el crecimiento progresivo de usuarios, mascotas y clínicas sin degradar significativamente el rendimiento. La arquitectura debe soportar al menos 500 usuarios concurrentes manteniendo el 95% de las solicitudes en un tiempo menor o igual a 3 segundos durante las pruebas establecidas. | High | High |
+| **AD07** | Mantenibilidad y desacoplamiento | La solución debe permitir modificar o sustituir componentes de infraestructura e integraciones externas sin requerir cambios en las reglas principales del dominio, reduciendo el impacto de la evolución tecnológica sobre la lógica del negocio. | High | High |
+| **AD08** | Servicios web RESTful y tecnologías backend permitidas | Los servicios web de VetPax deben seguir el estilo RESTful y utilizar uno de los frameworks backend permitidos por el proyecto. Los contratos de los servicios deben documentarse mediante OpenAPI Specification utilizando Swagger. | High | High |
+| **AD09** | Gestión de citas veterinarias | Los propietarios deben poder programar, cancelar y reprogramar citas, mientras que los profesionales veterinarios deben disponer de información actualizada para gestionar su agenda y mantener la continuidad de los controles. | High | Medium |
+| **AD10** | Gestión de pacientes y evolución clínica | Los profesionales veterinarios deben poder consultar los pacientes vinculados con su clínica y analizar su evolución utilizando los registros clínicos históricos disponibles. | High | Medium |
+| **AD11** | Disponibilidad de funcionalidades principales | Las funcionalidades relacionadas con historial clínico, tratamientos, citas y pacientes deben mantenerse disponibles durante la operación habitual de VetPax. La solución debe alcanzar una disponibilidad mensual mínima de 99%, excluyendo mantenimientos planificados. | High | Medium |
+| **AD12** | Programación y entrega de recordatorios | La solución debe permitir programar recordatorios relacionados con medicación, alimentación y citas, asegurando que los eventos correspondientes sean procesados según las fechas y horarios configurados. | High | Medium |
+| **AD13** | Tecnologías de aplicación web | La aplicación web dirigida al segmento veterinario debe desarrollarse utilizando Angular o Vue, junto con las tecnologías y bibliotecas de componentes permitidas por las disposiciones del proyecto. | High | Medium |
+| **AD14** | Estrategia tecnológica de aplicación móvil | La aplicación móvil dirigida a propietarios debe implementarse utilizando una estrategia de desarrollo permitida por el proyecto, considerando desarrollo nativo o una alternativa cross-platform autorizada y excluyendo tecnologías híbridas. | High | Medium |
+| **AD15** | Internacionalización de productos digitales | Los productos digitales de VetPax deben contemplar internacionalización para English (en_US) y Latin American Spanish (es_419), utilizando inglés como idioma por defecto para los mensajes, interfaces y documentación correspondiente. | High | Medium |
+| **AD16** | Accesibilidad de experiencias web | La Landing Page y la aplicación web deben incorporar criterios de accesibilidad a11y y atributos ARIA cuando corresponda, de acuerdo con las disposiciones establecidas para los productos web del proyecto. | High | Medium |
+| **AD17** | Interoperabilidad entre productos y servicios | La aplicación móvil, aplicación web y servicios externos deben intercambiar información mediante interfaces y formatos estandarizados. Los servicios HTTP expuestos deben utilizar RESTful APIs y JSON como formato principal de intercambio. | Medium | High |
+| **AD18** | Manejo de fallos de servicios externos | La indisponibilidad temporal de una integración externa debe ser controlada sin provocar pérdida de información previamente persistida ni afectar módulos que no dependan directamente del servicio que presenta la falla. | Medium | High |
+| **AD19** | Tecnologías de Landing Page | La Landing Page debe desarrollarse utilizando HTML5, CSS3 y JavaScript, considerando Material Design como referencia para el diseño de la experiencia visual. | Medium | Low |
+| **AD20** | Control de versiones y flujo de trabajo | El código fuente de los productos digitales de VetPax debe gestionarse mediante Git y GitHub, aplicando GitFlow Workflow para organizar el trabajo colaborativo y mantener la trazabilidad de los cambios. | Medium | Low |
+| **AD21** | Términos y condiciones de servicio | Los productos digitales de VetPax deben proporcionar acceso a los términos y condiciones de servicio, incluyendo los enlaces correspondientes en la Landing Page y en las aplicaciones, de acuerdo con las responsabilidades éticas y profesionales definidas para el proyecto. | Medium | Low |
 
-    ![EventStorming general de VetPax](feature/Chapter-4/EventStorming.png)
+Los Architectural Drivers identificados representan las necesidades funcionales, atributos de calidad y restricciones que presentan mayor influencia sobre la arquitectura de VetPax. Estos drivers serán utilizados en las siguientes etapas del proceso ADD para evaluar tácticas, patrones y alternativas arquitectónicas antes de establecer las Architectural Design Decisions de la solución.
 
-    La vista general permite observar las principales capacidades identificadas y las relaciones existentes entre ellas. Para facilitar su análisis, el EventStorming fue dividido en siete flujos funcionales: **Pet & Clinical Care, Appointment Management, Medication Treatment, Nutrition Management, Clinic Management, Adherence & Gamification e Identity & Access Management**.
+### **4.1.4. Architectural Design Decisions**
 
-    Cada uno de estos flujos se describe a continuación.
+Las Architectural Design Decisions de VetPax se obtienen a partir de los Architectural Drivers identificados y priorizados previamente. Para establecer estas decisiones se sigue un proceso iterativo basado en el **Quality Attribute Workshop**, considerando en cada iteración los drivers relevantes, las tácticas arquitectónicas aplicables, los patrones o alternativas disponibles y los criterios utilizados para seleccionar la alternativa más adecuada.
 
-    #### Flujo 1: Pet & Clinical Care
+Los Constraints definidos en la sección anterior se consideran condiciones obligatorias del proyecto y, por tanto, no son tratados como alternativas de diseño. Las iteraciones se concentran principalmente en aquellos drivers que presentan una importancia alta para los stakeholders y un impacto significativo sobre la complejidad técnica de la arquitectura.
 
-    Este flujo representa la gestión principal de la mascota y de su información clínica dentro de VetPax.
 
-    El proceso puede comenzar cuando el dueño registra una mascota en la plataforma mediante el comando `Registrar mascota`. La operación es gestionada por el aggregate **Pet** y, cuando finaliza correctamente, produce el evento `Mascota registrada`.
+#### **Iteración 1: Mantenibilidad y organización interna del backend**
 
-    A partir de una mascota existente, el veterinario puede registrar una nueva atención clínica. El comando `Registrar atención clínica` actúa sobre el aggregate **Clinical Record** y produce el evento `Atención clínica registrada`.
+**Drivers considerados:** AD02 - Gestión y trazabilidad del historial clínico, AD03 - Gestión de tratamientos y seguimiento de medicación y AD07 - Mantenibilidad y desacoplamiento.
 
-    Una vez registrada la atención, la policy `Actualizar historial clínico` determina que la nueva información debe incorporarse al historial correspondiente. Como consecuencia se ejecuta el comando `Incorporar atención al historial`, produciendo finalmente el evento `Historial clínico actualizado`.
+Las funcionalidades relacionadas con información clínica y tratamientos requieren que las reglas principales del dominio puedan evolucionar sin depender directamente de frameworks, mecanismos de persistencia o integraciones externas.
 
-    Por otra parte, el dueño puede consultar el historial de su mascota y el veterinario puede consultar su evolución clínica. Debido a que estas operaciones corresponden principalmente a consultas y no modifican el estado del dominio, se representan mediante Read Models.
+Las principales tácticas consideradas fueron:
 
-    Los principales elementos identificados en este flujo son:
+- **Separation of Concerns**, para distribuir responsabilidades entre componentes con funciones diferenciadas.
+- **Dependency Inversion**, para evitar que las reglas del dominio dependan directamente de componentes de infraestructura.
+- **Information Hiding**, para encapsular los detalles técnicos detrás de contratos definidos.
 
-    - **Actors:** Dueño de mascota y Veterinario.
-    - **Commands:** Registrar mascota, Registrar atención clínica e Incorporar atención al historial.
-    - **Aggregates:** Pet y Clinical Record.
-    - **Domain Events:** Mascota registrada, Atención clínica registrada e Historial clínico actualizado.
-    - **Policy:** Actualizar historial clínico.
-    - **Read Models:** Vista de historial clínico y Evolución clínica del paciente.
+Se evaluaron como alternativas **Traditional Layered Architecture**, **Clean Architecture** y **Hexagonal Architecture**.
 
-    ![EventStorming - Pet and Clinical Care](feature/Chapter-4/EventStorming-Clinical-Care.png)
+Traditional Layered Architecture presenta menor complejidad inicial y una estructura ampliamente conocida, pero puede generar dependencias entre la lógica de negocio, la persistencia y los frameworks utilizados. Clean Architecture proporciona una separación clara de responsabilidades mediante reglas de dependencia hacia el núcleo del sistema, aunque introduce una mayor cantidad de abstracciones.
 
-    #### Flujo 2: Appointment Management
+Hexagonal Architecture permite representar explícitamente la interacción entre el dominio y los componentes externos mediante Ports and Adapters. Esta alternativa responde de manera directa al escenario de mantenibilidad definido para VetPax, en el cual la sustitución de una integración externa no debe requerir modificaciones en las reglas del dominio.
 
-    Este flujo representa la programación y seguimiento de las citas veterinarias asociadas a una mascota.
+**Decisión resultante:** utilizar **Hexagonal Architecture** para organizar el backend de VetPax, manteniendo el dominio independiente de los componentes externos mediante Ports and Adapters.
 
-    El dueño puede ejecutar el comando `Agendar cita veterinaria`, el cual actúa sobre el aggregate **Appointment**. Cuando existe disponibilidad y la información proporcionada es válida, se produce el evento `Cita veterinaria programada`.
 
-    Mientras la cita permanezca pendiente, el propietario puede modificarla mediante `Reprogramar cita`, generando `Cita veterinaria reprogramada`, o cancelarla mediante `Cancelar cita`, generando `Cita veterinaria cancelada`.
+#### **Iteración 2: Autenticación, autorización y gestión de identidad**
 
-    Cuando la consulta veterinaria se realiza, el veterinario puede ejecutar `Marcar cita como atendida`, produciendo el evento `Cita veterinaria atendida`.
+**Drivers considerados:** AD01 - Gestión de identidad y control de acceso.
 
-    Este último evento resulta relevante para otros procesos del dominio, debido a que puede ser utilizado como evidencia de cumplimiento para el cálculo posterior de adherencia.
+Los escenarios de seguridad requieren validar la identidad de los usuarios y controlar el acceso a la información clínica de acuerdo con los permisos correspondientes.
 
-    Asimismo, el veterinario puede consultar su agenda mediante un Read Model sin producir cambios sobre el estado de las citas.
+Las principales tácticas consideradas fueron:
 
-    Los principales elementos identificados son:
+- **Authenticate Users**, para verificar la identidad antes de permitir el acceso al sistema.
+- **Authorize Users**, para restringir recursos y operaciones de acuerdo con los permisos asignados.
+- **Centralized Identity Management**, para centralizar la administración de identidades, roles y credenciales.
 
-    - **Actors:** Dueño de mascota y Veterinario.
-    - **Commands:** Agendar cita veterinaria, Reprogramar cita, Cancelar cita y Marcar cita como atendida.
-    - **Aggregate:** Appointment.
-    - **Domain Events:** Cita veterinaria programada, Cita veterinaria reprogramada, Cita veterinaria cancelada y Cita veterinaria atendida.
-    - **Read Model:** Agenda veterinaria.
+Se evaluaron como alternativas una **autenticación implementada directamente en el backend**, la **gestión directa de tokens JWT por la aplicación** y un **Centralized Identity Provider**.
 
-    ![EventStorming - Appointment Management](feature/Chapter-4/EventStorming-Appointments.png)
+La autenticación implementada directamente en el backend proporciona control sobre todo el proceso, pero incrementa la responsabilidad del sistema respecto con almacenamiento de credenciales, recuperación de acceso, emisión de tokens y gestión de roles. La gestión directa de JWT reduce la necesidad de sesiones en el servidor, aunque mantiene dentro de la aplicación responsabilidades relacionadas con identidades y renovación de credenciales.
 
-    #### Flujo 3: Medication Treatment
+Un Centralized Identity Provider permite delegar estas responsabilidades a un componente especializado y centralizar los mecanismos de autenticación y autorización.
 
-    Este flujo representa el seguimiento de la medicación asociada al tratamiento de una mascota.
+**Decisión resultante:** utilizar un **Centralized Identity Provider**, implementado mediante **Keycloak**, para gestionar autenticación, autorización, roles y recuperación de acceso.
 
-    Cuando existe un tratamiento activo con horarios definidos, el propietario puede ejecutar `Activar recordatorios de medicación`. Como resultado se genera el evento `Recordatorios de medicación activados`.
 
-    Posteriormente, cuando se alcanza el horario correspondiente a una dosis pendiente, una policy determina que debe generarse un recordatorio. El sistema ejecuta el comando `Generar recordatorio de medicación`, produciendo el evento `Recordatorio de medicación generado`.
+#### **Iteración 3: Sincronización de actualizaciones entre productos digitales**
 
-    La entrega de la notificación al dispositivo del propietario se realiza mediante **Firebase Cloud Messaging**, identificado como External System.
+**Drivers considerados:** AD04 - Sincronización oportuna de actualizaciones, AD05 - Rendimiento de operaciones frecuentes y AD17 - Interoperabilidad entre productos y servicios.
 
-    Cuando el propietario administra la dosis correspondiente puede ejecutar `Registrar dosis administrada`. El aggregate **Medication Treatment** valida la operación y produce el evento `Dosis de medicación administrada`.
+VetPax requiere que determinados cambios clínicos puedan reflejarse oportunamente entre la aplicación móvil utilizada por los propietarios y la aplicación web utilizada por los profesionales veterinarios.
 
-    Este último evento también puede ser consumido posteriormente por el flujo de Adherence & Gamification para recalcular el nivel de cumplimiento del propietario.
+Las principales tácticas consideradas fueron:
 
-    Los principales elementos identificados son:
+- **Asynchronous Communication**, para evitar que todos los intercambios de información dependan de solicitudes síncronas.
+- **Reduce Communication Latency**, para disminuir el tiempo entre una actualización y su disponibilidad para otros clientes conectados.
+- **Persistent Connection**, para mantener un canal disponible para la distribución de determinados eventos.
 
-    - **Actor:** Dueño de mascota.
-    - **Commands:** Activar recordatorios de medicación, Generar recordatorio de medicación y Registrar dosis administrada.
-    - **Aggregate:** Medication Treatment.
-    - **Domain Events:** Recordatorios de medicación activados, Recordatorio de medicación generado y Dosis de medicación administrada.
-    - **Policy:** Generar recordatorio cuando se alcanza el horario de una dosis pendiente.
-    - **External System:** Firebase Cloud Messaging.
+Se evaluaron **Polling**, **Server-Sent Events** y **WebSockets**.
 
-    ![EventStorming - Medication Treatment](feature/Chapter-4/EventStorming-Medication.png)
+Polling tiene una implementación sencilla sobre HTTP, pero requiere realizar solicitudes repetitivas incluso cuando no existen actualizaciones. Server-Sent Events permite mantener un canal persistente desde el servidor hacia el cliente, aunque se encuentra orientado principalmente a comunicación unidireccional.
 
-    #### Flujo 4: Nutrition Management
+WebSockets permite establecer un canal bidireccional persistente y distribuir actualizaciones a los clientes conectados sin realizar consultas periódicas.
 
-    Este flujo representa la gestión de los planes nutricionales definidos para cada mascota.
+**Decisión resultante:** utilizar **WebSockets** para las actualizaciones que requieran comunicación en tiempo real, mientras que las operaciones convencionales de consulta y registro continuarán utilizando las APIs RESTful establecidas como Constraint del proyecto.
 
-    El veterinario puede ejecutar `Prescribir plan nutricional`, especificando información como alimento, cantidad y frecuencia. El comando actúa sobre el aggregate **Nutrition Plan** y genera el evento `Plan nutricional registrado`.
 
-    Cuando las necesidades nutricionales de la mascota cambian, el veterinario puede ejecutar `Actualizar plan nutricional`, generando `Plan nutricional actualizado`.
+#### **Iteración 4: Programación y entrega de recordatorios**
 
-    Asimismo, cuando se alcanza uno de los horarios definidos dentro de un plan nutricional activo, una policy determina que debe generarse un recordatorio de alimentación.
+**Drivers considerados:** AD12 - Programación y entrega de recordatorios, AD18 - Manejo de fallos de servicios externos y AD11 - Disponibilidad de funcionalidades principales.
 
-    Como consecuencia se ejecuta `Generar recordatorio de alimentación`, produciendo el evento `Recordatorio de alimentación generado`. La entrega de esta notificación al dispositivo del propietario se realiza mediante **Firebase Cloud Messaging**.
+VetPax debe generar recordatorios relacionados con citas, medicación y alimentación sin acoplar las operaciones principales del negocio con la disponibilidad inmediata del mecanismo utilizado para entregar las notificaciones.
 
-    Los principales elementos identificados son:
+Las principales tácticas consideradas fueron:
 
-    - **Actor:** Veterinario.
-    - **Commands:** Prescribir plan nutricional, Actualizar plan nutricional y Generar recordatorio de alimentación.
-    - **Aggregate:** Nutrition Plan.
-    - **Domain Events:** Plan nutricional registrado, Plan nutricional actualizado y Recordatorio de alimentación generado.
-    - **Policy:** Generar recordatorio cuando se alcanza un horario de alimentación.
-    - **External System:** Firebase Cloud Messaging.
+- **Asynchronous Processing**, para separar la generación de un recordatorio de su entrega.
+- **Fault Isolation**, para evitar que la indisponibilidad de un servicio externo afecte otras funcionalidades.
+- **Retry**, para permitir nuevos intentos de procesamiento ante fallas temporales.
+- **Scheduling**, para ejecutar recordatorios en las fechas y horarios correspondientes.
 
-    ![EventStorming - Nutrition Management](feature/Chapter-4/EventStorming-Nutrition.png)
+Se evaluaron el **envío síncrono desde el flujo principal**, los **Scheduled Jobs** y el **procesamiento desacoplado junto con un Push Notification Provider**.
 
-    #### Flujo 5: Clinic Management
+El envío síncrono presenta menor complejidad inicial, pero establece una dependencia directa entre la operación principal y el proveedor externo. Los Scheduled Jobs permiten ejecutar actividades de acuerdo con una programación determinada, aunque requieren mecanismos adicionales para controlar estados, reintentos y fallas.
 
-    Este flujo representa la administración de la información general de las veterinarias registradas dentro de VetPax y la consulta de sus pacientes asociados.
+El procesamiento desacoplado permite mantener independientes la generación del evento y su posterior entrega al dispositivo del usuario.
 
-    El administrador de una veterinaria puede ejecutar `Actualizar perfil de clínica`. El comando actúa sobre el aggregate **Clinic**, encargado de mantener información como los datos generales y horarios de atención. Una actualización correcta produce el evento `Perfil de clínica actualizado`.
+**Decisión resultante:** utilizar un **servicio desacoplado para la programación y procesamiento de recordatorios** y emplear **Firebase Cloud Messaging** como proveedor para la entrega de notificaciones push.
 
-    La información relacionada con los horarios de atención puede posteriormente ser utilizada por Appointment Management para determinar las condiciones disponibles durante el proceso de agendamiento.
 
-    Por otra parte, el veterinario puede realizar `Consultar pacientes de la clínica`. Debido a que esta operación corresponde a una consulta, se utiliza el Read Model `Listado de pacientes`, el cual presenta únicamente los pacientes que se encuentran vinculados con la clínica correspondiente.
+#### **Iteración 5: Organización de las capacidades del dominio**
 
-    Los principales elementos identificados son:
+**Drivers considerados:** AD02 - Gestión y trazabilidad del historial clínico, AD03 - Gestión de tratamientos y seguimiento de medicación, AD09 - Gestión de citas veterinarias, AD10 - Gestión de pacientes y evolución clínica y AD07 - Mantenibilidad y desacoplamiento.
 
-    - **Actors:** Administrador de veterinaria y Veterinario.
-    - **Command:** Actualizar perfil de clínica.
-    - **Aggregate:** Clinic.
-    - **Domain Event:** Perfil de clínica actualizado.
-    - **Read Model:** Listado de pacientes.
+Las diferentes capacidades de VetPax representan conceptos del negocio que poseen responsabilidades y ciclos de evolución diferentes. Por ello, se requiere establecer una organización que reduzca el acoplamiento entre estas capacidades.
 
-    ![EventStorming - Clinic Management](feature/Chapter-4/EventStorming-Clinic.png)
+Las principales tácticas consideradas fueron:
 
-    #### Flujo 6: Adherence & Gamification
+- **Semantic Coherence**, para agrupar responsabilidades relacionadas con una misma capacidad del negocio.
+- **Separation of Responsibilities**, para evitar que módulos diferentes compartan responsabilidades innecesariamente.
+- **Reduce Coupling**, para limitar dependencias entre capacidades del dominio.
 
-    Este flujo representa el proceso mediante el cual VetPax evalúa la constancia del propietario en el cuidado de su mascota y determina su progreso dentro del sistema de gamificación.
+Se evaluaron una **organización por capas técnicas**, una **organización por features** y una **organización modular orientada al dominio**.
 
-    A diferencia de otros flujos, este proceso puede iniciar como consecuencia de Domain Events generados en otras partes del sistema. Entre los principales eventos considerados se encuentran `Dosis de medicación administrada` y `Cita veterinaria atendida`.
+La organización por capas técnicas facilita inicialmente la ubicación de controllers, services y repositories, pero puede mezclar reglas pertenecientes a diferentes capacidades del negocio. La organización por features mejora la cohesión al agrupar componentes relacionados con una funcionalidad.
 
-    Cuando se produce un evento relevante de cumplimiento, la policy `Recalcular adherencia` determina que debe actualizarse el indicador correspondiente.
+La organización modular orientada al dominio permite establecer límites explícitos entre las principales capacidades del negocio y proporciona una base para las actividades posteriores de Strategic-Level Domain-Driven Design.
 
-    Como consecuencia se ejecuta el comando `Calcular adherencia`, el cual actúa sobre el aggregate **Adherence Progress** y genera `Adherencia calculada`.
+**Decisión resultante:** organizar las capacidades principales de VetPax mediante **módulos orientados al dominio**, cuyos límites serán refinados posteriormente mediante EventStorming, Context Discovery y Bounded Context Mapping.
 
-    Posteriormente, la policy `Evaluar nivel de constancia` analiza el resultado obtenido. El sistema ejecuta `Actualizar nivel` y genera `Nivel de constancia actualizado`.
 
-    Cuando el nuevo porcentaje de adherencia supera el umbral correspondiente al siguiente nivel, se produce `Propietario ascendió de nivel`.
+#### **Iteración 6: Escalabilidad y rendimiento del backend**
 
-    VetPax considera los niveles:
+**Drivers considerados:** AD05 - Rendimiento de operaciones frecuentes, AD06 - Escalabilidad de la solución y AD11 - Disponibilidad de funcionalidades principales.
 
-    - Bronce.
-    - Plata.
-    - Oro.
+VetPax debe soportar el crecimiento progresivo de usuarios y solicitudes manteniendo los niveles de rendimiento definidos en los Quality Attribute Scenarios.
 
-    El ascenso de nivel activa la policy `Notificar reconocimiento`. Como consecuencia se ejecuta `Enviar notificación de ascenso`, generando `Reconocimiento enviado`. La entrega de la notificación puede realizarse mediante **Firebase Cloud Messaging**.
+Las principales tácticas consideradas fueron:
 
-    Los principales elementos identificados son:
+- **Stateless Processing**, para reducir dependencias de sesión entre solicitudes.
+- **Horizontal Scaling**, para permitir aumentar la capacidad incorporando nuevas instancias.
+- **Resource Replication**, para distribuir el procesamiento cuando la demanda se incremente.
 
-    - **Commands:** Calcular adherencia, Actualizar nivel y Enviar notificación de ascenso.
-    - **Aggregate:** Adherence Progress.
-    - **Domain Events:** Adherencia calculada, Nivel de constancia actualizado, Propietario ascendió de nivel y Reconocimiento enviado.
-    - **Policies:** Recalcular adherencia, Evaluar nivel de constancia y Notificar reconocimiento.
-    - **External System:** Firebase Cloud Messaging.
+Se evaluaron **escalamiento vertical de una única instancia**, **servicios stateless con escalamiento horizontal** y una **arquitectura basada en microservicios**.
 
-    ![EventStorming - Adherence and Gamification](feature/Chapter-4/EventStorming-Adherence.png)
+El escalamiento vertical presenta menor complejidad operacional, pero se encuentra limitado por la capacidad máxima de una única instancia. Una arquitectura de microservicios proporciona independencia de despliegue y escalabilidad por servicio, aunque introduce complejidad adicional en comunicación, observabilidad, despliegue y consistencia distribuida.
 
-    #### Flujo 7: Identity & Access Management
+Un backend modular y stateless permite conservar una complejidad operativa menor y, al mismo tiempo, habilitar el escalamiento horizontal cuando la demanda aumente.
 
-    Este flujo representa los procesos relacionados con la creación de cuentas, autenticación y control de acceso de los usuarios de VetPax.
+**Decisión resultante:** mantener un **backend modular con procesamiento stateless y capacidad de escalamiento horizontal**, evitando introducir inicialmente la complejidad operacional de una arquitectura distribuida basada en microservicios.
 
-    Cuando un nuevo usuario desea acceder a la plataforma puede ejecutar `Registrar cuenta`. La identidad es gestionada mediante **Keycloak**, utilizado como proveedor externo de identidad. Cuando el registro se completa correctamente, se genera el evento `Cuenta de usuario creada`.
 
-    Posteriormente, un usuario registrado puede ejecutar `Autenticar usuario`. Keycloak valida las credenciales proporcionadas y, cuando estas son correctas, se produce el evento `Usuario autenticado`.
+#### **Candidate Pattern Evaluation Matrix**
 
-    Después de la autenticación se aplica la policy `Validar permisos según rol`, encargada de determinar las funcionalidades a las que puede acceder cada usuario.
+La siguiente matriz resume las principales alternativas consideradas durante las iteraciones del proceso. Para cada grupo de Architectural Drivers se presentan como máximo los tres patrones o alternativas con mayor relevancia para la decisión.
 
-    Los roles considerados son:
+<div style="page-break-after: always;"></div>
 
-    - Dueño de mascota.
-    - Veterinario.
-    - Administrador de veterinaria.
+<table border="1" cellspacing="0" cellpadding="3"
+       style="border-collapse: collapse; width: 100%; table-layout: fixed; font-size: 8px; line-height: 1.15;">
+  <thead>
+    <tr>
+      <th style="width: 6%;">Driver ID</th>
+      <th style="width: 10%;">Título de Driver</th>
+      <th style="width: 9%;">Pattern / Alternative 1</th>
+      <th style="width: 9%;">Pro</th>
+      <th style="width: 9%;">Con</th>
+      <th style="width: 9%;">Pattern / Alternative 2</th>
+      <th style="width: 9%;">Pro</th>
+      <th style="width: 9%;">Con</th>
+      <th style="width: 9%;">Pattern / Alternative 3</th>
+      <th style="width: 10%;">Pro</th>
+      <th style="width: 11%;">Con</th>
+    </tr>
+  </thead>
 
-    Identity & Access Management mantiene una relación transversal con los demás flujos debido a que las operaciones relacionadas con información clínica, pacientes, citas, tratamientos y administración de clínicas requieren verificar previamente la identidad y permisos del usuario.
+  <tbody>
+    <tr>
+      <td><strong>AD02, AD03, AD07</strong></td>
+      <td>Gestión clínica y mantenibilidad</td>
+      <td>Traditional Layered Architecture</td>
+      <td>Menor complejidad inicial y estructura ampliamente conocida.</td>
+      <td>Puede generar acoplamiento entre dominio, persistencia y frameworks.</td>
+      <td>Clean Architecture</td>
+      <td>Mantiene las reglas de negocio independientes de infraestructura mediante inversión de dependencias.</td>
+      <td>Incrementa la cantidad de abstracciones y contratos.</td>
+      <td><strong>Hexagonal Architecture</strong></td>
+      <td>Aísla el dominio mediante Ports and Adapters y facilita sustituir componentes externos.</td>
+      <td>Requiere definir y mantener correctamente puertos, adaptadores y responsabilidades.</td>
+    </tr>
+    <tr>
+      <td><strong>AD01</strong></td>
+      <td>Gestión de identidad y control de acceso</td>
+      <td>Autenticación implementada en el backend</td>
+      <td>Control completo sobre el proceso de autenticación.</td>
+      <td>Incrementa la responsabilidad sobre credenciales, recuperación, tokens y seguridad.</td>
+      <td>JWT gestionado directamente por la aplicación</td>
+      <td>Permite autenticación stateless y facilita la comunicación con APIs.</td>
+      <td>La aplicación mantiene responsabilidad sobre emisión, renovación y revocación de tokens.</td>
+      <td><strong>Centralized Identity Provider</strong></td>
+      <td>Centraliza autenticación, autorización, roles y recuperación de acceso.</td>
+      <td>Introduce dependencia de un componente adicional de identidad.</td>
+    </tr>
+    <tr>
+      <td><strong>AD04, AD05, AD17</strong></td>
+      <td>Sincronización de actualizaciones</td>
+      <td>Polling</td>
+      <td>Implementación sencilla utilizando HTTP convencional.</td>
+      <td>Genera solicitudes periódicas y puede incrementar la latencia y consumo de recursos.</td>
+      <td>Server-Sent Events</td>
+      <td>Mantiene comunicación persistente eficiente desde el servidor hacia el cliente.</td>
+      <td>Se encuentra orientado principalmente a comunicación unidireccional.</td>
+      <td><strong>WebSockets</strong></td>
+      <td>Permite comunicación bidireccional persistente y actualizaciones con baja latencia.</td>
+      <td>Requiere gestionar conexiones persistentes, reconexión y escalabilidad.</td>
+    </tr>
+    <tr>
+      <td><strong>AD12, AD18, AD11</strong></td>
+      <td>Programación y entrega de recordatorios</td>
+      <td>Procesamiento síncrono</td>
+      <td>Menor complejidad inicial.</td>
+      <td>Acopla la operación principal con la disponibilidad del proveedor externo.</td>
+      <td>Scheduled Jobs</td>
+      <td>Permite ejecutar recordatorios según fechas y horarios definidos.</td>
+      <td>Requiere administrar estados, concurrencia, reintentos y recuperación de fallos.</td>
+      <td><strong>Procesamiento desacoplado + Push Notification Provider</strong></td>
+      <td>Separa generación y entrega de eventos y permite controlar fallas externas.</td>
+      <td>Incrementa la cantidad de componentes y estados gestionados.</td>
+    </tr>
+    <tr>
+      <td><strong>AD02, AD03, AD09, AD10, AD07</strong></td>
+      <td>Organización del dominio</td>
+      <td>Organización por capas técnicas</td>
+      <td>Estructura simple y conocida.</td>
+      <td>Puede mezclar reglas pertenecientes a diferentes capacidades del negocio.</td>
+      <td>Organización por features</td>
+      <td>Mejora la cohesión agrupando componentes relacionados con una funcionalidad.</td>
+      <td>Los límites entre conceptos del dominio pueden permanecer ambiguos.</td>
+      <td><strong>Organización modular orientada al dominio</strong></td>
+      <td>Define límites entre capacidades de negocio y favorece su evolución independiente.</td>
+      <td>Requiere mayor análisis del dominio para identificar correctamente responsabilidades y relaciones.</td>
+    </tr>
+    <tr>
+      <td><strong>AD05, AD06, AD11</strong></td>
+      <td>Escalabilidad y rendimiento</td>
+      <td>Escalamiento vertical</td>
+      <td>Fácil de implementar y operar inicialmente.</td>
+      <td>Posee límites de capacidad y genera dependencia de una única instancia.</td>
+      <td><strong>Backend stateless con escalamiento horizontal</strong></td>
+      <td>Permite incorporar nuevas instancias según la demanda sin introducir distribución completa del dominio.</td>
+      <td>Requiere infraestructura capaz de distribuir solicitudes y gestionar instancias.</td>
+      <td>Microservices Architecture</td>
+      <td>Permite escalar y desplegar servicios de manera independiente.</td>
+      <td>Introduce mayor complejidad en comunicación, despliegue, observabilidad y consistencia distribuida.</td>
+    </tr>
+  </tbody>
+</table>
 
-    Los principales elementos identificados son:
+<div style="page-break-after: always;"></div>
 
-    - **Actor:** Usuario.
-    - **Commands:** Registrar cuenta y Autenticar usuario.
-    - **Aggregate:** User Account.
-    - **Domain Events:** Cuenta de usuario creada y Usuario autenticado.
-    - **Policy:** Validar permisos según rol.
-    - **External System:** Keycloak.
+Como resultado de las iteraciones realizadas, las principales decisiones arquitectónicas obtenidas corresponden al uso de Hexagonal Architecture para estructurar el backend, un proveedor centralizado de identidad para gestionar autenticación y autorización, WebSockets para los casos que requieren comunicación en tiempo real, procesamiento desacoplado para los recordatorios, una organización modular orientada al dominio y una estrategia de procesamiento stateless que permita escalamiento horizontal.
 
-    ![EventStorming - Identity and Access Management](feature/Chapter-4/EventStorming-IAM.png)
+Estas decisiones responden a los Architectural Drivers priorizados y servirán como base para el refinamiento de los Quality Attribute Scenarios y para las actividades posteriores de Strategic-Level Domain-Driven Design.
 
-    #### Relaciones identificadas entre los flujos
+### **4.1.5. Quality Attribute Scenario Refinements**
 
-    El análisis conjunto de los siete flujos permitió identificar diferentes relaciones entre las capacidades de VetPax.
+Luego de evaluar los Architectural Drivers, las tácticas y las alternativas de diseño durante el Quality Attribute Workshop, se refinan los Quality Attribute Scenarios definidos inicialmente para VetPax.
 
-    **Identity & Access Management** mantiene una relación transversal con los demás flujos, ya que las acciones protegidas requieren autenticar al usuario y verificar sus permisos.
+Las principales decisiones obtenidas durante el proceso incluyen el uso de un proveedor centralizado de identidad para autenticación y autorización, Hexagonal Architecture para desacoplar las reglas del dominio de los componentes externos, WebSockets para los escenarios que requieren sincronización en tiempo real, procesamiento desacoplado para recordatorios y notificaciones, y una estrategia stateless que permita el escalamiento horizontal del backend.
 
-    **Clinic Management** proporciona información relacionada con la clínica y sus horarios, los cuales pueden ser utilizados por **Appointment Management** durante el proceso de programación de citas.
+A partir de estas decisiones, los escenarios son refinados incorporando respuestas más concretas, medidas verificables y los principales aspectos pendientes que deben considerarse durante la implementación. Los escenarios se presentan en orden de prioridad, considerando su importancia para los stakeholders y su impacto sobre la arquitectura.
 
-    **Pet & Clinical Care** mantiene la información principal del paciente y constituye un punto de referencia para las citas, tratamientos de medicación y planes nutricionales asociados a cada mascota.
 
-    **Appointment Management** genera el evento `Cita veterinaria atendida`, el cual puede ser utilizado tanto para continuar el seguimiento clínico como para recalcular la adherencia del propietario.
+#### **Scenario Refinement for Scenario 1 — Seguridad y control de acceso**
 
-    **Medication Treatment** genera el evento `Dosis de medicación administrada`, que constituye evidencia de cumplimiento utilizada por **Adherence & Gamification**.
+| **Elemento** | **Descripción** |
+|---|---|
+| **Scenario(s)** | QAS04, QAS05 |
+| **Business Goals** | Proteger la información clínica de las mascotas y mantener la confianza de propietarios y profesionales veterinarios mediante mecanismos de acceso seguro. |
+| **Relevant Quality Attributes** | Seguridad, privacidad |
+| **Stimulus** | Un usuario intenta acceder a un recurso protegido sin encontrarse autenticado o intenta consultar información clínica para la cual no posee autorización. |
+| **Stimulus Source** | Usuario no autenticado o usuario autenticado sin los permisos correspondientes. |
+| **Environment** | Operación normal de la aplicación móvil o aplicación web de VetPax. |
+| **Artifact (if Known)** | Proveedor de identidad, servicios backend y recursos de información clínica. |
+| **Response** | El sistema valida la identidad y los permisos del usuario antes de permitir el acceso. La autenticación y autorización se gestionan mediante un proveedor centralizado de identidad. Las solicitudes que no cumplen las condiciones de acceso son rechazadas sin exponer información clínica protegida. |
+| **Response Measure** | El **100% de las solicitudes dirigidas a recursos protegidos** debe validar autenticación y autorización. Las solicitudes no autenticadas deben producir una respuesta equivalente a **401 Unauthorized**, mientras que las solicitudes autenticadas sin permisos suficientes deben producir una respuesta equivalente a **403 Forbidden**. |
+| **Questions** | ¿Cómo se administrarán los roles y permisos de propietarios, profesionales veterinarios y administradores? ¿Cómo se gestionará la expiración y renovación de credenciales? ¿Qué información podrá consultar cada rol? |
+| **Issues** | La indisponibilidad temporal del proveedor de identidad puede afectar los procesos de inicio de sesión y renovación de credenciales. Debe evitarse que los detalles internos de autorización sean expuestos en las respuestas de error. |
 
-    **Nutrition Management** mantiene los planes alimenticios asociados con la mascota y permite generar recordatorios relacionados con su seguimiento nutricional.
+
+#### **Scenario Refinement for Scenario 2 — Rendimiento de operaciones frecuentes**
 
-    Finalmente, **Adherence & Gamification** utiliza información proveniente de otros flujos para calcular el nivel de constancia del propietario y generar reconocimientos.
+| **Elemento** | **Descripción** |
+|---|---|
+| **Scenario(s)** | QAS01 |
+| **Business Goals** | Permitir que propietarios y profesionales veterinarios utilicen las funcionalidades principales de VetPax sin retrasos que dificulten el seguimiento clínico y las actividades de cuidado. |
+| **Relevant Quality Attributes** | Rendimiento |
+| **Stimulus** | Un usuario realiza una operación frecuente, como consultar el historial clínico, registrar una atención, revisar una cita o consultar información de un paciente. |
+| **Stimulus Source** | Propietario o profesional veterinario. |
+| **Environment** | Operación normal del sistema con una carga dentro de los valores previstos. |
+| **Artifact (if Known)** | Aplicación móvil o web, APIs RESTful, servicios backend y almacenamiento de datos. |
+| **Response** | El backend procesa la solicitud utilizando operaciones stateless y consulta únicamente los recursos necesarios para completar la operación solicitada. |
+| **Response Measure** | Al menos el **95% de las solicitudes de consulta y registro** debe completarse en un tiempo menor o igual a **2 segundos** bajo condiciones normales de operación. |
+| **Questions** | ¿Qué operaciones presentan mayor costo de procesamiento? ¿Qué consultas requieren índices específicos en la base de datos? ¿Será necesario aplicar mecanismos de caché en determinadas consultas? |
+| **Issues** | Consultas que involucren grandes volúmenes de información histórica pueden incrementar el tiempo de respuesta si no se optimizan los mecanismos de persistencia y recuperación de datos. |
+
+
+#### **Scenario Refinement for Scenario 3 — Sincronización en tiempo real**
+
+| **Elemento** | **Descripción** |
+|---|---|
+| **Scenario(s)** | QAS02 |
+| **Business Goals** | Mantener actualizada la información relevante entre propietarios y profesionales veterinarios, facilitando la continuidad del seguimiento entre consultas. |
+| **Relevant Quality Attributes** | Rendimiento, interoperabilidad |
+| **Stimulus** | Un profesional veterinario registra o actualiza información clínica que debe ser conocida por otros usuarios autorizados conectados. |
+| **Stimulus Source** | Profesional veterinario o servicio interno que confirma una actualización relevante. |
+| **Environment** | Operación normal con uno o más clientes autorizados conectados a VetPax. |
+| **Artifact (if Known)** | Servicios backend, mecanismo de comunicación mediante WebSockets, aplicación móvil y aplicación web. |
+| **Response** | Una vez confirmada y persistida la modificación, el sistema genera el evento correspondiente y lo comunica mediante WebSockets a los clientes autorizados que se encuentren conectados. |
+| **Response Measure** | Al menos el **95% de las actualizaciones enviadas en tiempo real** debe reflejarse en los clientes conectados en un tiempo menor o igual a **3 segundos** después de confirmarse el cambio. |
+| **Questions** | ¿Cómo se gestionará la reconexión de clientes después de una pérdida temporal de conexión? ¿Cómo se garantizará que únicamente usuarios autorizados reciban cada evento? |
+| **Issues** | Las conexiones persistentes incrementan la cantidad de recursos administrados por el backend. Los clientes desconectados no pueden depender exclusivamente de WebSockets para recuperar información actualizada. |
+
+
+#### **Scenario Refinement for Scenario 4 — Disponibilidad de las funcionalidades principales**
+
+| **Elemento** | **Descripción** |
+|---|---|
+| **Scenario(s)** | QAS03 |
+| **Business Goals** | Mantener disponibles las funciones necesarias para consultar información clínica, tratamientos, citas y pacientes durante las actividades de seguimiento de las mascotas. |
+| **Relevant Quality Attributes** | Disponibilidad |
+| **Stimulus** | Un propietario o profesional veterinario solicita utilizar una de las funcionalidades principales de VetPax. |
+| **Stimulus Source** | Propietario o profesional veterinario. |
+| **Environment** | Operación habitual del sistema durante el periodo de servicio. |
+| **Artifact (if Known)** | Servicios backend, APIs y almacenamiento persistente. |
+| **Response** | Los servicios procesan las solicitudes mientras los componentes principales se encuentren disponibles. La persistencia mantiene la información confirmada aun cuando ocurra una falla temporal de algún componente externo. |
+| **Response Measure** | Los servicios principales deben mantener una disponibilidad mensual mínima de **99%**, excluyendo los periodos de mantenimiento planificado. |
+| **Questions** | ¿Qué componentes representan puntos únicos de falla? ¿Cómo se supervisará la disponibilidad de los servicios? ¿Qué mecanismos se utilizarán para recuperación ante fallas? |
+| **Issues** | La disponibilidad global puede verse condicionada por servicios externos utilizados para autenticación, notificaciones u otras integraciones. |
 
-    Estas relaciones constituyen una primera aproximación a las dependencias existentes dentro del dominio y serán refinadas posteriormente durante las actividades de diseño estratégico.
 
-    #### Resultado del EventStorming
+#### **Scenario Refinement for Scenario 5 — Escalabilidad**
 
-    A partir del EventStorming se logró representar los principales procesos relacionados con el seguimiento clínico-nutricional de VetPax, identificando los actores responsables, comandos ejecutados, eventos relevantes del dominio, policies, aggregates, Read Models y sistemas externos involucrados.
+| **Elemento** | **Descripción** |
+|---|---|
+| **Scenario(s)** | QAS06 |
+| **Business Goals** | Permitir que VetPax incremente progresivamente la cantidad de propietarios, profesionales veterinarios, mascotas y clínicas sin requerir rediseñar las reglas principales del negocio. |
+| **Relevant Quality Attributes** | Escalabilidad, rendimiento |
+| **Stimulus** | Se incrementa la cantidad de usuarios que realizan operaciones simultáneas sobre los servicios de VetPax. |
+| **Stimulus Source** | Crecimiento de usuarios y clínicas incorporadas a la plataforma. |
+| **Environment** | Periodo de alta carga con múltiples usuarios concurrentes. |
+| **Artifact (if Known)** | Servicios backend stateless, APIs, infraestructura de despliegue y almacenamiento de datos. |
+| **Response** | Las instancias del backend pueden distribuir las solicitudes sin depender de estado de sesión almacenado localmente, permitiendo aumentar horizontalmente la capacidad disponible. |
+| **Response Measure** | En una prueba de carga con al menos **500 usuarios concurrentes**, el **95% de las solicitudes** debe completarse en un tiempo menor o igual a **3 segundos**. |
+| **Questions** | ¿Cuál será el mecanismo utilizado para distribuir las solicitudes entre instancias? ¿Qué componentes deberán escalar de manera independiente? ¿Cuál será el comportamiento de la persistencia ante el incremento de carga? |
+| **Issues** | El escalamiento horizontal del backend no elimina posibles cuellos de botella en la base de datos, integraciones externas o conexiones persistentes utilizadas para comunicación en tiempo real. |
 
-    El análisis permitió distinguir siete agrupaciones funcionales principales: **Pet & Clinical Care, Appointment Management, Medication Treatment, Nutrition Management, Clinic Management, Adherence & Gamification e Identity & Access Management**.
 
-    Estas agrupaciones no representan todavía Bounded Contexts definitivos. Constituyen una primera aproximación obtenida a partir del comportamiento observado durante el EventStorming.
+#### **Scenario Refinement for Scenario 6 — Mantenibilidad y sustitución de integraciones**
 
-    En la siguiente sección, **4.2.2. Candidate Context Discovery**, estas agrupaciones serán analizadas con mayor detalle para identificar los límites, responsabilidades y relaciones de los posibles Bounded Contexts que conformarán el diseño estratégico de VetPax.
+| **Elemento** | **Descripción** |
+|---|---|
+| **Scenario(s)** | QAS07 |
+| **Business Goals** | Facilitar la evolución de VetPax y reducir el impacto técnico y económico de modificaciones futuras en tecnologías o proveedores externos. |
+| **Relevant Quality Attributes** | Mantenibilidad, modificabilidad |
+| **Stimulus** | El equipo de desarrollo requiere reemplazar un proveedor externo o modificar un mecanismo de infraestructura manteniendo las mismas capacidades funcionales. |
+| **Stimulus Source** | Equipo de desarrollo. |
+| **Environment** | Actividades de mantenimiento o evolución del sistema. |
+| **Artifact (if Known)** | Dominio, Ports, Adapters y componentes de infraestructura del backend. |
+| **Response** | Mediante Hexagonal Architecture, las reglas del dominio interactúan con elementos externos a través de contratos definidos. La sustitución del proveedor se realiza implementando o modificando el Adapter correspondiente. |
+| **Response Measure** | La sustitución de un proveedor externo que implemente el mismo contrato debe requerir **0 modificaciones en las reglas de negocio del dominio**, limitando los cambios al Adapter y a la configuración correspondiente. |
+| **Questions** | ¿Qué integraciones necesitan Ports independientes? ¿Qué contratos deben mantenerse estables? ¿Qué pruebas permitirán comprobar que un nuevo Adapter mantiene el comportamiento esperado? |
+| **Issues** | Un contrato mal definido puede provocar dependencias indirectas entre el dominio y detalles específicos del proveedor, reduciendo el beneficio del desacoplamiento. |
 
-#### 4.2.2. Candidate Context Discovery
 
-##### 1. Contexto de Pet & Clinical Care
+#### **Scenario Refinement for Scenario 7 — Manejo de fallos en servicios externos**
 
-- **Límite:** Cubre el registro maestro de mascotas, la gestión del historial clínico, el registro de
-  atenciones médicas realizadas por la veterinaria y la consulta de la evolución clínica del paciente.
-  Excluye explícitamente la programación de citas, la prescripción de medicación y de planes
-  nutricionales, y el cálculo de adherencia o gamificación.
-- **Eventos clave:** MascotaRegistrada, AtencionClinicaRegistrada, HistorialClinicoActualizado,
-  EvolucionClinicaDelPacienteConsultada.
-- **Justificación:** Este bounded context concentra el core del negocio de VetPax —el seguimiento
-  clínico continuo de mascotas geriátricas o crónicas— y actúa como fuente de verdad para otros
-  contextos como Appointments y Adherence & Gamification, que dependen del identificador de la
-  mascota y de eventos de su historial para ejecutar su propia lógica, sin necesidad de acoplarse a
-  los detalles internos de su gestión.
+| **Elemento** | **Descripción** |
+|---|---|
+| **Scenario(s)** | QAS09 |
+| **Business Goals** | Evitar que fallas temporales de servicios externos provoquen pérdida de información clínica o interrumpan funcionalidades de VetPax que no dependan directamente del proveedor afectado. |
+| **Relevant Quality Attributes** | Confiabilidad, disponibilidad |
+| **Stimulus** | Un proveedor externo presenta un timeout, indisponibilidad temporal o respuesta de error durante una operación. |
+| **Stimulus Source** | Servicio externo integrado, como proveedor de identidad o servicio de notificaciones. |
+| **Environment** | Operación normal con una falla temporal de una dependencia externa. |
+| **Artifact (if Known)** | Adapter de integración, servicio de aplicación y mecanismo de procesamiento de eventos. |
+| **Response** | El Adapter detecta y controla la falla, registra el incidente y devuelve un resultado controlado al componente solicitante. Cuando corresponda, los eventos pendientes de procesamiento se conservan para permitir su posterior reintento. |
+| **Response Measure** | Ante una falla controlada de un servicio externo deben producirse **0 pérdidas de información previamente persistida**, y la falla no debe interrumpir módulos que no dependan del proveedor afectado. |
+| **Questions** | ¿Cuántos reintentos se permitirán? ¿Qué intervalo existirá entre reintentos? ¿Cuándo una operación debe considerarse definitivamente fallida? ¿Cómo se informará al usuario cuando una integración no esté disponible? |
+| **Issues** | Una política de reintentos excesiva puede aumentar la carga del sistema o del proveedor externo. También debe evitarse el procesamiento duplicado de eventos después de una recuperación. |
 
-![Pet & Clinical Care](feature/Chapter-4/EventStorming-Clinical-Care.png)
 
-##### 2. Contexto de Appointments
+#### **Scenario Refinement for Scenario 8 — Interoperabilidad**
 
-- **Límite:** Cubre la programación, reprogramación, cancelación y confirmación de asistencia de
-  citas veterinarias, así como la consulta de la agenda por parte de la veterinaria. Excluye el
-  registro clínico resultante de la cita y cualquier lógica de facturación.
-- **Eventos clave:** CitaVeterinariaProgramada, CitaVeterinariaReprogramada,
-  CitaVeterinariaCancelada, CitaVeterinariaAtendida.
-- **Justificación:** Este bounded context administra el ciclo de vida propio de una cita (programada
-  → reprogramada/cancelada → atendida) y se sincroniza con un servicio externo de calendario. El
-  evento CitaVeterinariaAtendida funciona como disparador hacia otros contextos —Pet & Clinical
-  Care y Adherence & Gamification—, sin que estos deban conocer las reglas internas de
-  agendamiento de VetPax.
+| **Elemento** | **Descripción** |
+|---|---|
+| **Scenario(s)** | QAS08 |
+| **Business Goals** | Permitir que los diferentes productos digitales de VetPax intercambien información mediante mecanismos estandarizados y facilitar futuras integraciones. |
+| **Relevant Quality Attributes** | Interoperabilidad |
+| **Stimulus** | La aplicación móvil, aplicación web o un componente autorizado requiere consultar, registrar o actualizar información administrada por VetPax. |
+| **Stimulus Source** | Aplicación móvil, aplicación web o integración autorizada. |
+| **Environment** | Operación normal de los productos digitales. |
+| **Artifact (if Known)** | APIs RESTful expuestas por el backend. |
+| **Response** | El backend procesa la solicitud utilizando recursos y operaciones HTTP definidos y responde mediante representaciones estructuradas de los recursos solicitados. |
+| **Response Measure** | El **100% de los servicios HTTP expuestos a los clientes de VetPax** debe utilizar el estilo RESTful y **JSON** como formato principal para el intercambio de información. |
+| **Questions** | ¿Cómo se versionarán las APIs? ¿Cómo se administrarán cambios incompatibles en los contratos? ¿Qué información debe incluir la documentación OpenAPI? |
+| **Issues** | Cambios no controlados en los contratos de las APIs pueden generar incompatibilidades entre las versiones de la aplicación móvil, aplicación web y backend. |
 
-![Appointments](feature/Chapter-4/EventStorming-Appointments.png)
 
-##### 3. Contexto de Medication
+#### **Scenario Refinement for Scenario 9 — Integridad y trazabilidad de información clínica**
 
-- **Límite:** Cubre la activación de recordatorios de medicación, la generación automática de
-  notificaciones cuando se alcanza el horario de una dosis pendiente, y el registro de las dosis
-  administradas por el dueño. Excluye la prescripción del tratamiento (definida por la veterinaria en
-  el contexto clínico) y el cálculo de adherencia.
-- **Eventos clave:** RecordatoriosDeMedicacionActivados, RecordatorioDeMedicacionGenerado,
-  DosisDeMedicacionAdministrada.
-- **Justificación:** Este bounded context aísla la lógica temporal de recordatorios y su despacho a
-  través de un servicio externo (Firebase Cloud Messaging), permitiendo que las políticas de
-  notificación evolucionen de forma independiente. El evento DosisDeMedicacionAdministrada es
-  consumido por Adherence & Gamification para calcular la constancia del dueño, sin acoplar ambas
-  lógicas de negocio.
+| **Elemento** | **Descripción** |
+|---|---|
+| **Scenario(s)** | QAS10 |
+| **Business Goals** | Mantener información clínica confiable que permita reconstruir la evolución de una mascota e identificar las acciones realizadas por los usuarios autorizados. |
+| **Relevant Quality Attributes** | Integridad, trazabilidad |
+| **Stimulus** | Un usuario autorizado registra o modifica información clínica relacionada con una mascota. |
+| **Stimulus Source** | Profesional veterinario o propietario autorizado, según el tipo de información registrada. |
+| **Environment** | Operación normal durante el registro o actualización de información. |
+| **Artifact (if Known)** | Servicios del dominio clínico y almacenamiento persistente. |
+| **Response** | El sistema valida la operación, persiste la información y registra los datos necesarios para identificar el usuario responsable y el momento en que se realizó el cambio. Si la operación no puede completarse correctamente, no se conserva un estado parcial. |
+| **Response Measure** | El **100% de los registros y modificaciones clínicas** debe almacenar como mínimo el identificador del usuario responsable y la **fecha y hora** de la operación. Las operaciones transaccionales deben completarse íntegramente o revertirse ante una falla. |
+| **Questions** | ¿Qué modificaciones clínicas deben conservar historial de versiones? ¿Durante cuánto tiempo deben mantenerse los registros de trazabilidad? ¿Qué roles pueden consultar esta información? |
+| **Issues** | La modificación o eliminación de información clínica debe considerar reglas adicionales de auditoría para evitar la pérdida de trazabilidad histórica. |
 
-![Medication](feature/Chapter-4/EventStorming-Medication.png)
 
-##### 4. Contexto de Nutrition
+Los escenarios refinados permiten establecer una relación explícita entre las necesidades de calidad identificadas inicialmente y las decisiones arquitectónicas obtenidas durante el Quality Attribute Workshop. Asimismo, proporcionan medidas verificables que posteriormente pueden utilizarse para evaluar si la arquitectura implementada responde a los niveles de calidad esperados para VetPax.
 
-- **Límite:** Cubre la prescripción y actualización de planes de alimentación personalizados por
-  parte de la veterinaria, y la generación de recordatorios de alimentación asociados a dichos
-  planes. Excluye el registro del cumplimiento por parte del dueño y el diagnóstico clínico que da
-  origen al plan.
-- **Eventos clave:** PlanNutricionalRegistrado, PlanNutricionalActualizado,
-  RecordatorioDeAlimentacionGenerado.
-- **Justificación:** Este bounded context encapsula las reglas de negocio propias de la nutrición
-  animal (planes según la condición diagnosticada), manteniéndolas independientes del registro
-  clínico general. Al igual que Medication, depende de un servicio externo (Firebase Cloud
-  Messaging) para el despacho de notificaciones, por lo que ambos comparten un patrón de
-  integración similar, aunque conservan reglas de negocio y agregados propios.
+Las Questions e Issues registradas en cada escenario representan aspectos que deberán continuar evaluándose durante el diseño detallado, implementación y validación de la solución.
 
-![Nutrition](feature/Chapter-4/EventStorming-Nutrition.png)
+## 4.2. Strategic-Level Domain-Driven Design
+### 4.2.1. EventStorming
 
-##### 5. Contexto de Clinic
+Con el objetivo de obtener una primera representación integral del dominio de VetPax, se aplicó la técnica de EventStorming mediante un proceso incremental de descubrimiento y refinamiento. El modelado permitió representar los hechos relevantes del negocio, comprender su secuencia temporal, identificar situaciones problemáticas, reconocer eventos que producen cambios significativos en los procesos y posteriormente incorporar actores, comandos, políticas, modelos de lectura, sistemas externos y aggregates.
 
-- **Límite:** Cubre la administración del perfil de la clínica veterinaria y la consulta del listado de
-  pacientes atendidos por sus veterinarios. Excluye el historial clínico detallado de cada mascota y
-  la gestión de citas.
-- **Eventos clave:** PerfilDeClinicaActualizado, ListadoDePacientesConsultado.
-- **Justificación:** Este bounded context representa la identidad organizacional de la veterinaria
-  dentro de la plataforma (perfil, pacientes asociados), funcionando como un subdominio de soporte
-  que permite a los administradores gestionar la información institucional de la clínica sin
-  mezclarla con la lógica clínica de cada paciente individual.
+El proceso se desarrolló de manera progresiva, manteniendo como elemento central los Domain Events y agregando información conforme aumentaba la comprensión del dominio. Esta aproximación permitió evitar una descomposición prematura del sistema y conservar la relación entre los diferentes procesos relacionados con el seguimiento de mascotas geriátricas o con enfermedades crónicas.
 
-![Clinic](feature/Chapter-4/EventStorming-Clinic.png)
+Como resultado del EventStorming se identificaron agrupaciones preliminares asociadas a **IAM, Pet & Clinical Care, Medication, Appointments, Nutrition, Gamification y Clinic**. Estas agrupaciones permiten organizar visualmente el EventStorm final, pero no representan todavía Bounded Contexts definitivos. Su evaluación y delimitación se realiza posteriormente durante el proceso de Candidate Context Discovery.
 
-##### 6. Contexto de Adherence & Gamification
+### 1. Unstructured Exploration
 
-- **Límite:** Cubre el cálculo de la adherencia del dueño a partir de eventos generados en otros
-  contextos (citas atendidas, dosis administradas, actividades de tratamiento cumplidas), la
-  evaluación y actualización del nivel de constancia (Bronce, Plata, Oro), y el envío de
-  reconocimientos. Excluye la ejecución misma de las citas o tratamientos que originan dichos
-  eventos.
-- **Eventos clave:** AdherenciaCalculada, NivelDeConstanciaActualizado, ReconocimientoEnviado.
-- **Justificación:** Este bounded context representa el principal diferenciador competitivo de
-  VetPax frente a las soluciones veterinarias tradicionales analizadas (VetOS, PetSuite, GVET,
-  VetFac, SmartVet360), ninguna de las cuales ofrece gamificación. Al consumir eventos publicados
-  por Appointments, Medication y Nutrition en lugar de acceder directamente a sus datos internos,
-  se mantiene desacoplado y puede evolucionar sus reglas de puntuación sin afectar a los demás
-  contextos.
+La primera actividad consistió en una exploración no estructurada del dominio. En esta etapa se identificaron libremente los principales hechos que pueden ocurrir durante la operación de VetPax, expresándolos como **Domain Events** en tiempo pasado.
 
-![Adherence & Gamification](feature/Chapter-4/EventStorming-Adherence.png)
+Entre los eventos identificados se encontraron el registro de usuarios y mascotas, el registro de atenciones clínicas, la actualización del historial clínico, el registro y actualización de tratamientos de medicación, la administración de dosis, la creación y modificación de planes de alimentación, la programación y modificación de citas veterinarias, la gestión de recordatorios y los cambios relacionados con el nivel de constancia del propietario.
 
-##### 7. Contexto de IAM
+El propósito de esta etapa fue capturar los hechos relevantes del negocio sin introducir todavía decisiones acerca de actores, componentes tecnológicos o límites entre áreas del dominio. De esta manera se obtuvo una visión inicial de los procesos que posteriormente serían organizados y refinados.
 
-- **Límite:** Se encarga exclusivamente de la gestión de identidades, el registro de cuentas, la
-  autenticación y la validación de permisos según el rol del usuario (dueño de mascota, veterinario,
-  administrador de veterinaria). Gestiona la emisión de credenciales que protegen el acceso a los
-  demás bounded contexts.
-- **Eventos clave:** CuentaUsuarioCreada, UsuarioAutenticado.
-- **Justificación:** Se justifica su separación como subdominio genérico porque la autenticación y
-  autorización son funcionalidades estándar, ajenas al dominio veterinario, resueltas mediante un
-  proveedor externo (Keycloak). Esto permite que el resto de los contextos confíen en la identidad
-  ya validada, sin necesidad de implementar su propia lógica de seguridad.
+![EventStorming - Unstructured Exploration](feature/Chapter-4/EventStorming_1.jpg)
 
-![IAM](feature/Chapter-4/EventStorming-IAM.png)
+### 2. Timeline
 
-#### 4.2.3. Domain Message Flows Modeling
+Luego de identificar los Domain Events, estos fueron organizados de acuerdo con su secuencia lógica y temporal. Esta actividad permitió representar los principales recorridos del dominio y reconocer relaciones de precedencia, alternativas y consecuencias entre eventos.
+
+Por ejemplo, el registro de una mascota precede al registro de información clínica; una cita veterinaria puede ser programada, reprogramada, cancelada o atendida; y un tratamiento de medicación puede ser registrado, actualizado y posteriormente generar el registro de dosis administradas.
+
+También se diferenciaron las rutas alternativas. Una cita cancelada no continúa hacia una atención clínica, mientras que una cita atendida puede dar lugar al registro de una nueva atención y a la correspondiente actualización del historial clínico. De forma similar, las modificaciones en tratamientos, planes de alimentación o citas requieren mantener actualizada la información asociada a sus recordatorios.
+
+La construcción del Timeline permitió pasar de una colección de eventos independientes a una representación coherente de los principales flujos del dominio.
+
+![EventStorming - Timeline](feature/Chapter-4/EventStorming_2.jpg)
+
+### 3. Pain Points / Hotspots
+
+Sobre el Timeline se incorporaron los **Pain Points o Hotspots**, representando situaciones que generan dificultad, incertidumbre o riesgo durante los procesos identificados.
+
+En el seguimiento clínico se reconocieron problemas relacionados con la dispersión o desactualización de la información entre consultas. En medication se identificaron dificultades para recordar las indicaciones del tratamiento, mantener actualizados los horarios cuando el tratamiento cambia y registrar consistentemente la administración de las dosis.
+
+En appointments se señalaron situaciones como el olvido de citas y la necesidad de actualizar los recordatorios después de una reprogramación. De manera similar, en nutrition se consideró el riesgo de mantener recordatorios desactualizados cuando cambia el plan de alimentación.
+
+En gamification también se identificó que el cálculo de constancia puede verse afectado si las actividades de cuidado o cumplimiento no son registradas correctamente.
+
+Los Hotspots no fueron considerados eventos adicionales dentro del Timeline; se utilizaron como anotaciones sobre los puntos del flujo que requieren especial atención durante el posterior diseño del dominio.
+
+![EventStorming - Pain Points and Hotspots](feature/Chapter-4/EventStorming_3.jpg)
+
+### 4. Pivotal Events
+
+Posteriormente se identificaron los **Pivotal Events**, es decir, aquellos eventos que representan cambios importantes de estado o transiciones relevantes dentro de los procesos de negocio.
+
+Entre los eventos considerados como puntos relevantes se encuentran el registro de una mascota, el registro de una atención clínica, el registro de un tratamiento de medicación, el registro de un plan de alimentación, la programación de una cita veterinaria, la atención de una cita y la administración de una dosis.
+
+También se consideraron eventos asociados con gamification, como el cálculo y actualización del nivel de constancia, debido a que representan la transición desde actividades realizadas por el propietario hacia la evaluación de su nivel de adherencia.
+
+La identificación de estos puntos permitió reconocer zonas naturales de transición dentro del EventStorm. Sin embargo, estos límites no fueron considerados todavía como Bounded Contexts, debido a que su análisis corresponde a la posterior actividad de Candidate Context Discovery.
+
+![EventStorming - Pivotal Events](feature/Chapter-4/EventStorming_4.jpg)
+
+### 5. Commands & Actors
+
+Una vez establecidos los eventos principales, se identificaron los **Commands** que provocan cambios en el dominio y los **Actors** responsables de iniciarlos.
+
+El **Propietario** participa en acciones como registrar una mascota, programar o modificar una cita, registrar la administración de una dosis y gestionar determinadas acciones de seguimiento. El **Profesional veterinario** interviene principalmente en el registro de atenciones clínicas, tratamientos de medicación, planes de alimentación y la confirmación de citas atendidas. El **Administrador de clínica** participa en la gestión de información correspondiente a la clínica.
+
+Asimismo, en IAM se identificaron acciones como registrar usuario, iniciar sesión y recuperar el acceso a una cuenta. Estas operaciones interactúan posteriormente con el sistema externo utilizado para la gestión de identidad.
+
+Los Commands fueron redactados como acciones, mientras que sus resultados se mantuvieron representados mediante Domain Events en tiempo pasado. Las acciones que no son iniciadas directamente por una persona, sino que ocurren como consecuencia de otros eventos, fueron posteriormente asociadas a Policies.
+
+![EventStorming - Commands and Actors](feature/Chapter-4/EventStorming_5.jpg)
+
+### 6. Policies
+
+A continuación se incorporaron las **Policies**, utilizadas para representar reglas de negocio que reaccionan ante un Domain Event y provocan la ejecución de otro Command.
+
+En Pet & Clinical Care se incorporó una política asociada a la actualización del historial clínico después del registro de una atención. De esta manera, una atención clínica registrada puede activar la regla correspondiente y producir el Command necesario para actualizar el historial.
+
+En Appointments se identificaron políticas para programar o reprogramar los recordatorios cuando una cita es creada o modificada. De manera equivalente, Medication y Nutrition contienen reglas que permiten mantener sincronizados los recordatorios con los tratamientos o planes vigentes.
+
+También se identificaron políticas relacionadas con la entrega de notificaciones, que producen Commands de envío cuando un recordatorio debe ser comunicado al propietario.
+
+Finalmente, en Gamification se incorporaron reglas para recalcular la constancia después de actividades relevantes, actualizar el nivel correspondiente y generar reconocimientos cuando se cumplen las condiciones definidas.
+
+Las Policies permitieron representar de forma explícita comportamientos automáticos del dominio sin asignarlos artificialmente a un actor humano.
+
+![EventStorming - Policies](feature/Chapter-4/EventStorming_6.jpg)
+
+### 7. Read Models
+
+Posteriormente se incorporaron los **Read Models**, que representan información preparada para ser consultada por los actores antes de tomar una decisión o ejecutar determinadas acciones.
+
+Dentro de Pet & Clinical Care se consideraron vistas como **Patient List**, **Clinical Record View** y **Patient Evolution View**, utilizadas por el profesional veterinario para consultar la información disponible sobre una mascota y su evolución antes o durante el seguimiento clínico.
+
+En Medication se incluyeron **Active Medication Treatment** y **Medication Schedule**, permitiendo al propietario conocer el tratamiento vigente y las dosis programadas. En Nutrition se incorporó **Current Feeding Plan**, que presenta las indicaciones vigentes del plan de alimentación.
+
+Para Appointments se identificaron modelos como **Available Appointment Slots**, **Appointment Details** y **Veterinary Agenda**, que proporcionan información necesaria para programar, modificar o gestionar citas.
+
+En Gamification se añadió **Constancy Progress**, mediante el cual el propietario puede consultar su nivel y progreso de constancia.
+
+Los Read Models no representan modificaciones del estado del dominio y, por lo tanto, no generan por sí mismos nuevos Domain Events.
+
+![EventStorming - Read Models](feature/Chapter-4/EventStorming_7.jpg)
+
+### 8. External Systems
+
+Durante el refinamiento del EventStorm también se identificaron sistemas externos necesarios para completar determinados procesos.
+
+Para IAM se identificó **Keycloak** como External System encargado de soportar los procesos relacionados con identidad y acceso, incluyendo registro de usuarios, autenticación y recuperación de acceso.
+
+Asimismo, se identificó **Firebase Cloud Messaging (FCM)** como sistema externo encargado de realizar la entrega de notificaciones correspondientes a recordatorios de citas, medicación y alimentación.
+
+La programación, activación o actualización de los recordatorios continúa siendo responsabilidad del dominio de VetPax, mientras que el acto de entregar la notificación al dispositivo se delega a Firebase Cloud Messaging.
+
+Elementos como WebSockets no fueron representados como External Systems dentro del EventStorm, debido a que corresponden a mecanismos técnicos de comunicación y no a sistemas externos participantes del dominio.
+
+![EventStorming - External Systems](feature/Chapter-4/EventStorming_8.jpg)
+
+### 9. Aggregates
+
+Luego de comprender los Commands, Events y reglas involucradas, se incorporaron los **Aggregates**, utilizados para representar las unidades del dominio responsables de mantener estado y asegurar las reglas de consistencia asociadas a cada operación.
+
+El Aggregate **Pet** recibe las operaciones relacionadas con el registro de una mascota. **Clinical Record** concentra las operaciones asociadas con el registro de atenciones y actualización de información clínica.
+
+**Medication Treatment** representa el estado del tratamiento de medicación y las operaciones relacionadas con su registro, actualización y administración de dosis. De manera equivalente, **Feeding Plan** representa las reglas y estado correspondientes al plan de alimentación.
+
+El Aggregate **Appointment** concentra el ciclo de vida de una cita veterinaria, incluyendo su programación, reprogramación, cancelación y atención.
+
+Para las operaciones de programación y mantenimiento de recordatorios se utilizó **Reminder**, permitiendo centralizar las acciones relacionadas con recordatorios originados desde appointments, medication y nutrition. La entrega efectiva de las notificaciones permanece delegada a Firebase Cloud Messaging.
+
+En Gamification, **Adherence** representa el estado asociado con el progreso y nivel de constancia, incluyendo su cálculo, actualización y generación de reconocimientos. Finalmente, **Clinic** mantiene las operaciones relacionadas con los datos administrables de la clínica.
+
+La identificación de estos Aggregates permitió precisar qué objeto del dominio recibe cada Command y qué Domain Event se produce como resultado, sin utilizar los Aggregates como límites definitivos de Bounded Contexts.
+
+![EventStorming - Aggregates](feature/Chapter-4/EventStorming_9.jpg)
+
+### 10. EventStorming
+
+Finalmente, todos los elementos identificados durante las etapas anteriores fueron integrados en un único EventStorm. La representación final incluye Domain Events, Commands, Actors, Policies, Read Models, External Systems, Aggregates, Pain Points y Pivotal Events, conservando las relaciones causales identificadas durante el proceso.
+
+Para facilitar su lectura, el EventStorm final quedó organizado visualmente en las siguientes áreas preliminares del dominio:
+
+- **IAM**, relacionado con la identidad, autenticación y recuperación de acceso.
+- **Pet & Clinical Care**, relacionado con la mascota, las atenciones veterinarias y el historial clínico.
+- **Medication**, relacionado con tratamientos de medicación, administración de dosis y seguimiento asociado.
+- **Appointments**, relacionado con la programación y ciclo de vida de citas veterinarias.
+- **Nutrition**, relacionado con los planes de alimentación y su seguimiento.
+- **Gamification**, relacionado con el cálculo de constancia, progreso y reconocimientos.
+- **Clinic**, relacionado con la información y gestión básica de la clínica veterinaria.
+
+Estas áreas mantienen relaciones entre sí. Por ejemplo, una cita veterinaria atendida puede continuar con el registro de una atención clínica y también aportar información para la evaluación de constancia. De la misma manera, la administración de una dosis puede producir una actualización en el seguimiento de adherencia.
+
+Medication, Nutrition y Appointments también interactúan con la gestión de recordatorios. Los eventos producidos en estas áreas pueden activar Policies que generan Commands sobre Reminder y, cuando corresponde realizar la entrega de una notificación, se solicita el envío mediante Firebase Cloud Messaging.
+
+IAM actúa como soporte para controlar la identidad y acceso de los usuarios que participan en los diferentes procesos del dominio, mientras que Pet & Clinical Care mantiene la información clínica central requerida para el seguimiento de las mascotas.
+
+La integración de estos elementos permitió obtener una visión de nivel general suficientemente detallada del dominio de VetPax y evidenciar las dependencias existentes entre sus diferentes procesos. El EventStorm resultante constituye el punto de partida para la siguiente actividad de **Candidate Context Discovery**, en la que estas agrupaciones serán evaluadas para determinar los límites y responsabilidades de los posibles Bounded Contexts.
+
+![EventStorming - Final](feature/Chapter-4/EventStorming_10.jpg)
+
+
+### 4.2.2. Candidate Context Discovery
+
+A partir del EventStorm obtenido en la sección anterior, se realizó el proceso de **Candidate Context Discovery** con el propósito de identificar agrupaciones del dominio que presentaran responsabilidades, reglas y lenguaje suficientemente cohesionados como para ser considerados candidatos a Bounded Contexts.
+
+Para este proceso se aplicó principalmente la técnica **look-for-pivotal-events**, utilizando los Pivotal Events previamente identificados para reconocer cambios significativos entre distintas responsabilidades del negocio. Esta técnica se complementó con **start-with-value**, evaluando qué partes del dominio aportan una capacidad diferenciada para el seguimiento continuo de mascotas geriátricas o con enfermedades crónicas.
+
+Durante la sesión se revisaron progresivamente los Domain Events, Commands, Policies, Read Models, Aggregates y External Systems presentes en el EventStorm. En cada iteración se agruparon aquellos elementos que compartían un mismo propósito de negocio y un vocabulario relacionado, evitando utilizar únicamente criterios tecnológicos para establecer los límites.
+
+Como resultado del proceso se identificaron siete candidate bounded contexts: **IAM, Pet & Clinical Care, Medication, Appointments, Nutrition, Gamification y Clinic**. Estos candidatos representan una primera propuesta de descomposición del dominio y serán posteriormente refinados mediante Domain Message Flows Modeling, Bounded Context Canvases y Context Mapping.
+
+### 1. IAM
+
+La primera agrupación identificada corresponde a **IAM (Identity and Access Management)**. Este candidate context concentra las operaciones relacionadas con el ciclo de identidad y acceso de los usuarios de VetPax.
+
+Dentro de esta agrupación se encuentran los Commands asociados con el registro de usuarios, inicio de sesión y recuperación de acceso, junto con los Domain Events producidos como resultado de dichas acciones.
+
+Durante el análisis se observó que estas responsabilidades poseen un propósito claramente diferenciado de las operaciones clínicas y de seguimiento de mascotas. Asimismo, las acciones de autenticación y recuperación se apoyan en **Keycloak** como External System.
+
+Por estas razones, IAM fue separado de las capacidades funcionales relacionadas directamente con el cuidado veterinario. Su responsabilidad se limita a proporcionar identidad y control de acceso a los actores que posteriormente interactúan con los demás candidate contexts.
+
+![Candidate Context Discovery - IAM](feature/Chapter-4/1.jpg)
+
+### 2. Pet & Clinical Care
+
+La segunda agrupación corresponde a **Pet & Clinical Care**, donde se concentran las capacidades relacionadas con la mascota y su información clínica.
+
+En esta área se identificaron elementos como el registro de una mascota, el registro de una atención clínica, la consulta de pacientes y evolución clínica, así como la actualización del historial clínico.
+
+Los Aggregates **Pet** y **Clinical Record** se encuentran estrechamente relacionados debido a que la información clínica se encuentra asociada a una mascota determinada. Asimismo, Domain Events como `Mascota registrada`, `Atención clínica registrada` e `Historial clínico actualizado` presentan una continuidad natural dentro del proceso de seguimiento veterinario.
+
+El análisis de Pivotal Events permitió reconocer que el registro de una atención clínica representa un cambio importante dentro del proceso, debido a que genera nueva información que debe incorporarse al historial clínico.
+
+Por ello, estos elementos fueron agrupados inicialmente dentro del candidate context **Pet & Clinical Care**, encargado de mantener la información central utilizada durante el seguimiento clínico de la mascota.
+
+![Candidate Context Discovery - Pet & Clinical Care](feature/Chapter-4/2.jpg)
+
+### 3. Medication
+
+El candidate context **Medication** surgió al identificar un conjunto cohesionado de operaciones relacionadas con los tratamientos de medicación indicados para una mascota.
+
+Esta agrupación comprende el registro y actualización de tratamientos, la información correspondiente a medicamentos, dosis y frecuencia, así como el registro de la administración de dosis por parte del propietario.
+
+El Aggregate **Medication Treatment** concentra el estado principal de esta capacidad del dominio. Domain Events como `Tratamiento de medicación registrado`, `Tratamiento de medicación actualizado` y `Dosis de medicación administrada` evidencian un ciclo de vida propio que puede evolucionar independientemente de otras capacidades como citas o alimentación.
+
+También se identifican interacciones con la gestión de recordatorios. Sin embargo, dichas interacciones no fueron consideradas suficientes para crear un candidate context independiente de recordatorios en esta etapa. Los recordatorios se mantienen asociados a la capacidad que los origina, mientras que su entrega mediante Firebase Cloud Messaging constituye una integración externa.
+
+Por lo tanto, **Medication** fue identificado como candidate context debido a que concentra reglas específicas sobre tratamientos y seguimiento de la administración de medicación.
+
+![Candidate Context Discovery - Medication](feature/Chapter-4/3.jpg)
+
+### 4. Appointments
+
+La siguiente agrupación identificada corresponde a **Appointments**, responsable del ciclo de vida de las citas veterinarias.
+
+Dentro de este candidate context se agruparon Commands como programar, reprogramar, cancelar y marcar una cita como atendida. Estos Commands producen Domain Events como `Cita veterinaria programada`, `Cita veterinaria reprogramada`, `Cita veterinaria cancelada` y `Cita veterinaria atendida`.
+
+El Aggregate **Appointment** representa el estado principal de esta capacidad, debido a que una cita puede evolucionar entre diferentes estados y debe mantener reglas de consistencia asociadas con su fecha, horario y estado actual.
+
+La programación o modificación de una cita también puede originar acciones asociadas con sus recordatorios. Estas acciones permanecen vinculadas al proceso de Appointments, mientras que la entrega de las notificaciones se realiza mediante Firebase Cloud Messaging.
+
+Asimismo, `Cita veterinaria atendida` fue considerado un Pivotal Event relevante debido a que permite conectar Appointments con otros procesos del dominio. Una cita atendida puede conducir al registro de una atención clínica y también aportar información utilizada posteriormente por Gamification.
+
+Estas características justificaron la identificación de **Appointments** como candidate bounded context independiente.
+
+![Candidate Context Discovery - Appointments](feature/Chapter-4/4.jpg)
+
+### 5. Nutrition
+
+El candidate context **Nutrition** concentra las responsabilidades relacionadas con el plan de alimentación de la mascota.
+
+Durante el EventStorming se identificaron Commands para registrar y actualizar un plan de alimentación, así como Domain Events como `Plan de alimentación registrado` y `Plan de alimentación actualizado`.
+
+El Aggregate **Feeding Plan** mantiene la información vigente correspondiente a las indicaciones de alimentación. Además, el Read Model **Current Feeding Plan** permite al propietario consultar las indicaciones actualmente aplicables.
+
+De manera similar a Medication, los cambios en el plan pueden requerir la actualización de recordatorios asociados. Sin embargo, estas acciones continúan considerándose parte del proceso de seguimiento del plan y no justifican por sí mismas la creación de un candidate context independiente.
+
+La existencia de reglas y conceptos específicos vinculados con alimentación permitió separar esta capacidad de Medication, ya que ambos procesos pueden modificarse independientemente y utilizan información del negocio diferente.
+
+Por ello se identificó **Nutrition** como candidate bounded context.
+
+![Candidate Context Discovery - Nutrition](feature/Chapter-4/5.jpg)
+
+### 6. Gamification
+
+La sexta agrupación corresponde a **Gamification**, responsable de las capacidades utilizadas para representar la constancia y participación del propietario en el seguimiento de los cuidados de su mascota.
+
+Esta agrupación incluye eventos provenientes de otras partes del dominio, como la administración de una dosis, la asistencia a una cita veterinaria o el cumplimiento de una actividad de cuidado.
+
+Estos eventos pueden activar Policies que provocan el cálculo y posterior actualización del nivel de constancia. El Aggregate **Adherence** mantiene el estado relacionado con el progreso del propietario y permite producir eventos como `Nivel de constancia calculado`, `Nivel de constancia actualizado`, `Nuevo nivel de constancia alcanzado` y `Reconocimiento por nivel generado`.
+
+La necesidad de consumir información producida por Medication, Appointments y otras actividades de cuidado evidencia que Gamification depende de otros candidate contexts, pero no implica que deba formar parte de ellos. Su propósito de negocio es distinto: transformar determinadas actividades de seguimiento en indicadores de constancia y reconocimiento.
+
+Por este motivo, **Gamification** se identificó como un candidate bounded context propio.
+
+![Candidate Context Discovery - Gamification](feature/Chapter-4/6.jpg)
+
+### 7. Clinic
+
+Finalmente, se identificó el candidate context **Clinic**, relacionado con la información propia de la clínica veterinaria.
+
+En esta agrupación se encuentran las operaciones para mantener y actualizar la información de la clínica, utilizando el Aggregate **Clinic** y produciendo Domain Events como `Información de clínica actualizada`.
+
+Esta responsabilidad se distingue de Pet & Clinical Care debido a que el primero concentra información clínica asociada con la mascota y sus atenciones, mientras que Clinic representa información propia de la organización veterinaria.
+
+Aunque Clinic mantiene relaciones con otras capacidades, especialmente Pet & Clinical Care y Appointments, su información presenta un ciclo de vida y responsabilidad propios.
+
+Por estas razones se consideró **Clinic** como un candidate bounded context independiente.
+
+![Candidate Context Discovery - Clinic](feature/Chapter-4/CandidateContext_7.jpg)
+
+### Resultado del Candidate Context Discovery
+
+Al finalizar la sesión se obtuvo la siguiente propuesta preliminar de candidate bounded contexts:
+
+| Candidate Context | Responsabilidad principal |
+|---|---|
+| **IAM** | Identidad, autenticación y control de acceso de los usuarios. |
+| **Pet & Clinical Care** | Gestión de la mascota, atenciones veterinarias, historial y evolución clínica. |
+| **Medication** | Gestión y seguimiento de tratamientos de medicación y administración de dosis. |
+| **Appointments** | Gestión del ciclo de vida de las citas veterinarias. |
+| **Nutrition** | Gestión y seguimiento de los planes de alimentación. |
+| **Gamification** | Cálculo de constancia, progreso, niveles y reconocimientos. |
+| **Clinic** | Gestión de la información correspondiente a la clínica veterinaria. |
+
+El proceso también permitió identificar relaciones preliminares entre los candidate contexts. **Appointments** se relaciona con **Pet & Clinical Care** cuando una cita atendida deriva en una nueva atención clínica. **Medication** y **Appointments** pueden producir eventos utilizados por **Gamification** para calcular la constancia del propietario. Por su parte, **IAM** proporciona soporte de identidad y acceso para los actores que participan en las distintas capacidades del dominio.
+
+Asimismo, las funcionalidades relacionadas con recordatorios aparecen en Medication, Appointments y Nutrition. Durante esta etapa se decidió no promoverlas a un candidate bounded context independiente, debido a que su significado y ciclo de vida se encuentran asociados principalmente con la capacidad de negocio que origina cada recordatorio. La interacción con Firebase Cloud Messaging corresponde a la entrega externa de las notificaciones y será considerada posteriormente al analizar las relaciones entre contexts.
+
+La propuesta obtenida no representa todavía la versión definitiva de los Bounded Contexts. Los límites y dependencias identificados serán revisados en las siguientes actividades de diseño estratégico, especialmente mediante **Domain Message Flows Modeling**, **Bounded Context Canvases** y **Context Mapping**.
+
+### 4.2.3. Domain Message Flows Modeling
 
 Para esta sección, el objetivo del equipo fue visualizar cómo colaboran los Bounded Contexts
 identificados en el Candidate Context Discovery (Pet & Clinical Care, Appointments, Medication,
@@ -511,67 +842,50 @@ solicitudes sincrónicas, para resolver los principales casos de uso de VetPax. 
 de **Domain Storytelling** para describir estas interacciones, tanto humanas (dueño, veterinario)
 como de sistemas (contextos, sistemas externos).
 
-##### Historia A — Cita Atendida: Actualización de Historial y Cálculo de Adherencia
+#### Historia A — Cita Atendida: Actualización de Historial y Cálculo de Adherencia
 
 1. El dueño marca la cita de su mascota como atendida desde la App Móvil.
 2. La App Móvil envía el command `MarcarCitaComoAtendida` al contexto **Appointment**.
-3. Appointment persiste el nuevo estado de la cita y publica el evento de dominio
-   `CitaVeterinariaAtendida`.
-4. El contexto **Pet & Clinical Record** consume el evento y actualiza el historial clínico,
-   incorporando la atención registrada.
-5. En paralelo, el contexto **Adherence & Gamification** también consume el evento
-   `CitaVeterinariaAtendida`, calcula la adherencia del dueño y evalúa si corresponde actualizar
-   su nivel de constancia (Bronce, Plata, Oro).
+3. Appointment persiste el nuevo estado de la cita y publica el evento de dominio `CitaVeterinariaAtendida`.
+4. El contexto **Pet & Clinical Record** consume el evento y actualiza el historial clínico, incorporando la atención registrada.
+5. En paralelo, el contexto **Adherence & Gamification** también consume el evento `CitaVeterinariaAtendida`, calcula la adherencia del dueño y evalúa si corresponde actualizar su nivel de constancia (Bronce, Plata, Oro).
 6. Adherence & Gamification publica el evento `NivelDeConstanciaActualizado`.
-7. La App Móvil refresca la vista, mostrando al dueño el historial actualizado y su progreso de
-   constancia.
+7. La App Móvil refresca la vista, mostrando al dueño el historial actualizado y su progreso de constancia.
 
 ![Storytelling 1](feature/Chapter-4/Storytelling1.png)
 
-##### Historia B — Registro de Dosis de Medicación y Actualización de Adherencia
+#### Historia B — Registro de Dosis de Medicación y Actualización de Adherencia
 
-1. El dueño administra la dosis de medicación indicada a su mascota y lo registra desde la App
-   Móvil.
+1. El dueño administra la dosis de medicación indicada a su mascota y lo registra desde la App Móvil.
 2. La App Móvil envía el command `RegistrarDosisAdministrada` al contexto **Medication**.
-3. Medication persiste la dosis administrada y publica el evento de dominio
-   `DosisDeMedicacionAdministrada`.
-4. El contexto **Adherence & Gamification** consume el evento, recalcula la adherencia del
-   propietario y evalúa su nivel de constancia, publicando el evento
-   `NivelDeConstanciaActualizado`.
-5. Adherence & Gamification despacha una notificación de reconocimiento a través del sistema
-   externo **Firebase Cloud Messaging**.
+3. Medication persiste la dosis administrada y publica el evento de dominio `DosisDeMedicacionAdministrada`.
+4. El contexto **Adherence & Gamification** consume el evento, recalcula la adherencia del propietario y evalúa su nivel de constancia, publicando el evento `NivelDeConstanciaActualizado`.
+5. Adherence & Gamification despacha una notificación de reconocimiento a través del sistema externo **Firebase Cloud Messaging**.
 6. Firebase Cloud Messaging entrega la notificación push a la App Móvil.
 7. La App Móvil muestra al dueño el nuevo nivel alcanzado.
 
 ![Storytelling 2](feature/Chapter-4/Storytelling2.png)
 
-##### Historia C — Prescripción de Plan Nutricional con Recordatorio Automático
+#### Historia C — Prescripción de Plan Nutricional con Recordatorio Automático
 
-1. El veterinario revisa el diagnóstico de la mascota y prescribe un plan de alimentación
-   personalizado desde el Panel Web.
+1. El veterinario revisa el diagnóstico de la mascota y prescribe un plan de alimentación personalizado desde el Panel Web.
 2. El Panel Web envía el command `PrescribirPlanNutricional` al contexto **Nutrition**.
-3. Nutrition crea el plan nutricional, lo persiste y publica el evento
-   `PlanNutricionalRegistrado`.
-4. Una policy interna del contexto evalúa continuamente los horarios de alimentación: al
-   llegar el horario correspondiente, genera el evento `RecordatorioDeAlimentacionGenerado`.
+3. Nutrition crea el plan nutricional, lo persiste y publica el evento `PlanNutricionalRegistrado`.
+4. Una policy interna del contexto evalúa continuamente los horarios de alimentación: al llegar el horario correspondiente, genera el evento `RecordatorioDeAlimentacionGenerado`.
 5. Nutrition despacha la notificación correspondiente a través de **Firebase Cloud Messaging**.
 6. Firebase Cloud Messaging entrega el recordatorio de alimentación a la App Móvil del dueño.
 
 ![Storytelling 3](feature/Chapter-4/Storytelling3.png)
 
-##### Historia D — Registro de Mascota y Agendamiento de la Primera Cita
+#### Historia D — Registro de Mascota y Agendamiento de la Primera Cita
 
 1. El dueño registra a su mascota geriátrica o con enfermedad crónica desde la App Móvil.
 2. La App Móvil envía el command `RegistrarMascota` al contexto **Pet & Clinical Record**.
-3. Pet & Clinical Record persiste el perfil de la mascota y publica el evento
-   `MascotaRegistrada`.
-4. Con la mascota ya registrada, la App Móvil envía el command `AgendarCitaVeterinaria` al
-   contexto **Appointment**.
-5. Appointment crea la cita en estado "Programada" y se sincroniza con el **servicio externo de
-   calendario** para reservar la fecha y hora seleccionadas.
+3. Pet & Clinical Record persiste el perfil de la mascota y publica el evento `MascotaRegistrada`.
+4. Con la mascota ya registrada, la App Móvil envía el command `AgendarCitaVeterinaria` al contexto **Appointment**.
+5. Appointment crea la cita en estado "Programada" y se sincroniza con el **servicio externo de calendario** para reservar la fecha y hora seleccionadas.
 6. Una vez confirmada la reserva, Appointment publica el evento `CitaVeterinariaProgramada`.
-7. La App Móvil confirma al dueño el registro de la mascota y la programación de su primera
-   cita.
+7. La App Móvil confirma al dueño el registro de la mascota y la programación de su primera cita.
 
 ![Storytelling 4](feature/Chapter-4/Storytelling4.png)
 
