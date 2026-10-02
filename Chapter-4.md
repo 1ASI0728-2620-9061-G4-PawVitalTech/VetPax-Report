@@ -1,3 +1,5 @@
+<div style="page-break-after: always;"></div>
+
 # Capítulo IV: Strategic-Level Software Design
 
 ## **4.1. Strategic-Level Attribute-Driven Design**
