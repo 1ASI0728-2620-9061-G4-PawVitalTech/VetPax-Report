@@ -1,7 +1,7 @@
 ## **Capítulo V: Tactical-Level Software Design**
 ### 5.1 Pet & Clinical Care
 ### 5.2 Clinic Management
-### 5.3. Appointment Management
+### 5.3. Bounded Context: Appointment Management
 
 Appointment Management administra la programación, reprogramación, cancelación y registro de atención de citas veterinarias. Su propósito es mantener la agenda sin conflictos de horario y contribuir a la continuidad del seguimiento de las mascotas. Se clasifica como un subdominio de soporte y cumple el rol de Execution Context.
 
@@ -128,7 +128,7 @@ La infraestructura deberá dar soporte a la recepción de los horarios publicado
 
 El diagrama deberá representar la interfaz de citas, la coordinación de comandos y consultas, el agregado Appointment, la persistencia y el adaptador del calendario. También deberá reflejar las dependencias con IAM, Pet & Clinical Care y Clinic Management, y la salida de eventos hacia Adherence & Gamification, manteniendo la separación de capas descrita.
 
-*Pendiente añadir diagrama de componentes*
+![AppointmentComponent](feature/Chapter-5/AppointmentComponentDiagram.png)
 
 #### 5.3.6. Bounded Context Software Architecture Code Level Diagrams
 
@@ -136,13 +136,130 @@ El diagrama deberá representar la interfaz de citas, la coordinación de comand
 
 El diagrama de clases tendrá como alcance el agregado Appointment y las reglas de su ciclo de vida.
 
-*Pendiente añadir diagrama de clases*
+![AppointmentClassComponent](feature/Chapter-5/AppointmentClassDiagram.png)
 
 ##### 5.3.6.2. Bounded Context Database Design Diagram
 
 El diseño de datos cubrirá la información de las citas y la asociación con el identificador del evento externo requerida por TS04.
 
-*Pendiente añadir diagrama de base de datos*
+![AppointmentbdComponent](feature/Chapter-5/AppointmentBDDiagram.png)
+
+### 5.4. Bounded Context: Identity & Access Management (IAM)
+
+IAM administra el registro de cuentas, la autenticación y la validación de permisos según el rol. Se clasifica como un subdominio genérico de tipo commodity, con rol de Enforcer Context. Su función es proporcionar identidad y control de acceso a las operaciones de VetPax.
+
+IAM utiliza Keycloak como proveedor de identidad, conforme a TS12 y ADD03, y encapsula su integración mediante adaptadores, según ADD08. Los roles definidos son dueño de mascota, veterinario y administrador de veterinaria.
+
+| Referencia | Responsabilidad que sustenta |
+| --- | --- |
+| US20 — Registrarse en VetPax mediante autenticación segura | Crear la identidad mediante Keycloak, validar los datos y rechazar un correo ya registrado. |
+| US21 — Iniciar sesión mediante autenticación segura | Validar credenciales y solicitar nueva autenticación cuando la sesión haya expirado. |
+| US22 — Gestionar acceso según rol de usuario | Permitir o denegar funcionalidades según permisos y aplicar cambios de permisos en una nueva sesión. |
+| TS12 — Implementación de autenticación y autorización mediante Keycloak | Integrar el proveedor de identidad y proteger los recursos de la plataforma. |
+| ADD03, ADD08 y secciones 4.2.4, 4.2.5 y 4.3.3 | Delimitar IAM, aislar al proveedor y establecer la comunicación de identidad con los clientes y el backend. |
+
+#### 5.4.1. Domain Layer
+
+La Domain Layer representa los conceptos de cuenta y permisos necesarios para el acceso a VetPax. El modelo permanece separado de los detalles de Keycloak y de los protocolos utilizados para integrarlo.
+
+**Aggregate Root**
+
+El agregado **User Account** representa la cuenta que permite relacionar una identidad con el acceso a la plataforma. La gestión de identidad y credenciales se delega en Keycloak.
+
+**Roles y reglas de acceso**
+
+| Rol | Ámbito funcional |
+| --- | --- |
+| Dueño de mascota | Gestionar sus mascotas, consultar sus historiales, agendar citas y realizar el seguimiento de las indicaciones de cuidado. |
+| Veterinario | Consultar los pacientes autorizados, registrar atenciones, gestionar su agenda y prescribir planes nutricionales. |
+| Administrador de veterinaria | Configurar los datos generales y los horarios de atención de la clínica. |
+
+Las operaciones protegidas requieren una identidad autenticada y permisos suficientes. Un usuario no debe acceder a funcionalidades ajenas a su rol. US22 establece que las modificaciones de permisos se aplican cuando el usuario inicia una nueva sesión.
+
+La autorización también debe respetar las restricciones de cada contexto: US02 limita el historial a las mascotas asociadas al dueño y US10 restringe la consulta de pacientes de otras clínicas sin autorización. IAM proporciona la identidad y los roles; los contextos que administran esos recursos deben aplicar las condiciones de asociación correspondientes.
+
+**Mensajes del dominio y contratos de integración**
+
+| Elemento | Tipo | Propósito |
+| --- | --- | --- |
+| User Account | Aggregate | Representar la cuenta de usuario en el modelo conceptual de IAM. |
+| `CuentaDeUsuarioCreada` | Domain Event | Comunicar la creación exitosa de una cuenta. |
+| `UsuarioAutenticado` | Domain Event | Comunicar la autenticación exitosa del usuario. |
+| Validación de permisos según rol | Regla de acceso | Determinar si la identidad puede utilizar una funcionalidad protegida. |
+
+La relación con el proveedor se realizará mediante un contrato que permita obtener los resultados de las operaciones de identidad sin introducir dependencias del proveedor en el modelo.
+
+#### 5.4.2. Interface Layer
+
+La Interface Layer articula las interacciones de registro, autenticación y acceso protegido utilizadas por las aplicaciones. Presenta los resultados de esos procesos y permite que el backend reciba solicitudes asociadas a una identidad verificada.
+
+La aplicación móvil y la aplicación web se autenticarán con Keycloak mediante OpenID Connect sobre HTTPS, y el backend validará tokens y roles, conforme al Container Diagram.
+
+**Interacciones previstas**
+
+| Interacción | Entrada o condición | Resultado funcional |
+| --- | --- | --- |
+| Registro de cuenta | Datos obligatorios válidos y correo no registrado. | Creación de identidad mediante Keycloak y asignación del perfil correspondiente, según US20. |
+| Inicio de sesión | Credenciales del usuario registrado. | Acceso cuando las credenciales son válidas o rechazo sin exponer información sensible, según US21. |
+| Acceso a funcionalidad protegida | Identidad autenticada y permisos para la operación. | Autorización o denegación de la solicitud, según US22 y TS12. |
+| Acceso con sesión expirada | Sesión que ha superado su validez. | Solicitud de nueva autenticación, según US21. |
+
+Los recursos de intercambio deberán limitarse a la información necesaria para estos procesos y mantener separados el modelo de IAM y el formato del proveedor.
+
+#### 5.4.3. Application Layer
+
+La Application Layer coordina los casos de uso de identidad y acceso con los resultados proporcionados por Keycloak. Mantiene separados el proceso de registro, la autenticación y la comprobación de permisos, de acuerdo con las historias US20, US21 y US22.
+
+**Commands y coordinación de casos de uso**
+
+| Mensaje | Responsabilidad de coordinación |
+| --- | --- |
+| `RegistrarCuenta` | Coordinar la creación de identidad mediante el proveedor y la asignación del perfil correspondiente; comunicar el resultado o los errores previstos en US20. |
+| `AutenticarUsuario` | Coordinar el resultado del proceso de autenticación y el acceso permitido cuando Keycloak valida la identidad. |
+| `ValidarPermisosSegúnRol` | Comprobar si la identidad autenticada tiene permisos para la operación y permitir o denegar el acceso. |
+
+La validación de permisos se realiza sobre la identidad autenticada para determinar si el usuario puede ejecutar la operación solicitada.
+
+**Resultados y relación con otros contextos**
+
+La creación exitosa de la cuenta se corresponde con `CuentaDeUsuarioCreada`, y una autenticación exitosa con `UsuarioAutenticado`. Los demás contextos reciben la identidad y los roles necesarios para proteger sus operaciones, según la relación transversal descrita en el Context Map.
+
+La aplicación deberá distinguir los siguientes resultados: correo existente, datos de registro inválidos, credenciales incorrectas, sesión expirada y permisos insuficientes.
+
+#### 5.4.4. Infrastructure Layer
+
+La Infrastructure Layer concentra la integración de IAM con Keycloak y los mecanismos técnicos que permiten validar la identidad y los permisos en las solicitudes de la plataforma.
+
+**Adaptador del proveedor de identidad**
+
+El adaptador de Keycloak implementará la integración con el proveedor y traducirá sus resultados al modelo utilizado por VetPax. Responde al patrón Adapter de ADD08 y a la Anticorruption Layer definida en el Context Map. Su objetivo es encapsular los contratos externos para que el dominio clínico y los demás contextos no dependan de detalles del proveedor.
+
+**Protección de solicitudes**
+
+De acuerdo con la sección 4.3.3, los clientes utilizarán OpenID Connect sobre HTTPS para autenticarse y el backend validará tokens y roles. La infraestructura dará soporte a esta validación y suministrará a los casos de uso la identidad necesaria para aplicar los permisos.
+
+**Persistencia e identidad**
+
+La gestión de identidad y credenciales permanece delegada en Keycloak. IAM integra la identidad autenticada y los roles con las operaciones protegidas de VetPax mediante el adaptador del proveedor.
+
+#### 5.4.5. Bounded Context Software Architecture Component Level Diagrams
+
+El diagrama deberá mostrar las interacciones de registro y autenticación, la coordinación de identidad y permisos, el modelo conceptual User Account y el adaptador de Keycloak. Deberá representar al proveedor de identidad y su relación con los clientes y el backend, conforme al Container Diagram existente.
+
+![IAMComponent](feature/Chapter-5/IAMComponentDiagram.png)
+
+#### 5.4.6. Bounded Context Software Architecture Code Level Diagrams
+
+##### 5.4.6.1. Bounded Context Domain Layer Class Diagrams
+
+El diagrama de clases tendrá como alcance los conceptos de cuenta y roles, y los contratos de integración de IAM.
+
+![IAMClassComponent](feature/Chapter-5/IAMClassDiagram.png)
+
+##### 5.4.6.2. Bounded Context Database Design Diagram
+
+![IAMBDComponent](feature/Chapter-5/IAMBDDiagram.png)
+
 
 # 5.5. Bounded Context: Medication Treatment
 
