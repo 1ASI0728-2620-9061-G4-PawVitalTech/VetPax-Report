@@ -63,6 +63,24 @@ El Read Model **Agenda veterinaria**, identificado en el EventStorming, permite 
 | Contrato de persistencia de citas | Abstracción de repositorio | Separar las operaciones de almacenamiento de la tecnología utilizada. |
 | Agenda veterinaria | Read Model | Presentar las citas para la consulta del veterinario. |
 
+#### 5.3.2. Interface Layer
+
+La Interface Layer recibe las solicitudes de la aplicación móvil y del panel web, valida su estructura y las transforma en comandos o consultas para la capa de aplicación. Devuelve los resultados de las operaciones sin ejecutar directamente las reglas de disponibilidad o transición de estado.
+
+**Endpoints**
+
+| Método y recurso | Operación | Respuestas definidas en TS03 |
+| --- | --- | --- |
+| `POST /api/v1/appointments` | Crear una cita con datos válidos y horario disponible. | `201 Created` al crear la cita; `409 Conflict` si el horario está ocupado. |
+| `PATCH /api/v1/appointments/{appointmentId}` | Actualizar una cita modificable, de acuerdo con la operación solicitada. | `200 OK` cuando se actualiza; `409 Conflict` si la reprogramación encuentra el horario ocupado. |
+
+La interfaz también contempla la consulta de la agenda y el registro de una cita como atendida por el veterinario, conforme a US06.
+
+**Resources y transformación de datos**
+
+Los recursos de entrada deberán representar los datos ya establecidos para el agendamiento y la modificación de citas. Los de salida comunicarán la cita registrada o actualizada y, para la agenda, las citas ordenadas por fecha y hora. La transformación entre estos recursos y los comandos del contexto permitirá mantener el modelo Appointment separado del formato de intercambio HTTP.
+
+Los controles de acceso utilizarán la identidad y los permisos de IAM. El dueño ejecuta las acciones de reserva, cancelación y reprogramación previstas en US04 y US05; el veterinario consulta su agenda y registra la atención según US06.
 
 - 5.X. Bounded Context: <Bounded Context Name>
     - 5.X.1. Domain Layer
