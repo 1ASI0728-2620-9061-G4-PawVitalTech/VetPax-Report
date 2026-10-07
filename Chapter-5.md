@@ -82,6 +82,68 @@ Los recursos de entrada deberán representar los datos ya establecidos para el a
 
 Los controles de acceso utilizarán la identidad y los permisos de IAM. El dueño ejecuta las acciones de reserva, cancelación y reprogramación previstas en US04 y US05; el veterinario consulta su agenda y registra la atención según US06.
 
+#### 5.3.3. Application Layer
+
+La Application Layer coordina los casos de uso de citas. Relaciona las solicitudes recibidas con el agregado Appointment, la consulta de disponibilidad, los contratos de persistencia y el adaptador del servicio de calendario. Las reglas de cambio de estado permanecen en el dominio.
+
+**Commands y Queries**
+
+| Mensaje | Tipo | Coordinación del caso de uso |
+| --- | --- | --- |
+| `AgendarCitaVeterinaria` | Command | Comprobar los datos y la disponibilidad, registrar la cita y comunicar su programación. |
+| `ReprogramarCita` | Command | Recuperar la cita pendiente, verificar el nuevo horario y guardar la actualización sin crear otra cita. |
+| `CancelarCita` | Command | Recuperar la cita pendiente y aplicar la cancelación que libera el horario. |
+| `MarcarCitaComoAtendida` | Command | Coordinar la actualización solicitada por el veterinario y la comunicación del evento de atención. |
+| `ConsultarAgenda` | Query | Recuperar las citas del veterinario para el periodo consultado y presentarlas en orden temporal. |
+
+Los manejadores de estos mensajes coordinarán las operaciones de cada caso de uso.
+
+**Coordinación con otros contextos y sistemas**
+
+- **Pet & Clinical Care:** proporciona la referencia de la mascota utilizada en el agendamiento.
+- **Clinic Management:** proporciona los horarios de atención mediante la relación y el evento `PerfilDeClínicaActualizado` descritos en el Context Map.
+- **IAM:** aporta la identidad autenticada y los roles para controlar el acceso a las operaciones.
+- **Adherence & Gamification:** recibe `CitaVeterinariaAtendida` y ejecuta su propio cálculo de constancia.
+- **Servicio de calendario:** recibe la solicitud de sincronización de las citas confirmadas; cuando una cita sincronizada se reprograma, se actualiza el evento externo asociado.
+
+Según TS04, un fallo del calendario externo no debe provocar la pérdida de la cita interna. La aplicación conservará la cita y registrará el fallo de integración.
+
+#### 5.3.4. Infrastructure Layer
+
+La Infrastructure Layer implementa la persistencia de las citas y la comunicación con sistemas externos. Mantiene los detalles tecnológicos separados del agregado y de la coordinación de los casos de uso.
+
+**Persistencia**
+
+La implementación del contrato de repositorio almacenará las citas y sus cambios de estado, y proporcionará la información necesaria para consultar la agenda y comprobar reservas. Deberá evitar la duplicación de una cita al reprogramarla y rechazar reservas que entren en conflicto.
+
+**Adaptador del servicio de calendario**
+
+La integración se encapsulará mediante un adaptador, de acuerdo con ADD08 y la relación Anticorruption Layer definida en el Context Map. Este componente traducirá la información de la cita al contrato del proveedor y permitirá registrar el identificador del evento externo cuando la sincronización sea exitosa. También permitirá actualizar dicho evento al reprogramar la cita y registrar fallos sin eliminar la información interna, conforme a TS04.
+
+**Integración de mensajes**
+
+La infraestructura deberá dar soporte a la recepción de los horarios publicados por Clinic Management y a la comunicación de los eventos del ciclo de vida de la cita. Las relaciones con Clinic Management y Adherence & Gamification se realizarán mediante los mensajes asíncronos definidos en el Context Map.
+
+#### 5.3.5. Bounded Context Software Architecture Component Level Diagrams
+
+El diagrama deberá representar la interfaz de citas, la coordinación de comandos y consultas, el agregado Appointment, la persistencia y el adaptador del calendario. También deberá reflejar las dependencias con IAM, Pet & Clinical Care y Clinic Management, y la salida de eventos hacia Adherence & Gamification, manteniendo la separación de capas descrita.
+
+*Pendiente añadir diagrama de componentes*
+
+#### 5.3.6. Bounded Context Software Architecture Code Level Diagrams
+
+##### 5.3.6.1. Bounded Context Domain Layer Class Diagrams
+
+El diagrama de clases tendrá como alcance el agregado Appointment y las reglas de su ciclo de vida.
+
+*Pendiente añadir diagrama de clases*
+
+##### 5.3.6.2. Bounded Context Database Design Diagram
+
+El diseño de datos cubrirá la información de las citas y la asociación con el identificador del evento externo requerida por TS04.
+
+*Pendiente añadir diagrama de base de datos*
+
 # 5.5. Bounded Context: Medication Treatment
 
 **Medication Treatment** es un Bounded Context **core** con el rol de **Execution Context**. Su propósito es gestionar los tratamientos con medicación activos de cada mascota, activar los recordatorios de dosis y registrar la administración de cada dosis por parte del propietario. El Bounded Context Canvas identifica al propietario y a **Pet & Clinical Care** como colaboradores de entrada, y a **Adherence & Gamification** y **Firebase Cloud Messaging** como colaboradores de salida.
