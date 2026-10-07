@@ -813,7 +813,7 @@ Aunque Clinic mantiene relaciones con otras capacidades, especialmente Pet & Cli
 
 Por estas razones se consideró **Clinic** como un candidate bounded context independiente.
 
-![Candidate Context Discovery - Clinic](feature/Chapter-4/CandidateContext_7.jpg)
+![Candidate Context Discovery - Clinic](feature/Chapter-4/7.jpg)
 
 ### Resultado del Candidate Context Discovery
 
