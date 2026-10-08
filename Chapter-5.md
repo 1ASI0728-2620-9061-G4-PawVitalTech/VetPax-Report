@@ -1,5 +1,224 @@
 ## **Capítulo V: Tactical-Level Software Design**
-### 5.1 Pet & Clinical Care
+### 5.1. Bounded Context: Pet & Clinical Care
+
+Pet & Clinical Care registra el perfil de cada mascota y mantiene su historial clínico longitudinal y trazable (atenciones, diagnósticos, tratamientos y evolución), de modo que el tratamiento tenga continuidad aunque el dueño cambie de veterinaria. Se clasifica como un subdominio **core**, con modelo de negocio Revenue Generator / Engagement, y cumple los roles de **Execution Context** y **Audit Context**.
+
+Es el contexto central de VetPax: Appointment Management, Medication Treatment, Nutrition Management y Clinic Management dependen del identificador de la mascota y de los pacientes que este contexto provee (relaciones Customer/Supplier del Context Map). La identidad y los roles los gestiona IAM. La programación de citas, los tratamientos con medicación, los planes de alimentación, el cálculo de adherencia y la información institucional de la clínica pertenecen a otros contextos.
+
+| Referencia | Responsabilidad que sustenta |
+|---|---|
+| US01 — Registrar mascota | Crear el perfil de la mascota asociado a la cuenta del dueño; rechazar el registro si faltan datos obligatorios. |
+| US02 — Consultar historial clínico | Mostrar las atenciones en orden cronológico, informar si el historial está vacío y denegar el acceso a usuarios sin autorización. |
+| US03 — Registrar atención clínica | Incorporar la atención al historial; rechazar la operación si la información está incompleta. |
+| US11 — Consultar evolución clínica | Mostrar la evolución cronológica del paciente o informar que aún no hay datos suficientes. |
+| TS01 — API para gestión de mascotas | Exponer el registro y la consulta de mascotas (201, 200, 404). |
+| TS02 — API para historial clínico | Exponer el registro y la consulta de atenciones (201, 200, 403). |
+| TS08 — API para pacientes y evolución clínica | Abastecer al panel veterinario con pacientes y evolución (200, 403). |
+| TS13 — Comunicación en tiempo real mediante WebSockets | Comunicar las actualizaciones clínicas a los clientes autorizados y recuperar el estado tras una reconexión. |
+| Secciones 4.2.1, 4.2.4 y 4.2.5 | Establecer los agregados Pet y Clinical Record, los mensajes del contexto y sus relaciones con otros contextos. |
+
+#### 5.1.1. Domain Layer
+
+La Domain Layer concentra las reglas de la mascota y de su historial clínico. Mantiene el modelo separado de HTTP, de la base de datos y de los proveedores externos, conforme a la arquitectura hexagonal (ADD01 y ADD02). Los tipos se expresan de forma agnóstica al lenguaje, porque el framework del backend aún no está definido.
+
+##### Reglas de negocio
+
+| N.º | Regla | Fuente |
+|---|---|---|
+| 1 | Toda mascota debe estar asociada a la cuenta de un dueño. | Canvas, US01 |
+| 2 | No se registra una mascota si faltan los datos obligatorios. | US01 E02 |
+| 3 | Una atención clínica solo se registra sobre una mascota existente. | Canvas |
+| 4 | No se registra una atención con información incompleta. | US03 E02 |
+| 5 | Solo usuarios autorizados consultan el historial; el dueño solo accede a sus mascotas. | Canvas, US02 E03 |
+| 6 | El historial se presenta ordenado cronológicamente. | US02 E01, TS02 E02 |
+| 7 | La evolución solo se calcula si existen registros comparables suficientes. | US11 E02 |
+| 8 | Las atenciones registradas se conservan para mantener la trazabilidad (Audit Context). | Canvas |
+
+##### Diccionario de clases
+
+**Aggregate Roots**
+
+| Clase | Propósito | Atributos | Métodos |
+|---|---|---|---|
+| **Pet** | Representa a la mascota y es la referencia de identidad usada por los demás contextos. | `petId: PetId`<br>`ownerId: OwnerId`<br>`name: String`<br>`species: Species`<br>`breed: String` (opcional)<br>`sex: Sex` (opcional)<br>`birthDate: Date`<br>`registeredAt: DateTime` | `isOwnedBy(ownerId): Boolean`<br>`calculateAge(referenceDate): Integer`<br>`pullDomainEvents(): List<DomainEvent>` |
+| **ClinicalRecord** | Historial clínico de una mascota. Controla el registro de atenciones y garantiza el orden cronológico. | `clinicalRecordId: ClinicalRecordId`<br>`petId: PetId`<br>`attentions: List<ClinicalAttention>`<br>`lastUpdatedAt: DateTime` | `registerAttention(attention): void`<br>`getAttentionsChronologically(): List<ClinicalAttention>`<br>`hasAttentions(): Boolean`<br>`pullDomainEvents(): List<DomainEvent>` |
+
+**Entities**
+
+| Clase | Propósito | Atributos | Métodos |
+|---|---|---|---|
+| **ClinicalAttention** | Atención veterinaria registrada dentro del historial. | `attentionId: AttentionId`<br>`clinicId: ClinicId`<br>`veterinarianId: VeterinarianId`<br>`attentionDate: DateTime`<br>`reason: String`<br>`diagnosis: String`<br>`treatmentSummary: String`<br>`observations: String` (opcional)<br>`indicators: List<ClinicalIndicator>` | `validateMandatoryData(): void`<br>`hasIndicators(): Boolean`<br>`findIndicator(name): ClinicalIndicator` |
+
+**Value Objects**
+
+| Clase | Propósito | Atributos | Métodos |
+|---|---|---|---|
+| **PetId, OwnerId, ClinicalRecordId, AttentionId, VeterinarianId, ClinicId** | Identificadores inmutables. `OwnerId`, `VeterinarianId` y `ClinicId` son referencias a otros contextos, no entidades propias. | `value: UUID` | `equals(other): Boolean`<br>`toString(): String` |
+| **Species** | Especie de la mascota. | `DOG`, `CAT` | — |
+| **Sex** | Sexo de la mascota. | `MALE`, `FEMALE` | — |
+| **ClinicalIndicator** | Valor clínico medido durante una atención, usado para comparar la evolución. | `name: String`<br>`value: Decimal`<br>`unit: String` | `isComparableWith(other): Boolean` |
+| **ClinicalEvolution** | Resultado de comparar los indicadores a lo largo del tiempo. | `petId: PetId`<br>`entries: List<EvolutionEntry>` | `hasSufficientData(): Boolean` |
+| **EvolutionEntry** | Punto de la evolución: fecha, indicador y valor. | `attentionDate: DateTime`<br>`indicatorName: String`<br>`value: Decimal`<br>`unit: String` | — |
+| **AccessRequester** | Quién solicita el acceso, según la identidad que entrega IAM. | `userId: UUID`<br>`role: Role` (dueño, veterinario)<br>`clinicId: ClinicId` (opcional) | `isOwner(): Boolean`<br>`isVeterinarian(): Boolean` |
+
+**Factories**
+
+| Clase | Propósito | Métodos |
+|---|---|---|
+| **PetFactory** | Crea una mascota válida asociada a un dueño y emite `MascotaRegistrada`. | `register(ownerId, name, species, birthDate, breed, sex): Pet` |
+| **ClinicalRecordFactory** | Crea el historial vacío de una mascota recién registrada. | `openFor(petId): ClinicalRecord` |
+
+**Domain Services**
+
+| Clase | Propósito | Métodos |
+|---|---|---|
+| **ClinicalAccessPolicy** | Determina si un solicitante puede acceder al historial de una mascota (reglas 5 y 6). | `canAccess(requester: AccessRequester, pet: Pet): Boolean` |
+| **ClinicalEvolutionService** | Construye la evolución clínica a partir de las atenciones registradas (regla 7). | `buildEvolution(record: ClinicalRecord): ClinicalEvolution` |
+
+**Repository Interfaces y Read Models**
+
+| Clase | Tipo | Propósito | Métodos |
+|---|---|---|---|
+| **PetRepository** | Repository (puerto) | Persistencia del agregado Pet. | `save(pet): void`<br>`findById(petId): Pet`<br>`findByOwnerId(ownerId): List<Pet>`<br>`existsById(petId): Boolean` |
+| **ClinicalRecordRepository** | Repository (puerto) | Persistencia del agregado ClinicalRecord. | `save(record): void`<br>`findByPetId(petId): ClinicalRecord` |
+| **PatientListReadModel** | Read Model | Pacientes vinculados a una clínica, que se entregan a Clinic Management. | `findPatientsByClinic(clinicId): List<PatientSummary>` |
+| **ClinicalRecordViewReadModel** | Read Model | Vista del historial para el dueño y el veterinario. | `findByPetId(petId): ClinicalRecordView` |
+| **PatientEvolutionViewReadModel** | Read Model | Vista de la evolución para el veterinario. | `findByPetId(petId): ClinicalEvolution` |
+
+**Domain Events**
+
+| Evento | Hecho que representa | Atributos |
+|---|---|---|
+| **MascotaRegistrada** | Se registró una mascota asociada a un dueño. | `petId`, `ownerId`, `occurredAt` |
+| **AtenciónClínicaRegistrada** | Se registró una atención sobre una mascota existente. | `clinicalRecordId`, `petId`, `attentionId`, `clinicId`, `veterinarianId`, `occurredAt` |
+| **HistorialClínicoActualizado** | El historial incorporó una nueva atención. | `clinicalRecordId`, `petId`, `occurredAt` |
+
+##### Relaciones entre clases
+
+| Origen | Relación | Destino |
+|---|---|---|
+| ClinicalRecord | contiene (1 a 0..*) | ClinicalAttention |
+| ClinicalAttention | contiene (1 a 0..*) | ClinicalIndicator |
+| ClinicalRecord | referencia por identificador (1 a 1) | Pet (mediante `petId`) |
+| PetFactory | crea | Pet |
+| ClinicalRecordFactory | crea | ClinicalRecord |
+| ClinicalAccessPolicy | evalúa | Pet, AccessRequester |
+| ClinicalEvolutionService | lee | ClinicalRecord |
+| ClinicalEvolutionService | produce | ClinicalEvolution |
+| PetRepository, ClinicalRecordRepository | persisten | Pet, ClinicalRecord |
+| Pet, ClinicalRecord | producen | Domain Events |
+
+#### 5.1.2. Interface Layer
+
+La Interface Layer recibe las solicitudes de la aplicación móvil y del panel web, valida su estructura y las transforma en comandos o consultas para la capa de aplicación. No ejecuta reglas de negocio.
+
+##### Endpoints
+
+| Método y recurso | Operación | Respuestas | Rol |
+|---|---|---|---|
+| `POST /api/v1/pets` | Registrar una mascota (US01). | 201 Created; rechazo informando los campos pendientes si faltan datos. | Dueño |
+| `GET /api/v1/pets/{petId}` | Consultar una mascota. | 200 OK; 404 Not Found si no existe; 403 Forbidden sin autorización. | Dueño, veterinario |
+| `POST /api/v1/pets/{petId}/clinical-records` | Registrar una atención clínica (US03). | 201 Created; 403 Forbidden sin permisos; rechazo informando los datos pendientes. | Veterinario |
+| `GET /api/v1/pets/{petId}/clinical-records` | Consultar el historial en orden cronológico (US02). | 200 OK; mensaje de historial vacío; 403 Forbidden sin autorización. | Dueño, veterinario |
+| `GET /api/v1/pets/{petId}/evolution` | Consultar la evolución clínica (US11, TS08). | 200 OK; mensaje de información insuficiente; 403 Forbidden sin autorización. | Veterinario |
+
+Los códigos 201, 200, 404 y 403 provienen de TS01, TS02 y TS08. Los rechazos por datos incompletos se definen en US01 y US03 sin fijar un código HTTP; se propone 400 Bad Request.
+
+El listado de pacientes de una clínica se expone en `/api/v1/clinics/{clinicId}/patients`, que pertenece a Clinic Management. Pet & Clinical Care solo provee los pacientes vinculados.
+
+##### Controllers, resources y canal en tiempo real
+
+| Elemento | Responsabilidad |
+|---|---|
+| **PetController** | Recibe las solicitudes de registro y consulta de mascotas. |
+| **ClinicalRecordController** | Recibe el registro de atenciones y la consulta del historial. |
+| **ClinicalEvolutionController** | Recibe la consulta de evolución clínica. |
+| **Resources de entrada** | `RegisterPetRequest`, `RegisterClinicalAttentionRequest`. |
+| **Resources de salida** | `PetResponse`, `ClinicalAttentionResponse`, `ClinicalHistoryResponse`, `ClinicalEvolutionResponse`. |
+| **Assemblers** | Transforman los resources en comandos o consultas y los resultados en respuestas, para que el modelo no dependa del formato HTTP. |
+| **Canal WebSocket de actualizaciones clínicas** | Según TS13, comunica a los clientes autorizados conectados que la información clínica cambió y devuelve el estado actualizado al reconectarse. |
+
+Los controles de acceso usan la identidad y los roles de IAM. El dueño ejecuta US01 y US02; el veterinario ejecuta US03 y US11.
+
+#### 5.1.3. Application Layer
+
+La Application Layer coordina los casos de uso: recibe los mensajes de la interfaz, invoca al dominio y a los puertos, y publica los eventos. No contiene reglas de negocio.
+
+##### Commands y Queries
+
+| Mensaje | Tipo | Coordinación del caso de uso |
+|---|---|---|
+| **RegistrarMascota** | Command | Crear la mascota con `PetFactory`, abrir su historial con `ClinicalRecordFactory`, guardar ambos y publicar `MascotaRegistrada`. |
+| **RegistrarAtenciónClínica** | Command | Verificar que la mascota exista y que el solicitante tenga permiso; registrar la atención en el historial; publicar `AtenciónClínicaRegistrada` e `HistorialClínicoActualizado`; solicitar la notificación por WebSocket. |
+| **ConsultarMascota** | Query | Recuperar la mascota y comprobar el acceso con `ClinicalAccessPolicy`. |
+| **ConsultarHistorialClínico** | Query | Comprobar el acceso y devolver las atenciones en orden cronológico, o indicar que el historial está vacío. |
+| **ConsultarEvoluciónClínica** | Query | Comprobar el acceso y construir la evolución con `ClinicalEvolutionService`, o indicar que los datos son insuficientes. |
+| **ObtenerPacientesVinculadosAClínica** | Query | Entregar a Clinic Management los pacientes de una clínica mediante `PatientListReadModel`. |
+| **VerificarExistenciaDeMascota** | Query | Entregar a Appointment Management, Medication Treatment y Nutrition Management el identificador y la confirmación de existencia de la mascota. |
+
+##### Otros componentes y coordinación con otros contextos
+
+| Componente | Responsabilidad |
+|---|---|
+| **Domain Event Publisher** | Publica los tres eventos de dominio del contexto. |
+| **Puerto ClinicalUpdateNotifier** | Contrato mediante el cual la aplicación solicita comunicar una actualización clínica a los clientes conectados, sin depender del mecanismo técnico (TS13). |
+
+- **IAM:** aporta la identidad autenticada y los roles para controlar el acceso.
+- **Appointment Management, Medication Treatment y Nutrition Management:** consumen el identificador de la mascota (Customer/Supplier, síncrona).
+- **Clinic Management:** consume los pacientes vinculados a la clínica (Customer/Supplier, síncrona).
+
+#### 5.1.4. Infrastructure Layer
+
+La Infrastructure Layer implementa la persistencia, la publicación de eventos y el canal en tiempo real, manteniendo los detalles tecnológicos fuera del dominio.
+
+| Componente | Responsabilidad |
+|---|---|
+| **Adaptador del Repositorio Pet** | Implementa `PetRepository` sobre la base de datos. |
+| **Adaptador del Repositorio ClinicalRecord** | Implementa `ClinicalRecordRepository`, almacena las atenciones y sus indicadores y conserva su trazabilidad. |
+| **Adaptador de Read Models** | Resuelve `PatientListReadModel`, `ClinicalRecordViewReadModel` y `PatientEvolutionViewReadModel` mediante consultas que no modifican el estado. |
+| **Adaptador del Publicador de Eventos de Dominio** | Conecta la publicación de eventos con el mecanismo de infraestructura seleccionado. |
+| **Adaptador WebSocket** | Implementa `ClinicalUpdateNotifier`: distribuye las actualizaciones a los clientes autorizados y permite recuperar el estado al reconectarse (TS13). |
+| **Validación de tokens y roles** | Respalda la identidad entregada por IAM en cada solicitud. |
+
+
+#### 5.1.5. Bounded Context Software Architecture Component Level Diagrams
+
+El diagrama muestra de forma resumida el controlador, los casos de uso, los agregados `Pet` y `ClinicalRecord`, los servicios de dominio, los puertos, los adaptadores de infraestructura y la base de datos. Por legibilidad, agrupa los tres controladores en uno, los casos de uso en dos conjuntos (mascotas y historial clínico) y los puertos y adaptadores de persistencia en uno solo. Aparecen como colaboradores IAM, Clinic Management y, agrupados, Appointment Management, Medication Treatment y Nutrition Management. El detalle de cada elemento está en las secciones 5.1.1 a 5.1.4.
+
+![Component Level Diagram - Pet & Clinical Care](feature/Chapter-5/PetClinicalCareComponents.png)
+
+El flujo principal es: **Dueño / Veterinario → Controller → Caso de Uso de Aplicación → Agregado → Adaptador de Repositorio**. Tras registrar una atención, el publicador emite los eventos y el adaptador WebSocket comunica la actualización a los clientes autorizados.
+
+#### 5.1.6. Bounded Context Software Architecture Code Level Diagrams
+
+##### 5.1.6.1. Bounded Context Domain Layer Class Diagrams
+
+El diagrama tiene como alcance los agregados `Pet` y `ClinicalRecord`, la entidad `ClinicalAttention`, los repositorios, los read models y los eventos de dominio. Por legibilidad, los value objects, las factories y los servicios de dominio aparecen agrupados; su detalle de atributos y métodos está en el diccionario de clases de la sección 5.1.1.
+
+![Domain Layer Class Diagram - Pet & Clinical Care](feature/Chapter-5/PetClinicalCareDomainClasses.png)
+
+##### 5.1.6.2. Bounded Context Database Design Diagram
+
+El diseño de datos cubre las mascotas, el historial clínico, las atenciones y sus indicadores. Los identificadores de dueño, clínica y veterinario son referencias lógicas a otros contextos, no claves foráneas físicas.
+
+![Database Design Diagram - Pet & Clinical Care](feature/Chapter-5/PetClinicalCareDatabase.png)
+
+| Tabla lógica | Propósito | Relación principal |
+|---|---|---|
+| **PetTable** | Almacena el perfil de la mascota y su dueño. | Una mascota tiene un historial clínico. |
+| **ClinicalRecordTable** | Almacena el historial clínico de cada mascota. | Pertenece a una mascota; padre de las atenciones. |
+| **ClinicalAttentionTable** | Almacena cada atención registrada. | Pertenece a un historial clínico; padre de los indicadores. |
+| **ClinicalIndicatorTable** | Almacena los indicadores medidos en cada atención. | Pertenece a una atención. |
+
+| Tabla | Columna | Tipo | Restricción |
+| :--- | :--- | :--- | :--- |
+| **PetTable** | `pet_id`<br>`owner_id`<br>`name`<br>`species`<br>`breed`<br>`sex`<br>`birth_date`<br>`registered_at` | `UUID`<br>`UUID`<br>`TEXT`<br>`TEXT`<br>`TEXT`<br>`TEXT`<br>`DATE`<br>`TIMESTAMP` | **PK**<br>REF, NOT NULL<br>NOT NULL<br>NOT NULL<br>NULL<br>NULL<br>NOT NULL<br>NOT NULL |
+| **ClinicalRecordTable** | `clinical_record_id`<br>`pet_id`<br>`last_updated_at` | `UUID`<br>`UUID`<br>`TIMESTAMP` | **PK**<br>FK, UNIQUE, NOT NULL<br>NOT NULL |
+| **ClinicalAttentionTable** | `attention_id`<br>`clinical_record_id`<br>`clinic_id`<br>`veterinarian_id`<br>`attention_date`<br>`reason`<br>`diagnosis`<br>`treatment_summary`<br>`observations` | `UUID`<br>`UUID`<br>`UUID`<br>`UUID`<br>`TIMESTAMP`<br>`TEXT`<br>`TEXT`<br>`TEXT`<br>`TEXT` | **PK**<br>FK, NOT NULL<br>REF, NOT NULL<br>REF, NOT NULL<br>NOT NULL<br>NOT NULL<br>NOT NULL<br>NOT NULL<br>NULL |
+| **ClinicalIndicatorTable** | `indicator_id`<br>`attention_id`<br>`name`<br>`value`<br>`unit` | `UUID`<br>`UUID`<br>`TEXT`<br>`DECIMAL`<br>`TEXT` | **PK**<br>FK, NOT NULL<br>NOT NULL<br>NOT NULL<br>NOT NULL |
+
+PK: clave primaria. FK: clave foránea dentro del contexto. REF: identificador de otro contexto, sin clave foránea física.
+
 ### 5.2 Clinic Management
 ### 5.3. Bounded Context: Appointment Management
 
