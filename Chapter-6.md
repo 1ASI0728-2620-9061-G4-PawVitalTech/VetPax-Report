@@ -364,18 +364,379 @@ This approach allows each interface to adapt its navigation to the characteristi
 
 ## **6.3. Landing Page UI Design**
 
-### 6.3.1. Landing Page Wireframe.
+La Landing Page de VetPax tiene como propósito comunicar de forma clara la propuesta de valor de la solución y orientar a los visitantes hacia la experiencia que les corresponde según su perfil. La página considera principalmente a propietarios de mascotas y profesionales o clínicas veterinarias.
 
-### 6.3.2. Landing Page Mock-up.
+El diseño mantiene coherencia con el Design System definido para VetPax, empleando la misma identidad visual, jerarquía tipográfica, sistema de espaciado, componentes, iconografía y criterios de interacción utilizados posteriormente en las aplicaciones Web y Mobile.
+
+La estructura de la Landing Page sigue una secuencia progresiva: inicialmente presenta el propósito de VetPax, posteriormente explica su propuesta de valor y funcionamiento, muestra las soluciones dirigidas a cada segmento objetivo y finalmente incluye elementos de confianza, preguntas frecuentes y llamados a la acción.
+
+### **6.3.1. Landing Page Wireframe**
+
+Los wireframes de la Landing Page representan la primera aproximación visual a la organización del contenido. Estos diseños de baja fidelidad permiten definir la distribución, jerarquía, secuencia de secciones y ubicación de los principales Call-to-Action antes de aplicar el Design System definitivo.
+
+#### **Hero Section**
+
+La sección Hero constituye el primer punto de contacto del visitante con VetPax. Su estructura prioriza el mensaje principal del producto, una breve explicación de su propósito y accesos diferenciados para propietarios de mascotas y profesionales veterinarios.
+
+![Landing Page Wireframe - Hero Section](feature/Chapter-6/Figma_VetPax/Landing_Page/Wireframes/1_HeroSection.png)
+
+#### **Value Proposition**
+
+Esta sección presenta de manera resumida los principales beneficios que ofrece VetPax. La distribución mediante bloques permite comunicar rápidamente aspectos como continuidad del cuidado, acceso organizado a información y conexión entre propietarios y profesionales veterinarios.
+
+![Landing Page Wireframe - Value Proposition](feature/Chapter-6/Figma_VetPax/Landing_Page/Wireframes/2_ValueProposition.png)
+
+#### **About the Product**
+
+La sección About the Product explica el propósito general de VetPax y su papel como plataforma de apoyo para la continuidad del cuidado veterinario. Su estructura permite representar la relación entre propietarios, la plataforma y las clínicas veterinarias.
+
+![Landing Page Wireframe - About Product](feature/Chapter-6/Figma_VetPax/Landing_Page/Wireframes/3_AboutProduct.png)
+
+#### **How It Works**
+
+Esta sección organiza de manera secuencial las principales etapas de interacción con VetPax. Se busca que el visitante pueda comprender de forma rápida cómo se registra una mascota, cómo se gestionan sus cuidados y cómo se mantiene el seguimiento veterinario.
+
+![Landing Page Wireframe - How It Works](feature/Chapter-6/Figma_VetPax/Landing_Page/Wireframes/4_HowItWorks.png)
+
+#### **For Pet Owners**
+
+Esta sección presenta la propuesta dirigida específicamente a propietarios de mascotas. Se destacan las principales actividades disponibles en la aplicación móvil, como consultar mascotas, revisar citas, visualizar cuidados y acceder al historial clínico.
+
+![Landing Page Wireframe - For Pet Owners](feature/Chapter-6/Figma_VetPax/Landing_Page/Wireframes/5_ForPetOwners.png)
+
+#### **For Clinics and Professionals**
+
+Esta sección comunica la propuesta de VetPax dirigida a profesionales y clínicas veterinarias. Se presenta la aplicación Web como herramienta para gestionar pacientes, consultar fichas clínicas, organizar citas y registrar atenciones.
+
+![Landing Page Wireframe - For Clinics and Professionals](feature/Chapter-6/Figma_VetPax/Landing_Page/Wireframes/6_ForClinicsAndProfessionals.png)
+
+#### **Product Overview**
+
+El Product Overview presenta de forma resumida las principales funcionalidades que conforman el ecosistema VetPax. La organización mediante un grid permite identificar rápidamente las capacidades más importantes de la solución.
+
+![Landing Page Wireframe - Product Overview](feature/Chapter-6/Figma_VetPax/Landing_Page/Wireframes/7_ProductOverviewGrid.png)
+
+#### **Continuity of Care**
+
+Esta sección representa conceptualmente uno de los principales enfoques de VetPax: mantener la continuidad del cuidado de la mascota después de una consulta veterinaria. Se presenta el flujo desde la atención profesional hasta el seguimiento realizado en casa.
+
+![Landing Page Wireframe - Continuity of Care](feature/Chapter-6/Figma_VetPax/Landing_Page/Wireframes/8_ContinuityOfCareBlock.png)
+
+#### **Testimonials**
+
+La sección Testimonials reserva espacios para presentar experiencias de los usuarios de VetPax. Su propósito es aportar confianza a futuros usuarios mostrando la percepción de propietarios y profesionales veterinarios.
+
+![Landing Page Wireframe - Testimonials](feature/Chapter-6/Figma_VetPax/Landing_Page/Wireframes/9_TestimonialsSection.png)
+
+#### **Video About the Product**
+
+Esta sección está destinada a la presentación audiovisual de VetPax. El espacio permite incorporar posteriormente el Video About-the-Product, mediante el cual se explica el funcionamiento general de la solución.
+
+![Landing Page Wireframe - Video Section](feature/Chapter-6/Figma_VetPax/Landing_Page/Wireframes/10_VideoSection.png)
+
+#### **Frequently Asked Questions**
+
+La sección FAQ organiza las principales dudas que podría tener un visitante respecto al uso y propósito de VetPax. Su estructura mediante elementos desplegables permite mantener la página limpia y evitar una carga excesiva de información.
+
+![Landing Page Wireframe - FAQ](feature/Chapter-6/Figma_VetPax/Landing_Page/Wireframes/11_FAQSection.png)
+
+#### **Final Call to Action**
+
+La última sección vuelve a presentar las principales acciones disponibles para los dos segmentos objetivo, permitiendo continuar hacia la experiencia correspondiente de VetPax.
+
+![Landing Page Wireframe - Final CTA](feature/Chapter-6/Figma_VetPax/Landing_Page/Wireframes/12_FinalCTA.png)
+
+### **6.3.2. Landing Page Mock-up**
+
+Los mock-ups representan la versión de alta fidelidad de la Landing Page. Para su elaboración se aplicó el Design System de VetPax, incorporando la identidad cromática, jerarquía tipográfica, espaciado, iconografía, componentes, botones, cards y demás elementos visuales establecidos previamente.
+
+El diseño busca transmitir una imagen moderna, amigable, profesional y confiable, manteniendo al mismo tiempo coherencia visual con las aplicaciones Mobile y Web.
+
+#### **Hero Section**
+
+La versión final del Hero Section utiliza la identidad visual de VetPax para destacar el mensaje principal de la solución y los accesos correspondientes a propietarios y profesionales veterinarios.
+
+![Landing Page Mock-up - Hero Section](feature/Chapter-6/Figma_VetPax/Landing_Page/Muck_ups/1_HeroSection.png)
+
+#### **Value Proposition**
+
+Esta sección presenta los beneficios principales de VetPax mediante componentes visuales sencillos y consistentes con el Design System.
+
+![Landing Page Mock-up - Value Proposition](feature/Chapter-6/Figma_VetPax/Landing_Page/Muck_ups/2_ValueProposition.png)
+
+#### **About the Product**
+
+La sección explica visualmente el propósito de VetPax y la relación entre los distintos usuarios que forman parte del ecosistema de cuidado veterinario.
+
+![Landing Page Mock-up - About Product](feature/Chapter-6/Figma_VetPax/Landing_Page/Muck_ups/3_AboutProduct.png)
+
+#### **How It Works**
+
+Esta sección utiliza una representación secuencial para explicar de manera sencilla cómo un usuario puede comenzar a utilizar VetPax y mantener el seguimiento de sus mascotas.
+
+![Landing Page Mock-up - How It Works](feature/Chapter-6/Figma_VetPax/Landing_Page/Muck_ups/4_HowItWorks.png)
+
+#### **For Pet Owners**
+
+La sección para propietarios muestra la experiencia Mobile de VetPax y las principales funciones disponibles para el seguimiento cotidiano de una mascota.
+
+![Landing Page Mock-up - For Pet Owners](feature/Chapter-6/Figma_VetPax/Landing_Page/Muck_ups/5_ForPetOwners.png)
+
+#### **For Clinics and Professionals**
+
+La sección para clínicas y profesionales presenta la experiencia Web y sus principales herramientas para la gestión y seguimiento clínico de pacientes.
+
+![Landing Page Mock-up - For Clinics and Professionals](feature/Chapter-6/Figma_VetPax/Landing_Page/Muck_ups/6_ForClinicsAndProfessionals.png)
+
+#### **Product Overview**
+
+El Product Overview presenta las funcionalidades más representativas de VetPax mediante un grid de elementos visuales fácilmente identificables.
+
+![Landing Page Mock-up - Product Overview](feature/Chapter-6/Figma_VetPax/Landing_Page/Muck_ups/7_ProductOverviewGrid.png)
+
+#### **Continuity of Care**
+
+Esta sección refuerza visualmente la continuidad entre consulta veterinaria, indicaciones profesionales, cuidados realizados por el propietario y futuros controles.
+
+![Landing Page Mock-up - Continuity of Care](feature/Chapter-6/Figma_VetPax/Landing_Page/Muck_ups/8_ContinuityOfCareBlock.png)
+
+#### **Testimonials**
+
+Los testimonios se presentan mediante cards que permiten identificar de manera clara al tipo de usuario y su experiencia con la solución.
+
+![Landing Page Mock-up - Testimonials](feature/Chapter-6/Figma_VetPax/Landing_Page/Muck_ups/9_TestimonialsSection.png)
+
+#### **Video About the Product**
+
+La sección incorpora un espacio visual destacado para el Video About-the-Product, permitiendo complementar la explicación escrita con una demostración audiovisual de VetPax.
+
+![Landing Page Mock-up - Video Section](feature/Chapter-6/Figma_VetPax/Landing_Page/Muck_ups/10_VideoSection.png)
+
+#### **Frequently Asked Questions**
+
+La sección FAQ utiliza componentes desplegables para responder las principales consultas de los visitantes sin sobrecargar visualmente la Landing Page.
+
+![Landing Page Mock-up - FAQ](feature/Chapter-6/Figma_VetPax/Landing_Page/Muck_ups/11_FAQSection.png)
+
+#### **Final Call to Action**
+
+La sección final concentra nuevamente los principales llamados a la acción, permitiendo que propietarios y profesionales continúen hacia el producto correspondiente.
+
+![Landing Page Mock-up - Final CTA](feature/Chapter-6/Figma_VetPax/Landing_Page/Muck_ups/12_FinalCTA.png)
+
+---
 
 ## **6.4. Applications UX/UI Design**
 
-### 6.4.1. Applications Wireframes.
+VetPax cuenta con dos aplicaciones principales dirigidas a diferentes tipos de usuario. La Mobile Application está orientada a los propietarios de mascotas, mientras que la Web Application está destinada principalmente a médicos veterinarios y personal de clínicas veterinarias.
 
-### 6.4.2. Applications Wireflow Diagrams.
+Ambos productos mantienen una identidad visual común mediante la aplicación del Design System de VetPax, pero adaptan la organización de la información y sus patrones de interacción a las necesidades específicas de cada segmento.
 
-### 6.4.3. Applications Mock-ups.
+### **6.4.1. Applications Wireframes**
 
-### 6.4.4. Applications User Flow Diagrams.
+Los wireframes permitieron establecer la estructura, navegación y jerarquía de las vistas principales antes de aplicar los componentes visuales definitivos.
 
-## **6.5. Applications Prototyping.**
+#### **Mobile Application Wireframes**
+
+##### **Inicio**
+
+La vista Inicio proporciona al propietario un resumen del estado actual de su mascota, los cuidados programados para el día y la próxima cita veterinaria.
+
+![Mobile Application Wireframe - Inicio](feature/Chapter-6/Figma_VetPax/Mobil_Application/Wireframe/1_Inicio.png)
+
+##### **Mascotas**
+
+La sección Mascotas presenta los animales registrados por el propietario y ofrece acceso directo a la información individual de cada mascota.
+
+![Mobile Application Wireframe - Mascotas](feature/Chapter-6/Figma_VetPax/Mobil_Application/Wireframe/2_Mascotas.png)
+
+##### **Citas**
+
+La sección Citas permite consultar las próximas citas y atenciones anteriores, además de proporcionar un punto de acceso al proceso de agendamiento.
+
+![Mobile Application Wireframe - Citas](feature/Chapter-6/Figma_VetPax/Mobil_Application/Wireframe/3_Citas.png)
+
+##### **Cuidados**
+
+La sección Cuidados concentra las actividades asociadas a medicación y alimentación de la mascota, permitiendo al propietario llevar un seguimiento de las indicaciones realizadas.
+
+![Mobile Application Wireframe - Cuidados](feature/Chapter-6/Figma_VetPax/Mobil_Application/Wireframe/4_Cuidados.png)
+
+#### **Web Application Wireframes**
+
+##### **Dashboard Veterinario**
+
+El Dashboard constituye la pantalla inicial para el médico veterinario y proporciona un resumen de la jornada, próximas citas y pacientes que requieren seguimiento.
+
+![Web Application Wireframe - Dashboard](feature/Chapter-6/Figma_VetPax/Web_Application/Wireframes/1_Dashboard.png)
+
+##### **Pacientes**
+
+La vista Pacientes presenta el directorio de pacientes de la clínica y facilita el acceso a sus respectivos perfiles e información clínica.
+
+![Web Application Wireframe - Pacientes](feature/Chapter-6/Figma_VetPax/Web_Application/Wireframes/2_Pacientes.png)
+
+##### **Agenda**
+
+La Agenda permite visualizar la planificación semanal de citas y la distribución de las atenciones entre los médicos veterinarios.
+
+![Web Application Wireframe - Agenda](feature/Chapter-6/Figma_VetPax/Web_Application/Wireframes/3_Agenda.png)
+
+##### **Clínica**
+
+La vista Clínica organiza la información general de la institución, horarios de atención y profesionales veterinarios asociados.
+
+![Web Application Wireframe - Clínica](feature/Chapter-6/Figma_VetPax/Web_Application/Wireframes/4_Clínica.png)
+
+### **6.4.2. Applications Wireflow Diagrams**
+
+
+
+### **6.4.3. Applications Mock-ups**
+
+Los Applications Mock-ups representan las vistas de alta fidelidad de las aplicaciones de VetPax. Estas pantallas aplican el Design System definido para la solución y muestran con mayor precisión los elementos visuales, contenido, estados y componentes con los que interactúan los usuarios.
+
+#### **Mobile Application Mock-ups**
+
+##### **Inicio**
+
+La pantalla Inicio proporciona al propietario un resumen de la jornada de cuidado de su mascota. Se presentan los cuidados pendientes, próxima cita, progreso y accesos rápidos hacia las funcionalidades más utilizadas.
+
+![Mobile Application Mock-up - Inicio](feature/Chapter-6/Figma_VetPax/Mobil_Application/Muck_ups/1_Inicio.png)
+
+##### **Historial Clínico**
+
+Esta pantalla permite al propietario consultar de manera cronológica los principales registros clínicos de su mascota, incluyendo controles, evaluaciones e indicaciones realizadas por los profesionales veterinarios.
+
+![Mobile Application Mock-up - Historial Clínico](feature/Chapter-6/Figma_VetPax/Mobil_Application/Muck_ups/2_Historial_Clínico.png)
+
+##### **Citas**
+
+La sección Citas presenta las próximas atenciones y las citas anteriores del propietario. Desde esta vista también se puede acceder al detalle de una cita o iniciar un nuevo agendamiento.
+
+![Mobile Application Mock-up - Citas](feature/Chapter-6/Figma_VetPax/Mobil_Application/Muck_ups/3_Citas.png)
+
+##### **Agendar Cita**
+
+Esta pantalla contiene el formulario necesario para registrar una nueva cita veterinaria, seleccionando la mascota, clínica, profesional, fecha, hora y motivo de consulta.
+
+![Mobile Application Mock-up - Agendar Cita](feature/Chapter-6/Figma_VetPax/Mobil_Application/Muck_ups/4_Agendar_Cita.png)
+
+##### **Detalle de Cita**
+
+La vista Detalle de Cita presenta la información completa de una atención programada y permite al propietario consultar su estado, profesional asignado, horario y motivo.
+
+![Mobile Application Mock-up - Detalle de Cita](feature/Chapter-6/Figma_VetPax/Mobil_Application/Muck_ups/5_Detalle_de_Cita.png)
+
+##### **Cuidados - Medicación**
+
+Esta pantalla permite realizar el seguimiento de la medicación activa de la mascota. Se visualizan las dosis programadas, su estado y el historial de administración reciente.
+
+![Mobile Application Mock-up - Cuidados Medicación](feature/Chapter-6/Figma_VetPax/Mobil_Application/Muck_ups/6_Cuidados.png)
+
+##### **Cuidados - Plan Alimentario**
+
+La segunda vista de Cuidados presenta las indicaciones relacionadas con el plan alimentario de la mascota, incluyendo horarios, cantidades e información asociada al seguimiento de la alimentación.
+
+![Mobile Application Mock-up - Cuidados Plan Alimentario](feature/Chapter-6/Figma_VetPax/Mobil_Application/Muck_ups/7_Cuidados.png)
+
+##### **Mis Mascotas**
+
+La pantalla Mis Mascotas presenta las mascotas registradas por el propietario y resume información relevante como edad, raza, condición principal y estado actual de sus cuidados.
+
+![Mobile Application Mock-up - Mis Mascotas](feature/Chapter-6/Figma_VetPax/Mobil_Application/Muck_ups/8_Mis_Mascotas.png)
+
+##### **Perfil Clínico**
+
+Esta vista centraliza la información principal de una mascota seleccionada y proporciona acceso a información clínica, tratamientos, próximas citas e historial.
+
+![Mobile Application Mock-up - Perfil Clínico](feature/Chapter-6/Figma_VetPax/Mobil_Application/Muck_ups/9_Perfil_Clínico.png)
+
+##### **Perfil**
+
+La pantalla Perfil permite consultar y actualizar información básica de la cuenta del propietario, así como gestionar preferencias generales de la aplicación.
+
+![Mobile Application Mock-up - Perfil](feature/Chapter-6/Figma_VetPax/Mobil_Application/Muck_ups/10_Perfil.png)
+
+##### **Nueva Mascota**
+
+La vista Nueva Mascota presenta el formulario necesario para registrar una nueva mascota y asociarla con la cuenta del propietario.
+
+![Mobile Application Mock-up - Nueva Mascota](feature/Chapter-6/Figma_VetPax/Mobil_Application/Muck_ups/11_Nueva_Mascota.png)
+
+##### **Notificaciones**
+
+Esta pantalla concentra las notificaciones relacionadas con citas, medicación, alimentación y otros eventos vinculados con los cuidados previamente configurados.
+
+![Mobile Application Mock-up - Notificaciones](feature/Chapter-6/Figma_VetPax/Mobil_Application/Muck_ups/12_Notificaciones.png)
+
+#### **Web Application Mock-ups**
+
+##### **Dashboard Veterinario**
+
+El Dashboard proporciona al médico veterinario una visión resumida de la jornada, citas programadas, pacientes registrados y pacientes que requieren seguimiento prioritario.
+
+![Web Application Mock-up - Dashboard Veterinario](feature/Chapter-6/Figma_VetPax/Web_Application/Muck_ups/1_Veterinario.png)
+
+##### **Lista de Pacientes**
+
+La vista Lista de Pacientes presenta el directorio clínico de la organización y permite localizar pacientes mediante búsqueda y filtros, además de acceder a su ficha.
+
+![Web Application Mock-up - Lista de Pacientes](feature/Chapter-6/Figma_VetPax/Web_Application/Muck_ups/2_Lista_de_Pacientes.png)
+
+##### **Detalle de Paciente**
+
+La pantalla Detalle de Paciente centraliza la información principal del animal, incluyendo datos generales, condición clínica activa, tratamiento, propietario y próxima cita.
+
+![Web Application Mock-up - Detalle de Paciente](feature/Chapter-6/Figma_VetPax/Web_Application/Muck_ups/3_Detalle_de_Paciente.png)
+
+##### **Detalle de Paciente - Historial Clínico**
+
+Esta vista presenta cronológicamente las atenciones y registros clínicos asociados al paciente seleccionado.
+
+![Web Application Mock-up - Historial Clínico](feature/Chapter-6/Figma_VetPax/Web_Application/Muck_ups/4_Detalle_de_Paciente_Historial_Clínico.png)
+
+##### **Detalle de Paciente - Evolución**
+
+La pestaña Evolución permite al profesional revisar la variación de los principales indicadores clínicos utilizados para el seguimiento del paciente.
+
+![Web Application Mock-up - Evolución](feature/Chapter-6/Figma_VetPax/Web_Application/Muck_ups/5_Detalle_de_Paciente_Evolución.png)
+
+##### **Detalle de Paciente - Plan Alimentario**
+
+Esta pantalla presenta las indicaciones alimentarias asociadas al paciente y permite mantener organizada la información relacionada con su plan de alimentación.
+
+![Web Application Mock-up - Plan Alimentario](feature/Chapter-6/Figma_VetPax/Web_Application/Muck_ups/6_Detalle_de_Paciente_Plan_Alimentario.png)
+
+##### **Agendar Cita**
+
+La vista Agendar Cita proporciona al profesional un formulario para registrar una atención futura para el paciente seleccionado.
+
+![Web Application Mock-up - Agendar Cita](feature/Chapter-6/Figma_VetPax/Web_Application/Muck_ups/7_Agendar_Cita.png)
+
+##### **Registrar Atención**
+
+La pantalla Registrar Atención permite documentar los principales datos derivados de una consulta veterinaria, incluyendo motivo, evaluación, indicaciones y tratamiento.
+
+![Web Application Mock-up - Registrar Atención](feature/Chapter-6/Figma_VetPax/Web_Application/Muck_ups/8_Registrar_atencion.png)
+
+##### **Agenda**
+
+La Agenda presenta visualmente las citas programadas durante la semana y permite identificar los pacientes, profesionales y horarios correspondientes a cada atención.
+
+![Web Application Mock-up - Agenda](feature/Chapter-6/Figma_VetPax/Web_Application/Muck_ups/9_Agenda.png)
+
+##### **Clínica**
+
+La sección Clínica presenta la información general de la organización veterinaria, horarios de atención y profesionales asociados a la institución.
+
+![Web Application Mock-up - Clínica](feature/Chapter-6/Figma_VetPax/Web_Application/Muck_ups/10_Clinica.png)
+
+### **6.4.4. Applications User Flow Diagrams**
+
+
+---
+
+## **6.5. Applications Prototyping**
+
+
