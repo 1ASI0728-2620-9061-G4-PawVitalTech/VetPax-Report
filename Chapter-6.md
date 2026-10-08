@@ -590,6 +590,36 @@ La vista Clínica organiza la información general de la institución, horarios 
 
 ### **6.4.2. Applications Wireflow Diagrams**
 
+En esta sección se presentan los **Wireflow Diagrams** de las aplicaciones de VetPax. Estos diagramas combinan los wireframes previamente definidos con las relaciones de navegación entre las principales vistas, permitiendo representar de manera visual cómo los usuarios se desplazan dentro de cada aplicación para completar sus tareas principales.
+
+Los wireflows fueron elaborados manteniendo la arquitectura de información y los sistemas de navegación definidos para cada tipo de usuario. De esta manera, sirven como base para la posterior elaboración de los mock-ups, User Flow Diagrams y prototipos interactivos.
+
+#### **Mobile Application Wireflow**
+
+El wireflow de la aplicación móvil representa la navegación principal realizada por el propietario de mascota dentro de VetPax.
+
+El flujo parte desde la pantalla de **Inicio**, desde donde el propietario puede acceder a las principales secciones mediante la barra de navegación inferior. El recorrido mostrado incluye el acceso a **Mascotas**, **Citas** y **Cuidados**, manteniendo disponible la navegación entre las funcionalidades principales de la aplicación.
+
+La vista de **Mascotas** permite consultar las mascotas registradas y acceder a su información clínica. La sección de **Citas** permite visualizar las próximas atenciones veterinarias y acceder a sus detalles. Finalmente, la sección de **Cuidados** concentra el seguimiento de la medicación y alimentación asociada a la mascota.
+
+Este wireflow permite validar que las funciones principales se encuentren accesibles mediante una estructura de navegación consistente y predecible para el propietario.
+
+![Mobile Application Wireflow](feature/Chapter-6/Figma_VetPax/Mobil_Application/User_flow/Proceso_Principal_Movil.png)
+
+#### **Web Application Wireflow**
+
+El wireflow de la aplicación web representa la navegación principal utilizada por los especialistas veterinarios dentro de VetPax.
+
+El recorrido parte desde el **Dashboard o Inicio**, que proporciona un resumen de la actividad clínica y acceso a las funcionalidades principales. Desde el menú lateral, el especialista puede navegar hacia **Pacientes**, donde consulta el listado de pacientes vinculados a la clínica; hacia **Agenda**, donde visualiza y gestiona las citas veterinarias; y hacia **Clínica**, donde se presenta la información general y configuración básica de la organización.
+
+La navegación lateral se mantiene constante durante todo el recorrido, permitiendo que el especialista acceda rápidamente a las diferentes áreas de trabajo sin perder el contexto de la aplicación.
+
+Este wireflow permite verificar la coherencia de la navegación de la Web Application antes de aplicar los elementos visuales definitivos del Design System de VetPax.
+
+![Web Application Wireflow](feature/Chapter-6/Figma_VetPax/Web_Application/User_flow/Proceso_Principal_Web.png)
+
+En conjunto, ambos Wireflow Diagrams permiten comprobar la organización de las vistas y las rutas principales de navegación de VetPax, asegurando consistencia entre la arquitectura de información, los wireframes y los flujos de interacción posteriormente representados en los mock-ups y User Flow Diagrams.
+
 
 
 ### **6.4.3. Applications Mock-ups**
@@ -734,8 +764,125 @@ La sección Clínica presenta la información general de la organización veteri
 
 ### **6.4.4. Applications User Flow Diagrams**
 
+En esta sección se presentan los **User Flow Diagrams** definidos para las aplicaciones que forman parte de VetPax. Estos diagramas representan las rutas de interacción que siguen los usuarios para alcanzar determinados objetivos dentro de la solución, tomando como base los User Stories previamente establecidos.
 
----
+Los User Flows fueron elaborados considerando las vistas y mock-ups de cada aplicación, permitiendo representar la secuencia esperada de interacción y mantener consistencia con la arquitectura de información y navegación propuesta para VetPax.
+
+#### **Web Application User Flows**
+
+Los User Flows de la Web Application están orientados a las principales tareas realizadas por los especialistas veterinarios y la gestión de la clínica.
+
+##### **US03 - Registrar Atención Clínica**
+
+**User goal:** Permitir que el especialista veterinario registre la información correspondiente a una atención clínica realizada a un paciente.
+
+El flujo representa la navegación necesaria para acceder al paciente correspondiente, iniciar el registro de una atención y completar la información clínica asociada.
+
+![US03 - Registrar Atención Clínica](feature/Chapter-6/Figma_VetPax/Web_Application/User_flow/US03_Registrar_Atencion_Clinica.png)
+
+##### **US06 - Gestionar Agenda de Citas**
+
+**User goal:** Permitir que el especialista veterinario consulte y gestione las citas registradas dentro de la agenda de la clínica.
+
+El flujo representa el acceso a la agenda y las principales interacciones relacionadas con la gestión de citas veterinarias.
+
+![US06 - Gestionar Agenda de Citas](feature/Chapter-6/Figma_VetPax/Web_Application/User_flow/US06_Gestionar_Agenda_Citas.png)
+
+##### **US10 - Visualizar Listado de Pacientes**
+
+**User goal:** Permitir que el especialista veterinario consulte los pacientes asociados a la clínica y acceda a la información de un paciente específico.
+
+El flujo muestra la navegación desde el listado general de pacientes hacia las vistas correspondientes al paciente seleccionado.
+
+![US10 - Visualizar Listado de Pacientes](feature/Chapter-6/Figma_VetPax/Web_Application/User_flow/US10_Visualizar_Listado_Pacientes.png)
+
+##### **US11 - Consultar Evolución de Paciente**
+
+**User goal:** Permitir que el especialista veterinario consulte la evolución clínica registrada de un paciente.
+
+El flujo representa el acceso al detalle del paciente y posteriormente a la sección de evolución, donde se visualiza la información relacionada con su seguimiento clínico.
+
+![US11 - Consultar Evolución de Paciente](feature/Chapter-6/Figma_VetPax/Web_Application/User_flow/US11_Consultar_Evolucion_Paciente.png)
+
+##### **US12 - Gestionar Perfil de Clínica**
+
+**User goal:** Permitir la consulta y gestión de la información correspondiente al perfil de la clínica.
+
+El flujo representa el acceso a la sección Clínica y las interacciones relacionadas con la administración de su información.
+
+![US12 - Gestionar Perfil de Clínica](feature/Chapter-6/Figma_VetPax/Web_Application/User_flow/US12_Gestionar_Perfil_Clinica.png)
+
+#### **Mobile Application User Flows**
+
+Los User Flows de la Mobile Application están orientados a las principales tareas realizadas por los propietarios de mascotas dentro de VetPax.
+
+##### **US01 - Registrar Mascota**
+
+**User goal:** Permitir que el propietario registre una nueva mascota dentro de su cuenta de VetPax.
+
+El flujo representa el acceso a la sección de mascotas, el inicio del registro y la incorporación de la nueva mascota a la aplicación.
+
+![US01 - Registrar Mascota](feature/Chapter-6/Figma_VetPax/Mobil_Application/User_flow/US01_Registrar_Mascota.png)
+
+##### **US02 - Consultar Historial Clínico**
+
+**User goal:** Permitir que el propietario consulte el historial clínico de una de sus mascotas.
+
+El flujo representa la selección de la mascota y el acceso a la información clínica disponible dentro de su perfil.
+
+![US02 - Consultar Historial Clínico](feature/Chapter-6/Figma_VetPax/Mobil_Application/User_flow/US02_Consultar_Historial_Clinico.png)
+
+##### **US04 - Agendar Cita Veterinaria**
+
+**User goal:** Permitir que el propietario registre una nueva cita veterinaria para su mascota.
+
+El flujo muestra la navegación desde la gestión de citas hasta el proceso de agendamiento correspondiente.
+
+![US04 - Agendar Cita Veterinaria](feature/Chapter-6/Figma_VetPax/Mobil_Application/User_flow/US04_Agendar_Cita_Veterinaria.png)
+
+##### **US05 - Cancelar o Reprogramar Cita**
+
+**User goal:** Permitir que el propietario gestione una cita previamente registrada mediante su cancelación o reprogramación.
+
+El flujo representa el acceso al detalle de una cita y las rutas disponibles para modificar su programación.
+
+![US05 - Cancelar o Reprogramar Cita](feature/Chapter-6/Figma_VetPax/Mobil_Application/User_flow/US05_Cancelar_Reprogramar_Cita.png)
+
+##### **US09 - Recibir Recordatorios de Alimentación**
+
+**User goal:** Permitir que el propietario visualice los recordatorios asociados al plan de alimentación de su mascota.
+
+El flujo representa cómo el usuario accede a la información correspondiente a los cuidados y recordatorios de alimentación.
+
+![US09 - Recibir Recordatorios de Alimentación](feature/Chapter-6/Figma_VetPax/Mobil_Application/User_flow/US09_Recibir_Recordatorios_Alimentacion.png)
+
+##### **US13 - Visualizar Nivel de Constancia**
+
+**User goal:** Permitir que el propietario consulte su progreso y nivel de constancia en el cuidado de su mascota.
+
+El flujo muestra el acceso desde el resumen de constancia hacia la vista de detalle, donde el propietario puede consultar su progreso acumulado.
+
+![US13 - Visualizar Nivel de Constancia](feature/Chapter-6/Figma_VetPax/Mobil_Application/User_flow/US13_Visualizar_Nivel_Constancia.png)
+
+##### **US14 - Recibir Reconocimiento por Ascenso de Nivel**
+
+**User goal:** Informar al propietario cuando alcanza un nuevo nivel de constancia dentro de VetPax.
+
+El flujo representa la notificación del reconocimiento obtenido como resultado del progreso del usuario en las actividades de cuidado de su mascota.
+
+![US14 - Recibir Reconocimiento por Ascenso de Nivel](feature/Chapter-6/Figma_VetPax/Mobil_Application/User_flow/US14_Recibir_Reconocimiento_Ascenso_Nivel.png)
+
+##### **US18 - Registrar Administración de Medicación**
+
+**User goal:** Permitir que el propietario registre que una dosis de medicación indicada para su mascota ha sido administrada.
+
+El flujo representa la interacción desde la sección de cuidados hasta el registro de la administración correspondiente.
+
+![US18 - Registrar Administración de Medicación](feature/Chapter-6/Figma_VetPax/Mobil_Application/User_flow/US18_Registrar_Administracion_Medicacion.png)
+
+En conjunto, estos User Flow Diagrams permiten representar los principales objetivos de interacción cubiertos por las aplicaciones de VetPax, manteniendo correspondencia con los User Stories, mock-ups y estructura de navegación definida para cada tipo de usuario.
+
+
 
 ## **6.5. Applications Prototyping**
 
