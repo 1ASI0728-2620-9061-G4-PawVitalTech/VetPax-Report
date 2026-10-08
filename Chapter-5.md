@@ -219,7 +219,180 @@ El diseño de datos cubre las mascotas, el historial clínico, las atenciones y 
 
 PK: clave primaria. FK: clave foránea dentro del contexto. REF: identificador de otro contexto, sin clave foránea física.
 
-### 5.2 Clinic Management
+### 5.2. Bounded Context: Clinic Management
+
+Clinic Management administra la información institucional de cada veterinaria (datos generales y horarios de atención) y ofrece al veterinario el listado de los pacientes vinculados a su clínica. Se clasifica como un subdominio de **soporte**, con modelo de negocio de reducción de costos operativos, y cumple el rol de **Specification Context**, porque define las condiciones (horarios) bajo las cuales otros contextos operan.
+
+El contexto obtiene los pacientes vinculados desde Pet & Clinical Care (relación Customer/Supplier síncrona) y publica el evento `PerfilDeClínicaActualizado`, que Appointment Management consume de forma asíncrona para conocer los horarios de atención al agendar. La identidad y los roles los gestiona IAM. El historial clínico, la agenda de citas y la suscripción de la clínica no pertenecen a este contexto.
+
+| Referencia | Responsabilidad que sustenta |
+|---|---|
+| US10 — Visualizar listado de pacientes | Mostrar la información resumida de los pacientes vinculados a la clínica, informar si no hay pacientes y denegar el acceso a pacientes de otra clínica. |
+| US12 — Gestionar perfil de la clínica | Actualizar los datos generales y los horarios de atención; rechazar horarios inconsistentes y modificaciones sin rol administrativo. |
+| TS08 — API para pacientes y evolución clínica | Exponer la consulta de pacientes de la clínica (200, 403). La evolución clínica pertenece a Pet & Clinical Care. |
+| TS09 — API para información de clínica | Exponer la consulta y la actualización del perfil de la clínica (200, 403). |
+| Secciones 4.2.1, 4.2.4 y 4.2.5 | Establecer el agregado Clinic, los mensajes del contexto y sus relaciones con otros contextos. |
+
+#### 5.2.1. Domain Layer
+
+La Domain Layer concentra las reglas del perfil de la clínica y de sus horarios de atención. Mantiene el modelo separado de HTTP, de la base de datos y de los demás contextos, conforme a la arquitectura hexagonal (ADD01 y ADD02). Los tipos se expresan de forma agnóstica al lenguaje.
+
+##### Reglas de negocio
+
+| N.º | Regla | Fuente |
+|---|---|---|
+| 1 | Solo el administrador de la clínica modifica su perfil. | Canvas, US12 E03, TS09 E03 |
+| 2 | Los datos generales y los horarios deben ser válidos para guardar los cambios. | US12 E01 |
+| 3 | Los horarios deben ser consistentes: el cierre es posterior a la apertura y no hay traslapes en un mismo día. | Canvas, US12 E02 |
+| 4 | Un veterinario solo ve los pacientes de su propia clínica. | Canvas, US10 E03, TS08 E03 |
+| 5 | Si la clínica no tiene pacientes vinculados, se informa que no hay pacientes disponibles. | US10 E02 |
+| 6 | Cada actualización válida del perfil comunica los horarios mediante `PerfilDeClínicaActualizado`. | Canvas, Context Map |
+
+##### Diccionario de clases
+
+**Aggregate Root**
+
+| Clase | Propósito | Atributos | Métodos |
+|---|---|---|---|
+| **Clinic** | Representa la información institucional de una veterinaria y controla los cambios de su perfil y horarios. | `clinicId: ClinicId`<br>`generalData: ClinicGeneralData`<br>`openingSchedule: OpeningSchedule`<br>`administrators: List<AdministratorId>`<br>`updatedAt: DateTime` | `updateProfile(generalData, openingSchedule): void`<br>`isManagedBy(userId): Boolean`<br>`getOpeningSchedule(): OpeningSchedule`<br>`pullDomainEvents(): List<DomainEvent>` |
+
+**Value Objects**
+
+| Clase | Propósito | Atributos | Métodos |
+|---|---|---|---|
+| **ClinicId, AdministratorId** | Identificadores inmutables. `AdministratorId` es una referencia a una cuenta de IAM. | `value: UUID` | `equals(other): Boolean`<br>`toString(): String` |
+| **ClinicGeneralData** | Datos generales de la clínica. | `name: String`<br>`address: String`<br>`phone: String` (opcional)<br>`contactEmail: String` (opcional) | `validateMandatoryData(): void` |
+| **OpeningSchedule** | Conjunto de horarios de atención de la clínica. | `days: List<DailyOpeningHours>` | `validateConsistency(): void`<br>`isOpenAt(dayOfWeek, time): Boolean` |
+| **DailyOpeningHours** | Horario de atención de un día de la semana. | `dayOfWeek: DayOfWeek`<br>`openTime: Time`<br>`closeTime: Time` | `isValid(): Boolean`<br>`overlapsWith(other): Boolean` |
+| **PatientSummary** | Información resumida de un paciente vinculado a la clínica. | `petId: UUID`<br>`name: String`<br>`species: String`<br>`lastAttentionDate: DateTime` (opcional) | — |
+| **AccessRequester** | Quién solicita el acceso, según la identidad que entrega IAM. | `userId: UUID`<br>`role: Role` (veterinario, administrador)<br>`clinicId: ClinicId` | `isAdministrator(): Boolean`<br>`isVeterinarian(): Boolean` |
+
+**Domain Service**
+
+| Clase | Propósito | Métodos |
+|---|---|---|
+| **ClinicAccessPolicy** | Determina quién puede modificar el perfil y quién puede ver los pacientes de una clínica (reglas 1 y 4). | `canManageProfile(requester, clinic): Boolean`<br>`canViewPatients(requester, clinicId): Boolean` |
+
+**Repository Interface y Read Model**
+
+| Clase | Tipo | Propósito | Métodos |
+|---|---|---|---|
+| **ClinicRepository** | Repository (puerto) | Persistencia del agregado Clinic. | `save(clinic): void`<br>`findById(clinicId): Clinic`<br>`existsById(clinicId): Boolean` |
+| **PatientListView** | Read Model | Listado de pacientes vinculados a la clínica (read model "Listado de pacientes" del EventStorming), construido con los datos que provee Pet & Clinical Care. | `findByClinic(clinicId): List<PatientSummary>` |
+
+**Domain Event**
+
+| Evento | Hecho que representa | Atributos |
+|---|---|---|
+| **PerfilDeClínicaActualizado** | Se actualizaron los datos generales o los horarios de atención de la clínica. | `clinicId`, `generalData`, `openingSchedule`, `occurredAt` |
+
+##### Relaciones entre clases
+
+| Origen | Relación | Destino |
+|---|---|---|
+| Clinic | contiene | ClinicGeneralData, OpeningSchedule, AdministratorId |
+| OpeningSchedule | contiene (1 a 0..7) | DailyOpeningHours |
+| PatientListView | contiene (1 a 0..*) | PatientSummary |
+| ClinicAccessPolicy | evalúa | Clinic, AccessRequester |
+| ClinicRepository | persiste | Clinic |
+| Clinic | produce | PerfilDeClínicaActualizado |
+
+#### 5.2.2. Interface Layer
+
+La Interface Layer recibe las solicitudes del panel web de la veterinaria, valida su estructura y las transforma en comandos o consultas para la capa de aplicación. No ejecuta reglas de negocio.
+
+##### Endpoints
+
+| Método y recurso | Operación | Respuestas | Rol |
+|---|---|---|---|
+| `GET /api/v1/clinics/{clinicId}` | Consultar el perfil de la clínica (TS09). | 200 OK; 404 Not Found si no existe; 403 Forbidden sin autorización. | Administrador, veterinario |
+| `PUT /api/v1/clinics/{clinicId}` | Actualizar datos generales y horarios (US12, TS09). | 200 OK al actualizar; rechazo por horarios inconsistentes; 403 Forbidden sin rol administrativo. | Administrador |
+| `GET /api/v1/clinics/{clinicId}/patients` | Consultar los pacientes vinculados (US10, TS08). | 200 OK; mensaje de que no hay pacientes; 403 Forbidden si es de otra clínica. | Veterinario |
+
+Los códigos 200 y 403 provienen de TS08 y TS09. Los demás se proponen: 404 para una clínica inexistente, 400 Bad Request para los horarios inconsistentes (US12 E02 no fija un código) y el método `PUT` (TS09 no lo especifica).
+
+##### Controllers y resources
+
+| Elemento | Responsabilidad |
+|---|---|
+| **ClinicController** | Recibe la consulta y la actualización del perfil de la clínica. |
+| **ClinicPatientsController** | Recibe la consulta del listado de pacientes. |
+| **Resources de entrada** | `UpdateClinicProfileRequest`. |
+| **Resources de salida** | `ClinicProfileResponse`, `PatientListResponse`. |
+| **Assemblers** | Transforman los resources en comandos o consultas y los resultados en respuestas, para que el modelo no dependa del formato HTTP. |
+
+Los controles de acceso usan la identidad y los roles de IAM. El administrador consulta y actualiza el perfil; el veterinario consulta el perfil y los pacientes de su clínica. Este contexto no define un canal propio de tiempo real: el panel veterinario recibe las actualizaciones clínicas mediante el canal de Pet & Clinical Care (TS13).
+
+#### 5.2.3. Application Layer
+
+La Application Layer coordina los casos de uso: recibe los mensajes de la interfaz, invoca al dominio y a los puertos, y publica los eventos. No contiene reglas de negocio.
+
+##### Commands y Queries
+
+| Mensaje | Tipo | Coordinación del caso de uso |
+|---|---|---|
+| **ActualizarPerfilDeClínica** | Command | Recuperar la clínica, comprobar que el solicitante la administra, aplicar los nuevos datos y horarios, guardarla y publicar `PerfilDeClínicaActualizado`. |
+| **ConsultarPerfilDeClínica** | Query | Recuperar la clínica y devolver su perfil, comprobando que el solicitante pertenezca a ella. |
+| **ConsultarPacientesDeLaClínica** | Query | Comprobar que el veterinario pertenezca a la clínica, solicitar los pacientes vinculados mediante el puerto de pacientes y devolver el listado, o indicar que no hay pacientes. |
+
+##### Otros componentes y coordinación con otros contextos
+
+| Componente | Responsabilidad |
+|---|---|
+| **Domain Event Publisher** | Publica `PerfilDeClínicaActualizado`. |
+| **Puerto ClinicPatientsProvider** | Contrato mediante el cual la aplicación obtiene los pacientes vinculados sin depender de la implementación de Pet & Clinical Care. |
+
+- **IAM:** aporta la identidad autenticada y los roles para controlar el acceso.
+- **Pet & Clinical Care:** provee los pacientes vinculados a la clínica (Customer/Supplier, síncrona).
+- **Appointment Management:** consume `PerfilDeClínicaActualizado` para conocer los horarios de atención (Customer/Supplier con Published Language, asíncrona).
+
+#### 5.2.4. Infrastructure Layer
+
+La Infrastructure Layer implementa la persistencia, la obtención de pacientes y la publicación de eventos, manteniendo los detalles tecnológicos fuera del dominio.
+
+| Componente | Responsabilidad |
+|---|---|
+| **Adaptador del Repositorio Clinic** | Implementa `ClinicRepository`, almacenando el perfil, los administradores y los horarios. |
+| **Adaptador de Pacientes** | Implementa `ClinicPatientsProvider` consultando a Pet & Clinical Care los pacientes vinculados y traduciéndolos a `PatientSummary`. |
+| **Adaptador del Publicador de Eventos de Dominio** | Conecta la publicación de `PerfilDeClínicaActualizado` con el mecanismo de infraestructura seleccionado. |
+| **Validación de tokens y roles** | Respalda la identidad entregada por IAM en cada solicitud. |
+
+#### 5.2.5. Bounded Context Software Architecture Component Level Diagrams
+
+El diagrama muestra de forma resumida el controlador, los casos de uso, el agregado `Clinic`, el servicio de dominio, los puertos, los adaptadores de infraestructura y la base de datos. Por legibilidad, agrupa los dos controladores en uno y los tres casos de uso en un solo conjunto. Aparecen como colaboradores IAM, Pet & Clinical Care y Appointment Management. El detalle de cada elemento está en las secciones 5.2.1 a 5.2.4.
+
+![Component Level Diagram - Clinic Management](feature/Chapter-5/ClinicManagementComponents.png)
+
+El flujo principal es: **Administrador / Veterinario → Controller → Caso de Uso de Aplicación → Agregado Clinic → Adaptador de Repositorio**. Tras actualizar el perfil, el publicador emite `PerfilDeClínicaActualizado` hacia Appointment Management.
+
+#### 5.2.6. Bounded Context Software Architecture Code Level Diagrams
+
+##### 5.2.6.1. Bounded Context Domain Layer Class Diagrams
+
+El diagrama tiene como alcance el agregado `Clinic`, el servicio de dominio, el repositorio, el read model y el evento de dominio. Por legibilidad, los value objects aparecen agrupados; su detalle de atributos y métodos está en el diccionario de clases de la sección 5.2.1.
+
+![Domain Layer Class Diagram - Clinic Management](feature/Chapter-5/ClinicManagementDomainClasses.png)
+
+##### 5.2.6.2. Bounded Context Database Design Diagram
+
+El diseño de datos cubre el perfil de la clínica, sus administradores y sus horarios de atención. Los pacientes no se almacenan en este contexto: se obtienen de Pet & Clinical Care. El identificador de cada administrador es una referencia lógica a IAM, no una clave foránea física.
+
+![Database Design Diagram - Clinic Management](feature/Chapter-5/ClinicManagementDatabase.png)
+
+| Tabla lógica | Propósito | Relación principal |
+|---|---|---|
+| **ClinicTable** | Almacena los datos generales de la clínica. | Padre de los administradores y de los horarios. |
+| **ClinicAdministratorTable** | Almacena los administradores de cada clínica. | Pertenece a una clínica. |
+| **ClinicOpeningHoursTable** | Almacena los horarios de atención por día. | Pertenece a una clínica. |
+
+| Tabla | Columna | Tipo | Restricción |
+| :--- | :--- | :--- | :--- |
+| **ClinicTable** | `clinic_id`<br>`name`<br>`address`<br>`phone`<br>`contact_email`<br>`updated_at` | `UUID`<br>`TEXT`<br>`TEXT`<br>`TEXT`<br>`TEXT`<br>`TIMESTAMP` | **PK**<br>NOT NULL<br>NOT NULL<br>NULL<br>NULL<br>NOT NULL |
+| **ClinicAdministratorTable** | `clinic_id`<br>`administrator_id` | `UUID`<br>`UUID` | PK, FK<br>PK, REF |
+| **ClinicOpeningHoursTable** | `opening_hours_id`<br>`clinic_id`<br>`day_of_week`<br>`open_time`<br>`close_time` | `UUID`<br>`UUID`<br>`TEXT`<br>`TIME`<br>`TIME` | **PK**<br>FK, NOT NULL<br>NOT NULL<br>NOT NULL<br>NOT NULL |
+
+PK: clave primaria. FK: clave foránea dentro del contexto. REF: identificador de otro contexto, sin clave foránea física.
+
 ### 5.3. Bounded Context: Appointment Management
 
 Appointment Management administra la programación, reprogramación, cancelación y registro de atención de citas veterinarias. Su propósito es mantener la agenda sin conflictos de horario y contribuir a la continuidad del seguimiento de las mascotas. Se clasifica como un subdominio de soporte y cumple el rol de Execution Context.
