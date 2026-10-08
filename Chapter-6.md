@@ -739,4 +739,29 @@ La sección Clínica presenta la información general de la organización veteri
 
 ## **6.5. Applications Prototyping**
 
+En esta sección se presentan los prototipos interactivos desarrollados para las aplicaciones que forman parte de la solución VetPax. Los prototipos permiten simular la navegación entre las principales vistas, validar los flujos definidos previamente y comprobar la consistencia de la experiencia de usuario entre la aplicación móvil orientada a propietarios de mascotas y la aplicación web orientada a especialistas veterinarios.
+
+Los prototipos fueron elaborados en Figma tomando como base los mock-ups, wireflows y user flows definidos anteriormente. La navegación propuesta busca mantener una interacción simple, predecible y coherente con el Design System de VetPax.
+
+### **6.5.1. Mobile Application Prototype**
+
+El prototipo de la aplicación móvil representa la experiencia del propietario de mascota dentro de VetPax. Incluye la navegación entre las principales funcionalidades de la aplicación, como la consulta de información de las mascotas, seguimiento clínico, citas veterinarias, cuidados, medicación, planes alimentarios, perfil y notificaciones.
+
+Asimismo, el prototipo permite validar la estructura de navegación inferior definida para la aplicación móvil, compuesta por las secciones **Inicio**, **Mascotas**, **Citas**, **Cuidados** y **Perfil**.
+
+El prototipo interactivo puede consultarse en el siguiente enlace:
+
+[**VetPax Mobile Application Prototype – Figma**](https://www.figma.com/proto/w9edhFA6VCAvT7Rl3wKKe2/Mobil-Application?node-id=22-2411&t=CR6IkEqjYgPmg0Kf-1&scaling=min-zoom&content-scaling=fixed&page-id=20%3A2&starting-point-node-id=22%3A2475)
+
+### **6.5.2. Web Application Prototype**
+
+El prototipo de la aplicación web representa la experiencia de los especialistas veterinarios dentro de VetPax. Permite recorrer las principales vistas relacionadas con la gestión de pacientes, agenda veterinaria, información clínica, evolución del paciente, planes alimentarios, registro de atenciones y administración básica de la clínica.
+
+La navegación del prototipo mantiene la estructura definida para la aplicación web mediante un menú lateral y las acciones principales asociadas al seguimiento clínico de los pacientes.
+
+El prototipo interactivo puede consultarse en el siguiente enlace:
+
+[**VetPax Web Application Prototype – Figma**](https://www.figma.com/proto/xUBTqYXN6DG591Wr9j4njh/Web-Application?node-id=31-4505&p=f&t=yaGOrsZicVQS44O0-1&scaling=min-zoom&content-scaling=fixed&page-id=29%3A2&starting-point-node-id=31%3A4505)
+
+Los prototipos permiten comprobar la relación entre las decisiones de arquitectura de información, los sistemas de navegación y los flujos de interacción definidos para cada aplicación. Además, sirven como base para posteriores actividades de validación con usuarios y para la implementación de las interfaces de VetPax.
 
