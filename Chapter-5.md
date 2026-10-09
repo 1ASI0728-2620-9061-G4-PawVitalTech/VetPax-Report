@@ -528,13 +528,13 @@ El diagrama deberá representar la interfaz de citas, la coordinación de comand
 
 El diagrama de clases tendrá como alcance el agregado Appointment y las reglas de su ciclo de vida.
 
-![AppointmentClassComponent](feature/Chapter-5/AppointmentClassDiagram.png)
+![AppointmentClassComponent](feature/Chapter-5/AppointmentClass.png)
 
 ##### 5.3.6.2. Bounded Context Database Design Diagram
 
 El diseño de datos cubrirá la información de las citas y la asociación con el identificador del evento externo requerida por TS04.
 
-![AppointmentbdComponent](feature/Chapter-5/AppointmentBDDiagram.png)
+![AppointmentbdComponent](feature/Chapter-5/Appointmentbd.png)
 
 ### 5.4. Bounded Context: Identity & Access Management (IAM)
 
@@ -646,11 +646,11 @@ El diagrama deberá mostrar las interacciones de registro y autenticación, la c
 
 El diagrama de clases tendrá como alcance los conceptos de cuenta y roles, y los contratos de integración de IAM.
 
-![IAMClassComponent](feature/Chapter-5/IAMClassDiagram.png)
+![IAMClassComponent](feature/Chapter-5/IAMclass.png)
 
 ##### 5.4.6.2. Bounded Context Database Design Diagram
 
-![IAMBDComponent](feature/Chapter-5/IAMBDDiagram.png)
+![IAMBDComponent](feature/Chapter-5/IAMbd.png)
 
 
 # 5.5. Bounded Context: Medication Treatment
