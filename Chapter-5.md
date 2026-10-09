@@ -726,13 +726,13 @@ Para los recordatorios, la capacidad de programación invoca el caso de uso de r
 
 #### 5.5.6.1. Bounded Context Domain Layer Class Diagram
 
-![MedicationDomain](feature/Chapter-5/MedicationDomain.png)
+![MedicationDomain](feature/Chapter-5/medication-treatment-domain.png)
 
 La vista a nivel de clases se centra en `MedicationTreatment` como **Aggregate Root**. `MedicationDose` y `MedicationReminder` están contenidos por el agregado. Las interfaces de repositorio y notificaciones se representan como puertos, mientras que los eventos de dominio representan los resultados publicados por el contexto.
 
 #### 5.5.6.2. Bounded Context Database Design Diagram
 
-![MedicationDatabase](feature/Chapter-5/MedicationDatabase.png)
+![MedicationDatabase](feature/Chapter-5/medication-treatment.png)
 
 | Tabla lógica | Propósito | Relación principal |
 |---|---|---|
@@ -804,13 +804,13 @@ Para los recordatorios, la capacidad de programación invoca el caso de uso de r
 
 #### 5.6.6.1. Bounded Context Domain Layer Class Diagram
 
-![NutritionDomain](feature/Chapter-5/NutritionDomain.png)
+![NutritionDomain](feature/Chapter-5/nutrition-management-domain.png)
 
 La vista a nivel de clases se centra en `FeedingPlan` como **Aggregate Root**. `FeedingReminder` se representa como una entidad contenida por el plan. Los contratos de repositorio y notificaciones son puertos y los tres eventos de dominio representan las salidas identificadas.
 
 #### 5.6.6.2. Bounded Context Database Design Diagram
 
-![NutritionDatabase](feature/Chapter-5/NutritionDatabase.png)
+![NutritionDatabase](feature/Chapter-5/nutrition-management.png)
 
 | Tabla lógica | Propósito | Relación principal |
 |---|---|---|
@@ -894,26 +894,16 @@ El propietario consulta el progreso resultante mediante la interfaz de adherenci
 
 #### 5.7.6.1. Bounded Context Domain Layer Class Diagram
 
-![AdherenceDomain](feature/Chapter-5/AdherenceDomain.png)
+![AdherenceDomain](feature/Chapter-5/adherence-gamification-domain.png)
 
 La vista a nivel de clases se centra en `Adherence` como **Aggregate Root**. `AdherenceScore` y `ConstancyLevel` son Value Objects, mientras que `Recognition` representa el resultado de un ascenso de nivel. Las interfaces de repositorio y notificaciones son puertos, y los cuatro eventos de dominio identificados se representan explícitamente.
 
 #### 5.7.6.2. Bounded Context Database Design Diagram
 
-![AdherenceDatabase](feature/Chapter-5/AdherenceDatabase.png)
+![AdherenceDatabase](feature/Chapter-5/adherence-gamification.png)
 
 | Tabla lógica | Propósito | Relación principal |
 |---|---|---|
 | **Adherence** | Almacena el estado/progreso de adherencia del propietario y el nivel actual. | Padre de los reconocimientos. |
 | **Recognition** | Almacena los reconocimientos generados por ascensos de nivel. | Pertenece a Adherence. |
 
-
-- 5.X. Bounded Context: <Bounded Context Name>
-    - 5.X.1. Domain Layer
-    - 5.X.2. Interface Layer
-    - 5.X.3. Application Layer
-    - 5.X.4. Infrastructure Layer
-    - 5.X.6. Bounded Context Software Architecture Component Level Diagrams
-    - 5.X.7. Bounded Context Software Architecture Code Level Diagrams
-        - 5.X.7.1. Bounded Context Domain Layer Class Diagrams
-        - 5.X.7.2. Bounded Context Database Design Diagram
