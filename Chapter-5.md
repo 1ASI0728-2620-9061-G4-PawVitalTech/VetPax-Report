@@ -522,7 +522,7 @@ El diagrama deberá representar la interfaz de citas, la coordinación de comand
 
 ![AppointmentComponent](feature/Chapter-5/AppointmentComponentDiagram.png)
 
-#### 5.3.6. Bounded Context Software Architecture Code Level Diagrams
+### 5.3.6. Bounded Context Software Architecture Code Level Diagrams
 
 ##### 5.3.6.1. Bounded Context Domain Layer Class Diagrams
 
