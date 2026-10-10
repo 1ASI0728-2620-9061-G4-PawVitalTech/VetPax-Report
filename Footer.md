@@ -1,24 +1,32 @@
+<div style="page-break-after: always;"></div>
+
 ### **Conclusiones**
 
-1. El desarrollo de **VetPax** permitió identificar una oportunidad de diferenciación frente a las soluciones veterinarias existentes. Mientras diversas plataformas del mercado se orientan principalmente a la administración de clínicas, historiales, inventarios y citas, VetPax plantea un enfoque especializado en el **seguimiento clínico y nutricional continuo de mascotas geriátricas o con enfermedades crónicas**, buscando mantener la continuidad del cuidado entre consultas.
+1. El desarrollo de **VetPax** permitió identificar una oportunidad de diferenciación frente a las soluciones veterinarias existentes. Mientras diversas plataformas del mercado se orientan principalmente a la administración de clínicas, historiales, inventarios y citas, VetPax plantea un enfoque especializado en el **seguimiento clínico y nutricional continuo de mascotas geriátricas o con enfermedades crónicas**, buscando mantener la continuidad del cuidado entre consultas mediante herramientas digitales que conecten a propietarios y profesionales veterinarios.
 
-2. Las entrevistas realizadas a los segmentos objetivo permitieron identificar necesidades relacionadas con la falta de tiempo, el olvido de citas y medicamentos, la dificultad para mantener información clínica organizada y los problemas de seguimiento entre una consulta y otra. Estos hallazgos respaldan la incorporación de funcionalidades como el historial clínico centralizado, recordatorios, agenda veterinaria, planes nutricionales y seguimiento de tratamientos.
+2. Las entrevistas realizadas a los segmentos objetivo permitieron identificar necesidades relacionadas con la disponibilidad de tiempo, la organización de controles veterinarios, el acceso a información clínica y las dificultades de seguimiento entre consultas. Estos hallazgos proporcionaron un sustento inicial para incorporar funcionalidades como el historial clínico centralizado, recordatorios, agenda veterinaria, planes nutricionales y seguimiento de tratamientos. Asimismo, permitieron orientar el diseño hacia una distribución clara de responsabilidades: los propietarios consultan la información y registran actividades de cuidado, mientras que los profesionales veterinarios son responsables de registrar y validar las atenciones clínicas y las indicaciones terapéuticas.
 
-3. A partir del proceso de **Requirements Elicitation & Analysis**, las necesidades identificadas fueron transformadas en **Epic Stories, User Stories y Technical Stories**, acompañadas de criterios de aceptación verificables. Esto permite establecer una relación clara entre las necesidades de los usuarios y las funcionalidades y capacidades técnicas que deberá implementar VetPax.
+3. Los antecedentes internacionales permitieron respaldar la pertinencia de incorporar herramientas digitales para mejorar la organización y continuidad de la atención veterinaria. En Estados Unidos, PetDesk reportó el caso de una clínica veterinaria de San Diego cuya proporción de inasistencias disminuyó del 11 % a menos del 3 % después de implementar herramientas de comunicación y recordatorios digitales (PetDesk, s. f.). Asimismo, Silva (2023), en una investigación realizada en Portugal, identificó una asociación entre el uso de recordatorios digitales y la asistencia a consultas de revacunación canina, registrando 54 asistencias en los grupos que recibieron mensajes frente a 4 en el grupo de control. Estos antecedentes respaldan el enfoque de VetPax, aunque sus resultados no garantizan un impacto equivalente en el contexto peruano. Por ello, será necesario evaluar posteriormente indicadores como la asistencia a controles, el uso de recordatorios y la consulta del historial clínico.
 
-4. El **Product Backlog** permite organizar y priorizar progresivamente las funcionalidades de VetPax de acuerdo con el valor que aportan a los segmentos objetivo. En este backlog se consideran elementos relacionados con la Landing Page, registro y autenticación, gestión de mascotas, historial clínico, citas, recordatorios, nutrición, gestión de pacientes, gamificación e integraciones técnicas.
+4. A partir del proceso de **Requirements Elicitation & Analysis**, las necesidades identificadas fueron transformadas en **Epic Stories, User Stories y Technical Stories**, acompañadas de criterios de aceptación verificables. Esta especificación permitió establecer una relación entre los problemas identificados, las necesidades de los segmentos objetivo y las funcionalidades y capacidades técnicas propuestas. Asimismo, el Product Backlog proporciona una base para organizar y priorizar progresivamente los elementos del producto según su valor de negocio y sus dependencias.
 
-5. A nivel arquitectónico, la adopción de una **arquitectura hexagonal** permite separar la lógica principal del dominio de elementos externos como interfaces de usuario, mecanismos de persistencia y servicios de terceros. Esta separación favorece la mantenibilidad de la solución y permite realizar modificaciones tecnológicas con menor impacto sobre las reglas principales del negocio.
+5. A nivel arquitectónico, la selección de **Hexagonal Architecture** permite organizar la solución mediante una separación entre las reglas del dominio, los casos de uso y las dependencias de infraestructura. La utilización de Ports and Adapters favorece la mantenibilidad, ya que permite encapsular mecanismos de persistencia, servicios externos y tecnologías de comunicación sin introducir dependencias directas de estos elementos en las reglas principales del negocio. Esta decisión resulta especialmente relevante para una plataforma que integra información clínica, recordatorios, gestión de citas y servicios de terceros.
 
-6. La utilización de tecnologías y mecanismos como **APIs RESTful, Keycloak, Firebase Cloud Messaging y WebSockets** responde a necesidades específicas de la solución. Keycloak permite gestionar autenticación, autorización y roles; Firebase Cloud Messaging permite enviar notificaciones relacionadas con tratamientos y citas; WebSockets facilita la comunicación en tiempo real; y las APIs REST permiten desacoplar las aplicaciones cliente de los servicios backend.
+6. La aplicación de **Domain-Driven Design y EventStorming** permitió analizar las capacidades principales del negocio e identificar siete bounded contexts: **Pet & Clinical Care, Appointment Management, Medication Treatment, Nutrition Management, Clinic Management, Adherence & Gamification e Identity & Access Management**. Su organización dentro de un único backend modular responde al alcance inicial de VetPax, al reducir la complejidad operativa frente a una arquitectura de microservicios. Cada contexto conserva sus propias responsabilidades, reglas de negocio y contratos de comunicación, mientras que la base de datos centralizada contempla una separación lógica y propiedad de datos por módulo. Esta organización favorece la cohesión y mantenibilidad, aunque no proporciona escalamiento ni despliegue independiente de cada bounded context.
 
-7. La aplicación de **Domain-Driven Design y EventStorming** permitió analizar las principales capacidades de negocio de VetPax y organizarlas en áreas relacionadas con gestión clínica, citas, tratamientos de medicación, nutrición, gestión de clínicas, adherencia y gamificación, e identidad y acceso. Esta organización proporciona una base para la identificación de Bounded Contexts y la separación de responsabilidades dentro de la arquitectura.
+7. Las decisiones relacionadas con **APIs RESTful, Keycloak, Firebase Cloud Messaging y WebSockets** responden a diferentes necesidades funcionales y atributos de calidad. Las APIs RESTful proporcionan los mecanismos principales de consulta y registro; Keycloak permite centralizar la gestión de identidad y autenticación; Firebase Cloud Messaging facilita la entrega de notificaciones relacionadas con citas, tratamientos y actividades de cuidado; y WebSockets permite comunicar actualizaciones relevantes a los clientes autorizados conectados. La separación de estas responsabilidades contribuye a establecer contratos de integración claros y evitar acoplamientos innecesarios entre los componentes de la solución.
 
-8. En conjunto, los artefactos desarrollados permiten mantener una trazabilidad entre el problema identificado, las necesidades de los usuarios, los requerimientos funcionales, las historias de usuario y las decisiones arquitectónicas. De esta manera, VetPax se plantea como una solución multicanal compuesta por una aplicación móvil para dueños de mascotas, una aplicación web para veterinarias, una Landing Page, servicios backend e integraciones con servicios externos.
+8. El análisis de los atributos de calidad permitió reconocer que una arquitectura con un único backend modular y una base de datos centralizada presenta ventajas de simplicidad inicial, pero también dependencias compartidas que deben ser consideradas. En particular, la indisponibilidad de la persistencia puede afectar simultáneamente a diversas funcionalidades de VetPax. Por ello, la arquitectura propuesta contempla mecanismos de monitoreo, respaldos, recuperación y posibles estrategias de redundancia, sujetos a las capacidades de la infraestructura seleccionada. La efectividad de estas decisiones deberá comprobarse posteriormente mediante pruebas de disponibilidad, rendimiento y recuperación, utilizando indicadores como RTO y RPO.
 
-### **Bibliografia**
+9. El desarrollo de la propuesta de **Solution UX Design** permitió establecer una experiencia diferenciada para los segmentos objetivo mediante una aplicación móvil orientada a propietarios y una aplicación web destinada a profesionales y administradores veterinarios. Las Style Guidelines, la arquitectura de información, los wireframes, mock-ups, wireflows, User Flow Diagrams y prototipos interactivos proporcionan una referencia visual y funcional para la implementación de los productos digitales, manteniendo coherencia entre las funcionalidades propuestas y las responsabilidades definidas en los requisitos.
 
-#### Documentos del curso
+10. En conjunto, los artefactos elaborados permitieron establecer una trazabilidad entre la problemática identificada, las necesidades de los usuarios, los requisitos, las historias de usuario, las decisiones arquitectónicas y el diseño de las interfaces. **VetPax constituye una propuesta de solución digital multicanal** orientada a facilitar la continuidad del seguimiento veterinario mediante una aplicación móvil, una aplicación web, una Landing Page y servicios backend integrados. Su efectividad deberá validarse en etapas posteriores mediante pruebas funcionales, evaluaciones de calidad y experiencias de uso con participantes de los segmentos objetivo.
+
+---
+
+### **Bibliografía**
+
+#### **Documentos del curso**
 
 - Universidad Peruana de Ciencias Aplicadas. (2024). *SI728 Arquitecturas de Software Emergentes - Enunciado del Trabajo Final*. Facultad de Ingeniería, Universidad Peruana de Ciencias Aplicadas.
 
@@ -26,40 +34,56 @@
 
 - Universidad Peruana de Ciencias Aplicadas. (2026). *Rúbrica de Logro - 1ASI0728 Arquitecturas de Software Emergentes*. Facultad de Ingeniería, Universidad Peruana de Ciencias Aplicadas.
 
-#### Competidores
+#### **Competidores**
 
-- VetOS. (s.f.). *Software veterinario para gestión de clínicas veterinarias*. Sistema VetOS.
+- VetOS. (s. f.). *Software veterinario para gestión de clínicas veterinarias*. Sistema VetOS.
 
-- PetSuite. (s.f.). *Software de gestión para veterinarias*. PetSuite.
+- PetSuite. (s. f.). *Software de gestión para veterinarias*. PetSuite.
 
-- GVET. (s.f.). *Software de gestión para clínicas y hospitales veterinarios*. GVET.
+- GVET. (s. f.). *Software de gestión para clínicas y hospitales veterinarios*. GVET.
 
-- VetFac. (s.f.). *Software veterinario y facturación electrónica*. VetFac.
+- VetFac. (s. f.). *Software veterinario y facturación electrónica*. VetFac.
 
-- SmartVet360. (s.f.). *Software veterinario en la nube*. SmartVet360.
+- SmartVet360. (s. f.). *Software veterinario en la nube*. SmartVet360.
 
-#### Arquitectura y tecnologías
+#### **Antecedentes internacionales y evidencia de soluciones veterinarias digitales**
 
-- Keycloak. (s.f.). *Keycloak Documentation*. Keycloak.
+- PetDesk. (s. f.). *Increased revenue by over $225K with PetDesk*. https://petdesk.com/resources/increased-revenue-with-petdesk
 
-- Google. (s.f.). *Firebase Cloud Messaging Documentation*. Firebase.
+- Silva, B. I. S. (2023). *O potencial das ferramentas digitais no incentivo ao cumprimento de programas vacinais por detentores de cães* [Disertación de maestría, Universidade de Lisboa]. Repositório da Universidade de Lisboa. https://hdl.handle.net/10400.5/28425
 
-- Mozilla Developer Network. (s.f.). *WebSocket API*. MDN Web Docs.
+#### **Arquitectura y tecnologías**
 
-- Richardson, C. (2018). *Microservices Patterns: With Examples in Java*. Manning Publications.
+- Keycloak. (s. f.). *Keycloak Documentation*. https://www.keycloak.org/documentation
 
-- Evans, E. (2003). *Domain-Driven Design: Tackling Complexity in the Heart of Software*. Addison-Wesley.
+- Google. (s. f.). *Firebase Cloud Messaging*. Firebase Documentation. https://firebase.google.com/docs/cloud-messaging
 
-- Vernon, V. (2013). *Implementing Domain-Driven Design*. Addison-Wesley.
+- Mozilla. (s. f.). *WebSocket API (WebSockets)*. MDN Web Docs. https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API
 
-- Brandolini, A. (s.f.). *EventStorming*. EventStorming.
+- Richardson, C. (2018). *Microservices patterns: With examples in Java*. Manning Publications.
 
-#### Experiencia de usuario y desarrollo de producto
+- Evans, E. (2003). *Domain-driven design: Tackling complexity in the heart of software*. Addison-Wesley.
 
-- Gothelf, J., & Seiden, J. (2021). *Lean UX: Designing Great Products with Agile Teams*. O'Reilly Media.
+- Vernon, V. (2013). *Implementing domain-driven design*. Addison-Wesley.
 
-- Cohn, M. (2004). *User Stories Applied: For Agile Software Development*. Addison-Wesley.
+- Brandolini, A. (s. f.). *EventStorming*. https://www.eventstorming.com/
+
+#### **Experiencia de usuario y desarrollo de producto**
+
+- Gothelf, J., & Seiden, J. (2021). *Lean UX: Designing great products with agile teams*. O'Reilly Media.
+
+- Cohn, M. (2004). *User stories applied: For agile software development*. Addison-Wesley.
+
+---
 
 ### **Anexo**
 
-- Event Storming: [https://miro.com/app/board/uXjVHk77Zs8=/?share_link_id=766277899100](https://miro.com/app/board/uXjVHk77Zs8=/?share_link_id=766277899100)
+#### **EventStorming**
+
+- **EventStorming de VetPax:** [Consultar tablero en Miro](https://miro.com/app/board/uXjVHk77Zs8=/?share_link_id=766277899100)
+
+#### **Prototipos de Figma**
+
+- **VetPax Mobile Application Prototype:** [Consultar prototipo móvil en Figma](https://www.figma.com/proto/w9edhFA6VCAvT7Rl3wKKe2/Mobil-Application?node-id=22-2411&t=CR6IkEqjYgPmg0Kf-1&scaling=min-zoom&content-scaling=fixed&page-id=20%3A2&starting-point-node-id=22%3A2475)
+
+- **VetPax Web Application Prototype:** [Consultar prototipo web en Figma](https://www.figma.com/proto/xUBTqYXN6DG591Wr9j4njh/Web-Application?node-id=31-4505&p=f&t=yaGOrsZicVQS44O0-1&scaling=min-zoom&content-scaling=fixed&page-id=29%3A2&starting-point-node-id=31%3A4505)
