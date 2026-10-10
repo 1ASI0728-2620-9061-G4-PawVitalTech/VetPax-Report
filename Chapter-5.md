@@ -1,4 +1,11 @@
 ## **Capítulo V: Tactical-Level Software Design**
+
+Este capítulo desarrolla el diseño táctico de los siete bounded contexts definidos para VetPax. En coherencia con el capítulo IV, se mantiene **un único Backend API organizado como monolito modular**, aplicando arquitectura hexagonal y una **base de datos lógica centralizada**. Cada bounded context conserva la responsabilidad sobre sus reglas de negocio y datos mediante puertos, repositorios y contratos internos; no se presupone que los contextos sean microservicios o que dispongan de bases de datos físicas independientes.
+
+La separación lógica puede implementarse mediante esquemas o grupos de tablas de propiedad exclusiva de cada módulo, según el gestor de base de datos seleccionado. Las referencias entre contextos se representan mediante identificadores y contratos de aplicación o eventos, sin realizar escrituras directas en las tablas de otro contexto. La infraestructura compartida sigue siendo una dependencia crítica, tal como se explica en el análisis de disponibilidad y recuperación del capítulo IV.
+
+**Convención de trazabilidad:** la integración con calendarios externos se identifica en este capítulo como **TS15 (propuesta)**, para distinguirla de **TS04**, que en `Chapter-3.md` corresponde a la programación de recordatorios. Antes de la entrega final, el equipo debe incorporar y aprobar TS15 en la especificación y el Product Backlog del capítulo III, o bien retirar su código y documentar la integración como una capacidad técnica pendiente. Las imágenes originales de este capítulo se conservan; cuando una corrección introduzca una regla o relación adicional, será necesario reflejarla también en la figura correspondiente.
+
 ### 5.1. Bounded Context: Pet & Clinical Care
 
 Pet & Clinical Care registra el perfil de cada mascota y mantiene su historial clínico longitudinal y trazable (atenciones, diagnósticos, tratamientos y evolución), de modo que el tratamiento tenga continuidad aunque el dueño cambie de veterinaria. Se clasifica como un subdominio **core**, con modelo de negocio Revenue Generator / Engagement, y cumple los roles de **Execution Context** y **Audit Context**.
@@ -33,6 +40,8 @@ La Domain Layer concentra las reglas de la mascota y de su historial clínico. M
 | 6 | El historial se presenta ordenado cronológicamente. | US02 E01, TS02 E02 |
 | 7 | La evolución solo se calcula si existen registros comparables suficientes. | US11 E02 |
 | 8 | Las atenciones registradas se conservan para mantener la trazabilidad (Audit Context). | Canvas |
+| 9 | Únicamente un profesional veterinario autorizado y vinculado con la atención puede registrar información clínica. Se debe identificar al profesional responsable, registrar la fecha y hora, y rechazar modificaciones no autorizadas. | US03, Canvas de Pet & Clinical Care |
+| 10 | Cuando la atención se realiza como parte de una cita programada, puede conservarse el `appointmentId` como referencia lógica al contexto Appointment Management; las consultas sin cita previa también pueden registrarse. | Historia A de 4.2.3; separación de bounded contexts |
 
 ##### Diccionario de clases
 
@@ -187,7 +196,7 @@ El diagrama muestra de forma resumida el controlador, los casos de uso, los agre
 
 ![Component Level Diagram - Pet & Clinical Care](feature/Chapter-5/PetClinicalCareComponents.png)
 
-El flujo principal es: **Dueño / Veterinario → Controller → Caso de Uso de Aplicación → Agregado → Adaptador de Repositorio**. Tras registrar una atención, el publicador emite los eventos y el adaptador WebSocket comunica la actualización a los clientes autorizados.
+Los flujos clínicos deben diferenciar los actores: **Propietario → Controller → Caso de Uso ConsultarHistorial → Read Model** para consultar; y **Veterinario autorizado → Controller → Caso de Uso RegistrarAtenciónClínica → ClinicalRecord → Adaptador de Repositorio** para registrar. Una vez persistida la atención, el publicador emite los eventos y el adaptador WebSocket comunica el aviso a los clientes autorizados, quienes pueden consultar la información vigente mediante REST.
 
 #### 5.1.6. Bounded Context Software Architecture Code Level Diagrams
 
@@ -199,7 +208,7 @@ El diagrama tiene como alcance los agregados `Pet` y `ClinicalRecord`, la entida
 
 ##### 5.1.6.2. Bounded Context Database Design Diagram
 
-El diseño de datos cubre las mascotas, el historial clínico, las atenciones y sus indicadores. Los identificadores de dueño, clínica y veterinario son referencias lógicas a otros contextos, no claves foráneas físicas.
+El diseño de datos cubre las mascotas, el historial clínico, las atenciones y sus indicadores. Los identificadores de dueño, clínica, veterinario y, cuando corresponda, cita (`appointment_id`) son referencias lógicas a otros contextos, no claves foráneas físicas. Esto permite mantener la relación con la reserva sin que Pet & Clinical Care dependa directamente de las tablas de Appointment Management.
 
 ![Database Design Diagram - Pet & Clinical Care](feature/Chapter-5/PetClinicalCareDatabasse.png)
 
@@ -414,7 +423,7 @@ La Domain Layer concentra las reglas que controlan el ciclo de vida de una cita.
 
 **Aggregate Root**
 
-El agregado **Appointment**, identificado en el EventStorming, representa una cita veterinaria. Centraliza los cambios relacionados con su programación, reprogramación, cancelación y atención. La información requerida por US04 comprende la mascota, la fecha, la hora y el motivo; la cita queda vinculada con la agenda correspondiente.
+El agregado **Appointment**, identificado en el EventStorming, representa una cita veterinaria. Centraliza los cambios relacionados con su programación, reprogramación, cancelación y confirmación de asistencia. La información requerida por US04 comprende la mascota, la fecha, la hora y el motivo; la cita queda vinculada con la agenda correspondiente. Cuando pasa al estado **Atendida**, debe conservar la referencia al identificador de la atención registrada previamente por el veterinario en Pet & Clinical Care, sin modificar los datos clínicos de ese contexto. La asociación puede comprobarse mediante identificadores de cita, mascota y atención expuestos por el contrato del contexto clínico; no debe depender de una clave foránea física entre esquemas.
 
 Las operaciones sobre una cita dependen de su estado: las citas pendientes admiten cancelación o reprogramación, mientras que las atendidas o canceladas no pueden modificarse.
 
@@ -427,7 +436,7 @@ Las operaciones sobre una cita dependen de su estado: las citas pendientes admit
 | Reprogramar | La cita debe estar pendiente y el nuevo horario debe estar disponible. | Se actualizan la fecha y la hora sin duplicar la cita. |
 | Cancelar | La cita debe encontrarse pendiente. | Se cambia a cancelada y se libera el horario reservado. |
 | Restringir modificaciones | Una cita atendida o cancelada no puede modificarse. | Se rechaza la operación. |
-| Marcar como atendida | Según US06, el veterinario registra la atención de una cita pendiente. | Se actualiza el estado de la cita. |
+| Marcar como atendida | La cita debe estar pendiente; el profesional veterinario debe estar autorizado y debe existir una atención clínica previamente registrada y asociada a esa cita, verificada mediante un contrato de Pet & Clinical Care. | Se conserva la referencia lógica a la atención clínica, se actualiza la cita a **Atendida** y, después de persistir el cambio, se publica `CitaVeterinariaAtendida`. |
 
 La disponibilidad requiere considerar tanto las reservas existentes como los horarios que proporciona Clinic Management.
 
@@ -438,7 +447,7 @@ La disponibilidad requiere considerar tanto las reservas existentes como los hor
 | `CitaVeterinariaProgramada` | Se ha registrado una cita válida. |
 | `CitaVeterinariaReprogramada` | Se ha modificado el horario de una cita pendiente. |
 | `CitaVeterinariaCancelada` | Se ha cancelado una cita y liberado su horario. |
-| `CitaVeterinariaAtendida` | El veterinario ha registrado la cita como atendida. |
+| `CitaVeterinariaAtendida` | El profesional veterinario confirmó la cita como atendida después del registro de la atención clínica asociada. El evento debe permitir identificar la cita y la atención relacionada para trazabilidad. |
 
 Adherence & Gamification consume `CitaVeterinariaAtendida` como evidencia para su cálculo. Appointment Management comunica el hecho ocurrido sin incorporar las reglas de niveles o porcentajes de constancia.
 
@@ -466,13 +475,13 @@ La Interface Layer recibe las solicitudes de la aplicación móvil y del panel w
 | `POST /api/v1/appointments` | Crear una cita con datos válidos y horario disponible. | `201 Created` al crear la cita; `409 Conflict` si el horario está ocupado. |
 | `PATCH /api/v1/appointments/{appointmentId}` | Actualizar una cita modificable, de acuerdo con la operación solicitada. | `200 OK` cuando se actualiza; `409 Conflict` si la reprogramación encuentra el horario ocupado. |
 
-La interfaz también contempla la consulta de la agenda y el registro de una cita como atendida por el veterinario, conforme a US06.
+La interfaz también contempla la consulta de la agenda y la **confirmación del estado atendida** por el profesional veterinario autorizado, conforme a US06. La interfaz no permite que el propietario registre una atención clínica ni marque la cita como atendida.
 
 **Resources y transformación de datos**
 
 Los recursos de entrada deberán representar los datos ya establecidos para el agendamiento y la modificación de citas. Los de salida comunicarán la cita registrada o actualizada y, para la agenda, las citas ordenadas por fecha y hora. La transformación entre estos recursos y los comandos del contexto permitirá mantener el modelo Appointment separado del formato de intercambio HTTP.
 
-Los controles de acceso utilizarán la identidad y los permisos de IAM. El dueño ejecuta las acciones de reserva, cancelación y reprogramación previstas en US04 y US05; el veterinario consulta su agenda y registra la atención según US06.
+Los controles de acceso utilizarán la identidad y los permisos de IAM. El propietario ejecuta las acciones de reserva, cancelación y reprogramación previstas en US04 y US05; el veterinario consulta su agenda y **confirma la atención de la cita** según US06. El **registro clínico** se efectúa por separado mediante Pet & Clinical Care (US03).
 
 #### 5.3.3. Application Layer
 
@@ -485,20 +494,20 @@ La Application Layer coordina los casos de uso de citas. Relaciona las solicitud
 | `AgendarCitaVeterinaria` | Command | Comprobar los datos y la disponibilidad, registrar la cita y comunicar su programación. |
 | `ReprogramarCita` | Command | Recuperar la cita pendiente, verificar el nuevo horario y guardar la actualización sin crear otra cita. |
 | `CancelarCita` | Command | Recuperar la cita pendiente y aplicar la cancelación que libera el horario. |
-| `MarcarCitaComoAtendida` | Command | Coordinar la actualización solicitada por el veterinario y la comunicación del evento de atención. |
+| `MarcarCitaComoAtendida` | Command | Verificar que el solicitante sea un profesional veterinario autorizado; consultar mediante un contrato de Pet & Clinical Care la existencia de la atención clínica asociada; actualizar y persistir el estado de la cita y publicar `CitaVeterinariaAtendida` después de confirmar la operación. |
 | `ConsultarAgenda` | Query | Recuperar las citas del veterinario para el periodo consultado y presentarlas en orden temporal. |
 
 Los manejadores de estos mensajes coordinarán las operaciones de cada caso de uso.
 
 **Coordinación con otros contextos y sistemas**
 
-- **Pet & Clinical Care:** proporciona la referencia de la mascota utilizada en el agendamiento.
+- **Pet & Clinical Care:** proporciona la referencia de la mascota para el agendamiento y permite verificar, mediante un contrato de lectura, la atención clínica asociada cuando el profesional confirma una cita como atendida. Appointment Management no escribe en sus tablas.
 - **Clinic Management:** proporciona los horarios de atención mediante la relación y el evento `PerfilDeClínicaActualizado` descritos en el Context Map.
 - **IAM:** aporta la identidad autenticada y los roles para controlar el acceso a las operaciones.
 - **Adherence & Gamification:** recibe `CitaVeterinariaAtendida` y ejecuta su propio cálculo de constancia.
 - **Servicio de calendario:** recibe la solicitud de sincronización de las citas confirmadas; cuando una cita sincronizada se reprograma, se actualiza el evento externo asociado.
 
-Según TS04, un fallo del calendario externo no debe provocar la pérdida de la cita interna. La aplicación conservará la cita y registrará el fallo de integración.
+La sincronización con el calendario externo se ejecuta **después de confirmar y persistir la cita en VetPax**, de manera desacoplada respecto de la reserva interna. Ante un fallo del proveedor, la aplicación conserva la cita y registra la solicitud de sincronización pendiente para su posterior reintento, sin indicar que la sincronización externa fue exitosa. Esta integración corresponde a la propuesta TS15 (pendiente de registrar en el capítulo III); TS04 permanece reservado al servicio de programación de recordatorios.
 
 #### 5.3.4. Infrastructure Layer
 
@@ -510,7 +519,7 @@ La implementación del contrato de repositorio almacenará las citas y sus cambi
 
 **Adaptador del servicio de calendario**
 
-La integración se encapsulará mediante un adaptador, de acuerdo con ADD08 y la relación Anticorruption Layer definida en el Context Map. Este componente traducirá la información de la cita al contrato del proveedor y permitirá registrar el identificador del evento externo cuando la sincronización sea exitosa. También permitirá actualizar dicho evento al reprogramar la cita y registrar fallos sin eliminar la información interna, conforme a TS04.
+La integración se encapsulará mediante un adaptador, de acuerdo con la separación de puertos y adaptadores y con la relación Anticorruption Layer definida en el Context Map. Este componente traducirá la información de la cita al contrato del proveedor y permitirá registrar el identificador del evento externo cuando la sincronización sea exitosa. También permitirá actualizar dicho evento al reprogramar la cita. Una solicitud de sincronización pendiente se conservará con un identificador que permita reintentar la operación y reducir el riesgo de duplicar eventos externos. Esta capacidad se identifica como TS15 (propuesta pendiente de incorporación al capítulo III), no como TS04.
 
 **Integración de mensajes**
 
@@ -532,7 +541,9 @@ El diagrama de clases tendrá como alcance el agregado Appointment y las reglas 
 
 ##### 5.3.6.2. Bounded Context Database Design Diagram
 
-El diseño de datos cubrirá la información de las citas y la asociación con el identificador del evento externo requerida por TS04.
+El diseño de datos cubrirá la información de las citas, sus estados y la asociación con el identificador del evento externo utilizada por la integración de calendario propuesta como TS15. Asimismo, una cita confirmada como atendida conserva una referencia lógica al identificador de la atención clínica correspondiente, cuya propiedad permanece en Pet & Clinical Care. Esta referencia entre contextos no requiere escritura directa sobre la tabla clínica.
+
+Las solicitudes pendientes de sincronización del calendario deberán contar con persistencia suficiente para poder reintentarse cuando el proveedor externo se recupere. El identificador externo y el estado de sincronización deben permitir distinguir una reserva confirmada en VetPax de un evento efectivamente creado en el calendario externo.
 
 ![AppointmentbdComponent](feature/Chapter-5/Appointmentbd.png)
 
@@ -652,10 +663,13 @@ El diagrama de clases tendrá como alcance los conceptos de cuenta y roles, y lo
 
 ![IAMBDComponent](feature/Chapter-5/IAMbd.png)
 
+**Separación entre datos de VetPax y datos de Keycloak.** En la base de datos de negocio de VetPax se conservan únicamente los perfiles, asociaciones y referencias de identidad necesarios para las reglas de cada módulo. Las contraseñas, credenciales y mecanismos internos de autenticación son responsabilidad de Keycloak y no deben modelarse como tablas propias del almacenamiento clínico centralizado. La vinculación entre ambos se realiza mediante identificadores de usuario y contratos de integración. Se debe revisar el diagrama anterior para asegurar que esta separación esté representada.
+
+
 
 # 5.5. Bounded Context: Medication Treatment
 
-**Medication Treatment** es un Bounded Context **core** con el rol de **Execution Context**. Su propósito es gestionar los tratamientos con medicación activos de cada mascota, activar los recordatorios de dosis y registrar la administración de cada dosis por parte del propietario. El Bounded Context Canvas identifica al propietario y a **Pet & Clinical Care** como colaboradores de entrada, y a **Adherence & Gamification** y **Firebase Cloud Messaging** como colaboradores de salida.
+**Medication Treatment** es un Bounded Context **core** con el rol de **Execution Context**. Su propósito es gestionar los tratamientos con medicación activos de cada mascota, activar los recordatorios de dosis y registrar la administración de cada dosis por parte del propietario. **Solo un profesional veterinario autorizado registra o modifica la prescripción**, mientras que el propietario consulta las indicaciones y registra el cumplimiento de las dosis. El Bounded Context Canvas identifica al profesional, al propietario y a **Pet & Clinical Care** como colaboradores de entrada, y a **Adherence & Gamification** y **Firebase Cloud Messaging** como colaboradores de salida.
 
 ### 5.5.1. Domain Layer
 
@@ -675,6 +689,8 @@ La capa de dominio representa el tratamiento con medicación y las reglas establ
 1. Los recordatorios se activan únicamente cuando el tratamiento tiene horarios definidos.
 2. Una dosis no puede registrarse dos veces.
 3. La dosis debe pertenecer a un tratamiento activo.
+4. Únicamente un profesional veterinario autorizado puede registrar o modificar las indicaciones de un tratamiento de medicación; el registro identifica al profesional responsable.
+5. El propietario puede consultar las indicaciones, activar recordatorios y registrar la administración de dosis ya prescritas, pero no modificar medicamentos, dosis o duración del tratamiento por su cuenta.
 
 ### 5.5.2. Interface Layer
 
@@ -687,7 +703,7 @@ Se define los siguientes recursos REST para Medication Treatment:
 | `/api/v1/pets/{petId}/medication-plans` | Recurso para los planes de medicación asociados a una mascota. |
 | `/api/v1/medication-doses/{doseId}/administrations` | Recurso para registrar la administración de una dosis. |
 
-La interfaz delega la ejecución de la lógica de negocio a la Capa de Aplicación. La autenticación y autorización permanecen dentro de los mecanismos de IAM.
+La interfaz delega la ejecución de la lógica de negocio a la Capa de Aplicación. IAM proporciona la identidad autenticada y el rol; Medication Treatment verifica las restricciones de negocio sobre la mascota y la operación. En particular, el alta o modificación de un plan de medicación requiere un veterinario autorizado, mientras que el registro de dosis administradas corresponde al propietario autorizado. La interfaz no permite que el registro de cumplimiento modifique la prescripción.
 
 ### 5.5.3. Application Layer
 
@@ -695,6 +711,7 @@ La Capa de Aplicación coordina los comandos y consultas identificados en el Bou
 
 | Componente de aplicación | Responsabilidad |
 |---|---|
+| **Caso de uso Registrar Tratamiento de Medicación** | Coordina `RegistrarTratamientoDeMedicación` iniciado por un profesional veterinario autorizado, valida la información con el dominio, conserva el tratamiento y publica `TratamientoDeMedicaciónRegistrado` después de confirmar su persistencia (US17). |
 | **Caso de uso Activar Recordatorios de Medicación** | Coordina `ActivarRecordatoriosDeMedicación`. |
 | **Caso de uso Generar Recordatorio de Medicación** | Coordina `GenerarRecordatorioDeMedicación` cuando la política detecta el horario de una dosis pendiente. |
 | **Caso de uso Registrar Dosis Administrada** | Coordina `RegistrarDosisAdministrada` y el evento de dominio resultante. |
@@ -718,7 +735,9 @@ La Capa de Aplicación no define las reglas de negocio de la medicación; se enc
 
 ![MedicationComponents](feature/Chapter-5/MedicationComponents.png)
 
-**Propietario / API → Controlador Medication Treatment → Caso de Uso de Aplicación → Agregado Medication Treatment → Adaptador de Repositorio**
+**Veterinario autorizado / API → Controlador Medication Treatment → Caso de Uso RegistrarTratamiento → Agregado Medication Treatment → Adaptador de Repositorio** (registro de prescripción).
+
+**Propietario autorizado / API → Controlador Medication Treatment → Caso de Uso RegistrarDosisAdministrada → Agregado Medication Treatment → Adaptador de Repositorio** (seguimiento de cumplimiento).
 
 Para los recordatorios, la capacidad de programación invoca el caso de uso de recordatorios, que genera el evento de dominio correspondiente y solicita la notificación mediante el Puerto de Notificaciones. El adaptador de FCM entrega la notificación push. `DosisDeMedicaciónAdministrada` se publica hacia **Adherence & Gamification**.
 
@@ -744,7 +763,7 @@ La vista a nivel de clases se centra en `MedicationTreatment` como **Aggregate R
 
 # 5.6. Bounded Context: Nutrition Management
 
-**Nutrition Management** es un Bounded Context **core** con los roles de **Specification Context** y **Execution Context**. Su propósito es permitir que el veterinario prescriba y actualice planes de alimentación personalizados de acuerdo con la condición de la mascota y genere recordatorios de alimentación para el propietario.
+**Nutrition Management** es un Bounded Context **core** con los roles de **Specification Context** y **Execution Context**. Su propósito es permitir que el veterinario prescriba y actualice planes de alimentación personalizados de acuerdo con la condición de la mascota y genere recordatorios de alimentación para el propietario. La prescripción pertenece al veterinario autorizado; el propietario consulta el plan vigente y recibe los recordatorios, sin cambiar por su cuenta las indicaciones clínicas.
 
 ### 5.6.1. Domain Layer
 
@@ -843,6 +862,7 @@ A diferencia de los contextos de medicación y nutrición, este contexto no ejec
 2. Sin datos suficientes, no existe un nivel definitivo.
 3. Solo el ascenso a un nivel superior genera una notificación.
 4. `CitaVeterinariaAtendida` y `DosisDeMedicaciónAdministrada` proporcionan evidencias de adherencia.
+5. Un mismo evento de cumplimiento debe contabilizarse una sola vez. Si vuelve a recibirse un identificador de evento ya procesado, el cálculo de constancia no debe incrementarse nuevamente.
 
 Los umbrales exactos, si el propietario puede descender de nivel, el período de evaluación y si el cumplimiento nutricional cuenta como evidencia permanecen como preguntas abiertas.
 
@@ -863,8 +883,8 @@ Se identifica  `ConsultarNivelDeConstancia` y el servicio de cálculo de adheren
 | **Caso de uso Calcular Adherencia** | Coordina `CalcularAdherencia` utilizando las evidencias disponibles. |
 | **Caso de uso Actualizar Nivel de Constancia** | Coordina `ActualizarNivel` de acuerdo con los umbrales de negocio configurados. |
 | **Caso de uso Consultar Progreso de Constancia** | Recupera el progreso y el nivel actual de adherencia del propietario. |
-| **Manejador del Evento Cita Atendida** | Recibe `CitaVeterinariaAtendida` como evidencia de adherencia. |
-| **Manejador del Evento Dosis Administrada** | Recibe `DosisDeMedicaciónAdministrada` como evidencia de adherencia. |
+| **Manejador del Evento Cita Atendida** | Recibe `CitaVeterinariaAtendida` como evidencia de adherencia, comprueba su identificador y evita procesarla dos veces. |
+| **Manejador del Evento Dosis Administrada** | Recibe `DosisDeMedicaciónAdministrada` como evidencia de adherencia, comprueba su identificador y evita procesarla dos veces. |
 | **Publicador de Eventos de Dominio de Adherence** | Publica los eventos de adherencia y reconocimiento. |
 
 La Capa de Aplicación coordina el procesamiento de evidencias y las operaciones de dominio sin hacer responsable a Adherence & Gamification de las operaciones clínicas.
@@ -875,6 +895,7 @@ La Capa de Aplicación coordina el procesamiento de evidencias y las operaciones
 |---|---|
 | **Adaptador del Repositorio Adherence** | Implementa la persistencia de la adherencia. |
 | **Adaptador Consumidor de Eventos de Dominio** | Conecta los eventos provenientes de otros contextos con los manejadores de aplicación correspondientes. |
+| **Registro persistente de eventos procesados** | Conserva los identificadores de eventos de cumplimiento ya aplicados para evitar incrementos duplicados de adherencia después de reintentos o reinicios. |
 | **Adaptador de Firebase Cloud Messaging** | Entrega las notificaciones de reconocimiento después de un ascenso. |
 | **Adaptador del Publicador de Eventos de Dominio** | Conecta la publicación de eventos de adherencia con el mecanismo de infraestructura seleccionado. |
 
@@ -888,7 +909,7 @@ Los principales flujos de entrada son:
 
 **Medication Treatment → `DosisDeMedicaciónAdministrada` → Consumidor de Eventos → Manejador de Dosis Administrada → Calcular Adherencia**
 
-El propietario consulta el progreso resultante mediante la interfaz de adherencia. Cuando las reglas de negocio identifican un ascenso, el contexto emite `PropietarioAscendióDeNivel` y solicita el envío del reconocimiento mediante FCM.
+El propietario consulta el progreso resultante mediante la interfaz de adherencia. Cuando las reglas de negocio identifican un ascenso, el contexto emite `PropietarioAscendióDeNivel` y solicita el envío del reconocimiento mediante FCM. Cada evidencia se identifica y procesa de manera idempotente para que una retransmisión del mismo evento no altere nuevamente la puntuación.
 
 ### 5.7.6. Bounded Context Software Architecture Code Level Diagrams
 
@@ -906,4 +927,14 @@ La vista a nivel de clases se centra en `Adherence` como **Aggregate Root**. `Ad
 |---|---|---|
 | **Adherence** | Almacena el estado/progreso de adherencia del propietario y el nivel actual. | Padre de los reconocimientos. |
 | **Recognition** | Almacena los reconocimientos generados por ascensos de nivel. | Pertenece a Adherence. |
+| **ProcessedAdherenceEvent** (propuesta) | Conserva el identificador único del evento externo de cumplimiento ya contabilizado y la fecha de procesamiento, para prevenir duplicaciones. | Referencia lógica al evento de origen; es propiedad de Adherence & Gamification. |
 
+---
+
+### Verificación de coherencia antes de la entrega
+
+Este archivo conserva las referencias a los diagramas existentes en `feature/Chapter-5/`. Las imágenes deben revisarse en el repositorio para confirmar que representan las reglas actualizadas, especialmente la confirmación de citas por el veterinario, la referencia `appointmentId`/`attentionId` entre los contextos de citas y clínica, la separación de identidad con Keycloak y la deduplicación de eventos de adherencia.
+
+Asimismo, la referencia **TS15** para la integración con calendario es una propuesta **pendiente de incorporarse formalmente al capítulo III**. No debe confundirse con **TS04**, que corresponde a la programación de recordatorios. Las secciones 4.2.5 y 4.3.3 del capítulo IV también deben actualizarse para reflejar el carácter desacoplado de la sincronización del calendario y mantener la misma trazabilidad.
+
+La separación de datos por bounded context y los mecanismos de recuperación descritos representan decisiones de diseño u objetivos arquitectónicos; su cumplimiento debe evidenciarse durante la implementación y las pruebas, sin afirmar que están ya desplegados.
