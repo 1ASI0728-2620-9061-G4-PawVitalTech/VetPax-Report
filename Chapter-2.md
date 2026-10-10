@@ -233,6 +233,9 @@ La propuesta de VetPax busca involucrar a ambos segmentos durante este proceso: 
 
 Asimismo, el análisis competitivo permite reconocer que VetPax deberá considerar atributos de calidad como **seguridad, disponibilidad, escalabilidad e interoperabilidad**, especialmente conforme aumente la cantidad de propietarios, veterinarias e información clínica gestionada por la plataforma.
 
+La comparación se realiza a partir de las características identificadas en la información disponible sobre cada plataforma. Por ello, la ausencia de una funcionalidad específica en el análisis no implica necesariamente que el competidor no la ofrezca, sino que dicha capacidad no fue identificada o documentada con suficiente detalle durante la investigación. La diferenciación de VetPax se plantea principalmente en la integración del seguimiento clínico, nutricional y de tratamientos entre consultas para mascotas geriátricas o con enfermedades crónicas.
+
+
 ### **2.1.2. Estrategias y tácticas frente a competidores**
 
 A partir del análisis competitivo realizado, PawVital Tech plantea un conjunto de estrategias orientadas a diferenciar VetPax de las soluciones veterinarias de gestión general. Estas estrategias buscan aprovechar las oportunidades identificadas en el seguimiento continuo de mascotas geriátricas o con enfermedades crónicas y responder a las fortalezas de plataformas que cuentan con una mayor cobertura de procesos administrativos y clínicos.
@@ -335,6 +338,18 @@ En síntesis, las estrategias competitivas de VetPax se orientan a diferenciar l
 ## 2.2. Entrevistas
 ### 2.2.1. Diseño de entrevistas
 
+
+#### Criterios de selección de participantes
+
+Las entrevistas de VetPax se orientan a dos segmentos objetivo: propietarios de mascotas geriátricas o con enfermedades crónicas y profesionales o clínicas veterinarias que atienden este tipo de pacientes.
+
+Para el primer segmento, se busca entrevistar a propietarios responsables del cuidado de perros o gatos que se encuentren en una etapa geriátrica o que presenten una enfermedad crónica diagnosticada. Se considera relevante identificar la edad de la mascota, su condición de salud, los controles que requiere y las actividades de cuidado realizadas entre consultas.
+
+Para el segundo segmento, se busca entrevistar a profesionales veterinarios o representantes de clínicas con experiencia en la atención y seguimiento de pacientes geriátricos o con enfermedades crónicas. Se considera necesario distinguir el rol de cada participante, especialmente si posee responsabilidad directa sobre el diagnóstico, el registro de atenciones clínicas o la definición de tratamientos.
+
+Las entrevistas realizadas a personas que no cumplan o cuyo cumplimiento de estos criterios no pueda verificarse se utilizarán como información exploratoria complementaria, sin considerarlas evidencia suficiente para validar las necesidades específicas del segmento objetivo.
+
+
 #### Entrevista – Propietarios de mascotas geriátricas o con enfermedades crónicas
 
 ##### 1. Contexto
@@ -408,6 +423,11 @@ En síntesis, las estrategias competitivas de VetPax se orientan a diferenciar l
 17. ¿Participaría en un programa piloto para probar la plataforma antes de su lanzamiento oficial?
 18. ¿Qué haría que dejara de usar esta herramienta?
 
+19. ¿Quién es responsable de registrar y validar la atención clínica después de una consulta veterinaria?
+20. ¿Cómo se confirma actualmente que una cita fue atendida y qué relación tiene esa confirmación con la actualización del historial clínico?
+21. ¿Qué ocurre cuando un sistema digital no está disponible y necesita consultar o registrar información de un paciente?
+
+
 <div style="page-break-after: always;"></div>
 
 
@@ -415,6 +435,9 @@ En síntesis, las estrategias competitivas de VetPax se orientan a diferenciar l
 
 #### Segmento 1: Propietarios de mascotas geriátricas o con enfermedades crónicas
 
+Para este segmento se entrevistó a tres propietarios de mascotas que forman parte del público objetivo de VetPax, considerando la presencia de enfermedades crónicas en sus animales de compañía. Las entrevistas permitieron conocer las dificultades que experimentan al organizar sus responsabilidades cotidianas y mantener la continuidad de los cuidados veterinarios.
+
+Los resúmenes se enfocan en las necesidades de organización, disponibilidad de tiempo y seguimiento de controles. Estas experiencias resultan relevantes para la propuesta de VetPax, ya que el cuidado de mascotas con enfermedades crónicas requiere mantener atención sobre las indicaciones y controles establecidos por los profesionales veterinarios.
 
 <table>
   <tr><td><b>Nombres y Apellidos</b></td><td>Felix Zegarra</td></tr>
@@ -425,6 +448,10 @@ En síntesis, las estrategias competitivas de VetPax se orientan a diferenciar l
   <tr><td><b>Evidencia</b></td><td><img src="feature/Chapter-2/Evidencia2.png" width="300"></td></tr>
   <tr><td><b>Link</b></td><td><a href="https://upcedupe-my.sharepoint.com/:v:/g/personal/u202312318_upc_edu_pe/IQDtK3qsU4bdR7dBQlJ9PcFtAWoVd9_egjrSC54FS-W7Kyk?e=Zh15yT&nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJTdHJlYW1XZWJBcHAiLCJyZWZlcnJhbFZpZXciOiJTaGFyZURpYWxvZy1MaW5rIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXcifX0%3D">Video Entrevista</a></td></tr>
   <tr><td><b>Duración</b></td><td>0:00 - 9:16</td></tr>
+  <tr>
+  <td><b>Condición de la mascota</b></td>
+  <td>Enfermedad crónica: Osteoartritis canina</td>
+  </tr>
   <tr><td><b>Resumen</b></td><td>Félix Zegarra es un estudiante universitario de 21 años responsable del cuidado de un perro Golden Retriever. Manifiesta interés por mantener saludable a su mascota y prestar atención a su alimentación. Sin embargo, sus responsabilidades académicas reducen el tiempo disponible para acudir con frecuencia a controles veterinarios.<br> Esta situación representa una dificultad para mantener un seguimiento constante de la salud de su mascota. El entrevistado muestra interés por contar con apoyo digital que le permita organizar y realizar un seguimiento más accesible de las actividades relacionadas con su cuidado.</td></tr>
 </table>
 <br>
@@ -437,6 +464,9 @@ En síntesis, las estrategias competitivas de VetPax se orientan a diferenciar l
   <tr><td><b>Evidencia</b></td><td><img src="feature/Chapter-2/Evidencia1.png" width="300"></td></tr>
   <tr><td><b>Link</b></td><td><a href="https://upcedupe-my.sharepoint.com/:v:/g/personal/u202312318_upc_edu_pe/IQDtK3qsU4bdR7dBQlJ9PcFtAWoVd9_egjrSC54FS-W7Kyk?e=Zh15yT&nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJTdHJlYW1XZWJBcHAiLCJyZWZlcnJhbFZpZXciOiJTaGFyZURpYWxvZy1MaW5rIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXcifX0%3D">Video Entrevista</a></td></tr>
   <tr><td><b>Duración</b></td><td>9:17 - 14:45 </td></tr>
+  <td><b>Condición de la mascota</b></td>
+  <td>Enfermedad crónica: Diabetes mellitus</td>
+  </tr>
   <tr><td><b>Resumen</b></td><td>Daniel Monago García es un estudiante universitario de 21 años que manifiesta un fuerte interés por el bienestar y cuidado cotidiano de sus mascotas. Procura encontrar tiempo dentro de sus actividades para atenderlas y cumplir con los controles veterinarios correspondientes. <br>Una de sus principales dificultades se relaciona con recordar las fechas vinculadas al cuidado médico de sus mascotas. Esta situación evidencia la utilidad que podrían tener mecanismos de organización y recordatorios que faciliten la continuidad de los controles veterinarios.</td></tr>
 </table>
 
@@ -451,6 +481,9 @@ En síntesis, las estrategias competitivas de VetPax se orientan a diferenciar l
   <tr><td><b>Evidencia</b></td><td><img src="feature/Chapter-2/Evidencia3.png" width="300"></td></tr>
   <tr><td><b>Link</b></td><td><a href="https://upcedupe-my.sharepoint.com/:v:/g/personal/u202312318_upc_edu_pe/IQDtK3qsU4bdR7dBQlJ9PcFtAWoVd9_egjrSC54FS-W7Kyk?e=Zh15yT&nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJTdHJlYW1XZWJBcHAiLCJyZWZlcnJhbFZpZXciOiJTaGFyZURpYWxvZy1MaW5rIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXcifX0%3D">Video Entrevista</a></td></tr>
   <tr><td><b>Duración</b></td><td>14:46 - 19:00</td></tr>
+  <td><b>Condición de la mascota</b></td>
+  <td>Enfermedad crónica: Enfermedad renal crónica</td>
+  </tr>
   <tr><td><b>Resumen</b></td><td>Diego Vilca es un estudiante universitario de 21 años responsable del cuidado de dos perros. Su principal motivación consiste en proporcionarles los cuidados necesarios para contribuir a que mantengan una buena calidad de vida durante el mayor tiempo posible.
   <br>Debido a sus responsabilidades universitarias, presenta dificultades para disponer de tiempo suficiente para llevar a sus mascotas a controles veterinarios periódicos. Por ello, su experiencia evidencia la importancia de facilitar la organización y seguimiento de las actividades relacionadas con el cuidado veterinario.</td></tr>
 </table>
@@ -501,9 +534,11 @@ En síntesis, las estrategias competitivas de VetPax se orientan a diferenciar l
 
 ### 2.2.3. Análisis de entrevistas
 
-Las entrevistas realizadas permitieron conocer las principales motivaciones, dificultades y necesidades de los dos segmentos objetivo definidos para VetPax. Se entrevistó a un total de seis participantes: tres propietarios de mascotas y tres personas vinculadas al contexto veterinario.
+Las entrevistas realizadas permitieron identificar las principales motivaciones, dificultades y necesidades de los dos segmentos objetivo definidos para VetPax. Se contó con la participación de seis entrevistados: tres propietarios de mascotas con enfermedades crónicas y tres personas vinculadas al sector veterinario.
 
-Los resultados obtenidos permiten identificar patrones iniciales relacionados con la disponibilidad de tiempo, organización de controles, continuidad de la información clínica y limitaciones de las herramientas utilizadas actualmente.
+Los resultados obtenidos permitieron reconocer necesidades relacionadas con la disponibilidad de tiempo para el cuidado de las mascotas, la organización de controles veterinarios, el acceso a información clínica y las dificultades que presentan las herramientas utilizadas actualmente en los establecimientos veterinarios.
+
+Estos hallazgos proporcionan información relevante para orientar las funcionalidades de VetPax hacia la continuidad del seguimiento clínico y nutricional, considerando la participación tanto del propietario como del personal veterinario.
 
 
 ---
@@ -533,9 +568,13 @@ Los resultados obtenidos permiten identificar patrones iniciales relacionados co
 
 ##### **Hallazgos principales**
 
-Los resultados muestran que el cuidado de las mascotas es considerado importante por todos los entrevistados; sin embargo, las responsabilidades académicas y la disponibilidad limitada de tiempo pueden dificultar la continuidad de los controles veterinarios. Asimismo, se identifican problemas relacionados con la organización y recordatorio de determinadas actividades médicas.
+Las entrevistas permitieron identificar que los propietarios consideran prioritario mantener el bienestar y la salud de sus mascotas, aunque enfrentan dificultades para organizar los cuidados veterinarios junto con sus responsabilidades académicas y personales.
 
-Estos hallazgos proporcionan sustento inicial para funcionalidades de VetPax relacionadas con **recordatorios, organización de controles y acceso a información que facilite el seguimiento cotidiano de la mascota**.
+Entre las principales necesidades identificadas se encuentran la disponibilidad de tiempo para acudir a controles y la organización de fechas relacionadas con la atención médica. Estas dificultades adquieren especial relevancia en el segmento de propietarios de mascotas con enfermedades crónicas, debido a la importancia de mantener la continuidad del seguimiento y las indicaciones veterinarias.
+
+En este contexto, los hallazgos respaldan la pertinencia de las funcionalidades propuestas por VetPax, especialmente la gestión de citas, los recordatorios de controles y medicación, la consulta del historial clínico y la organización de las actividades de cuidado entre consultas.
+
+La solución busca facilitar que los propietarios mantengan información relevante disponible y puedan realizar un seguimiento más organizado, sin sustituir la atención ni las decisiones de los profesionales veterinarios.
 
 
 ---
@@ -573,9 +612,17 @@ Estos hallazgos respaldan inicialmente la propuesta de disponer de mecanismos qu
 
 #### **Conclusión general**
 
-El análisis de las entrevistas permite identificar necesidades complementarias entre los dos segmentos objetivo. Por parte de los propietarios, las principales dificultades se relacionan con la disponibilidad de tiempo y la organización de controles y fechas relacionadas con el cuidado de sus mascotas. Por parte del segmento veterinario, se identifican dificultades asociadas con las herramientas utilizadas actualmente y con la disponibilidad de información necesaria para mantener la continuidad de la atención.
+#### Conclusión general
 
-En conjunto, estos resultados proporcionan evidencia inicial favorable para la propuesta de VetPax como una solución orientada a facilitar el seguimiento clínico entre propietarios y veterinarias. Las necesidades identificadas servirán como base para la elaboración de los User Persona, User Task Matrix, Empathy Maps y As-is Scenario Maps.
+El análisis de las seis entrevistas permitió reconocer necesidades que respaldan la propuesta de valor de VetPax y su enfoque en la continuidad del cuidado veterinario.
+
+En el segmento de propietarios de mascotas con enfermedades crónicas, se identificaron dificultades relacionadas con la disponibilidad de tiempo, la organización de controles y el seguimiento de las actividades de cuidado. Estos hallazgos resaltan la pertinencia de contar con una herramienta digital que permita mantener organizadas las citas, consultar información clínica y acceder a recordatorios relacionados con los tratamientos indicados.
+
+Por parte del segmento veterinario, se identificaron dificultades relacionadas con la organización de información de pacientes, las herramientas utilizadas dentro de los establecimientos y la disponibilidad de antecedentes clínicos durante la atención. Estas necesidades respaldan la propuesta de disponer de un panel web que facilite la consulta y el registro de información clínica por parte de los profesionales autorizados.
+
+En conjunto, las entrevistas proporcionan un sustento inicial favorable para VetPax, al identificar necesidades complementarias entre propietarios y establecimientos veterinarios. La plataforma propone integrar ambas perspectivas mediante herramientas de seguimiento clínico, gestión de citas, recordatorios de medicación y planes nutricionales.
+
+Los hallazgos obtenidos servirán como base para la elaboración de los User Personas, User Task Matrix, Empathy Maps y As-is Scenario Maps, orientando el diseño de una solución enfocada en mejorar la organización y continuidad del cuidado de mascotas geriátricas o con enfermedades crónicas.
 
 <div style="page-break-after: always;"></div>
 
