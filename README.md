@@ -7,7 +7,7 @@
     <strong>1ASI0728 - Arquitecturas De Software Emergentes</strong><br>
     <strong>NRC: 9061</strong><br>
     <br><strong>Profesor: Ernesto Ocampo Tello</strong><br>
-    <br><strong><b>INFORME DEL TRABAJO FINAL </b> </strong><br>
+    <br><strong><b>INFORME DEL TRABAJO PARCIAL </b> </strong><br>
 </p>
 
 <p align="center">

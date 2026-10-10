@@ -83,6 +83,8 @@ Para esta primera versión se consideran principalmente escenarios relacionados 
 | **QAS08** | Interoperabilidad | Aplicación móvil, aplicación web o servicio externo | Requiere intercambiar información con los servicios de VetPax. | APIs expuestas por el backend | Operación normal | El sistema recibe y entrega información utilizando interfaces y formatos estandarizados. | El **100% de los servicios HTTP expuestos a los clientes** debe utilizar interfaces RESTful y **JSON** como formato principal de intercambio de información. |
 | **QAS09** | Confiabilidad | Servicio externo integrado | Presenta una indisponibilidad temporal o devuelve un error durante una operación. | Componente de integración con servicios externos | Falla de un proveedor externo | El sistema controla la falla, registra el incidente y evita que afecte funcionalidades que no dependan directamente del servicio externo. | Ante una falla controlada, deben producirse **0 pérdidas de datos previamente persistidos** y la falla no debe propagarse hacia módulos independientes de la integración afectada. |
 | **QAS10** | Integridad / Trazabilidad | Profesional veterinario o propietario autorizado | Registra o modifica información clínica relacionada con una mascota. | Servicios de gestión clínica y almacenamiento de datos | Operación normal | El sistema persiste la modificación e identifica al usuario responsable y el momento de la operación. | El **100% de los registros y modificaciones clínicas** debe almacenar como mínimo el identificador del usuario responsable y la **fecha y hora** de la operación. |
+| **QAS11** | Disponibilidad y recuperación | Falla de la base de datos principal | La base de datos principal queda temporalmente indisponible durante la operación del sistema. | Backend API y almacenamiento persistente | Operación en condición de falla | El sistema detecta la indisponibilidad, evita confirmar operaciones no persistidas y activa el procedimiento de recuperación definido. Cuando exista infraestructura redundante, podrá realizarse una conmutación a una instancia de respaldo. | El procedimiento debe evaluarse mediante pruebas de falla y restauración, registrando el tiempo de recuperación (RTO) y la pérdida potencial de datos (RPO). |
+
 
 #### **4.1.2.3. Constraints**
 
@@ -121,7 +123,7 @@ El backlog incluye los Functional Drivers seleccionados, los Quality Attribute D
 | **AD08** | Servicios web RESTful y tecnologías backend permitidas | Los servicios web de VetPax deben seguir el estilo RESTful y utilizar uno de los frameworks backend permitidos por el proyecto. Los contratos de los servicios deben documentarse mediante OpenAPI Specification utilizando Swagger. | High | High |
 | **AD09** | Gestión de citas veterinarias | Los propietarios deben poder programar, cancelar y reprogramar citas, mientras que los profesionales veterinarios deben disponer de información actualizada para gestionar su agenda y mantener la continuidad de los controles. | High | Medium |
 | **AD10** | Gestión de pacientes y evolución clínica | Los profesionales veterinarios deben poder consultar los pacientes vinculados con su clínica y analizar su evolución utilizando los registros clínicos históricos disponibles. | High | Medium |
-| **AD11** | Disponibilidad de funcionalidades principales | Las funcionalidades relacionadas con historial clínico, tratamientos, citas y pacientes deben mantenerse disponibles durante la operación habitual de VetPax. La solución debe alcanzar una disponibilidad mensual mínima de 99%, excluyendo mantenimientos planificados. | High | Medium |
+| **AD11** | Disponibilidad de funcionalidades principales | VetPax debe mantener disponibles las funcionalidades principales de historial clínico, tratamientos, citas y pacientes. Debido a que la solución utiliza una base de datos centralizada, el diseño debe considerar la persistencia como una dependencia crítica y definir mecanismos de detección de fallos, redundancia, respaldo y recuperación. El objetivo de disponibilidad mensual del 99% deberá verificarse mediante monitoreo y pruebas, sin asumir que la centralización de la información garantiza continuidad operativa. | High | Medium |
 | **AD12** | Programación y entrega de recordatorios | La solución debe permitir programar recordatorios relacionados con medicación, alimentación y citas, asegurando que los eventos correspondientes sean procesados según las fechas y horarios configurados. | High | Medium |
 | **AD13** | Tecnologías de aplicación web | La aplicación web dirigida al segmento veterinario debe desarrollarse utilizando Angular o Vue, junto con las tecnologías y bibliotecas de componentes permitidas por las disposiciones del proyecto. | High | Medium |
 | **AD14** | Estrategia tecnológica de aplicación móvil | La aplicación móvil dirigida a propietarios debe implementarse utilizando una estrategia de desarrollo permitida por el proyecto, considerando desarrollo nativo o una alternativa cross-platform autorizada y excluyendo tecnologías híbridas. | High | Medium |
@@ -162,6 +164,17 @@ Hexagonal Architecture permite representar explícitamente la interacción entre
 
 **Decisión resultante:** utilizar **Hexagonal Architecture** para organizar el backend de VetPax, manteniendo el dominio independiente de los componentes externos mediante Ports and Adapters.
 
+**Aplicación de la decisión en VetPax:**
+
+Para el registro de una atención clínica, el panel web del veterinario envía una solicitud a la API REST de VetPax. El controlador transforma la solicitud en un comando que es procesado por el caso de uso `RegistrarAtenciónClínica`.
+
+El caso de uso verifica la autorización del profesional y coordina el registro mediante el agregado `ClinicalRecord`, que aplica las reglas del dominio relacionadas con la atención de la mascota.
+
+La persistencia se realiza mediante el puerto `ClinicalRecordRepository`, cuya implementación concreta pertenece a la capa de infraestructura. De esta manera, las reglas de registro clínico no dependen directamente de la tecnología de base de datos.
+
+Esta separación permite reemplazar el adaptador de persistencia o modificar el framework sin alterar las reglas principales del dominio, siempre que se mantengan los contratos establecidos.
+
+
 
 #### **Iteración 2: Autenticación, autorización y gestión de identidad**
 
@@ -184,6 +197,16 @@ Un Centralized Identity Provider permite delegar estas responsabilidades a un co
 **Decisión resultante:** utilizar un **Centralized Identity Provider**, implementado mediante **Keycloak**, para gestionar autenticación, autorización, roles y recuperación de acceso.
 
 
+**Aplicación de la decisión en VetPax:**
+
+Cuando un profesional veterinario inicia sesión en el panel web, Keycloak autentica su identidad y proporciona los tokens correspondientes. La API valida el token antes de permitir el acceso a recursos protegidos.
+
+Adicionalmente, los casos de uso verifican los permisos de negocio asociados con la mascota, la clínica y la operación solicitada. Por ejemplo, disponer del rol de veterinario no significa que un profesional pueda modificar automáticamente el historial de cualquier mascota registrada en la plataforma.
+
+De esta manera, Keycloak proporciona los mecanismos de identidad y autenticación, mientras que VetPax mantiene las reglas de autorización específicas del dominio clínico.
+
+
+
 #### **Iteración 3: Sincronización de actualizaciones entre productos digitales**
 
 **Drivers considerados:** AD04 - Sincronización oportuna de actualizaciones, AD05 - Rendimiento de operaciones frecuentes y AD17 - Interoperabilidad entre productos y servicios.
@@ -200,7 +223,13 @@ Se evaluaron **Polling**, **Server-Sent Events** y **WebSockets**.
 
 Polling tiene una implementación sencilla sobre HTTP, pero requiere realizar solicitudes repetitivas incluso cuando no existen actualizaciones. Server-Sent Events permite mantener un canal persistente desde el servidor hacia el cliente, aunque se encuentra orientado principalmente a comunicación unidireccional.
 
-WebSockets permite establecer un canal bidireccional persistente y distribuir actualizaciones a los clientes conectados sin realizar consultas periódicas.
+
+WebSockets permite establecer un canal persistente con capacidad de comunicación bidireccional entre el servidor y los clientes conectados. Sin embargo, en el alcance actual de VetPax, las operaciones que modifican información de negocio se ejecutan principalmente mediante APIs RESTful, mientras que el canal en tiempo real se utiliza para distribuir avisos de actualización desde el servidor hacia los clientes autorizados.
+
+Por ejemplo, cuando el veterinario registra una atención clínica mediante la API REST, el backend confirma y persiste la operación. Posteriormente, comunica a través del canal WebSocket que el historial clínico fue actualizado, permitiendo que la aplicación móvil del propietario recupere y presente la información vigente.
+
+Por tanto, la elección de WebSockets no implica que todas las operaciones de VetPax sean bidireccionales. Las funcionalidades documentadas requieren principalmente difusión unidireccional de eventos, capacidad que también puede ser cubierta mediante Server-Sent Events (SSE). WebSockets se mantiene como alternativa de diseño por su capacidad de comunicación persistente, aunque su mayor complejidad operativa deberá ser evaluada frente a SSE.
+
 
 **Decisión resultante:** utilizar **WebSockets** para las actualizaciones que requieran comunicación en tiempo real, mientras que las operaciones convencionales de consulta y registro continuarán utilizando las APIs RESTful establecidas como Constraint del proyecto.
 
@@ -226,6 +255,16 @@ El procesamiento desacoplado permite mantener independientes la generación del 
 
 **Decisión resultante:** utilizar un **servicio desacoplado para la programación y procesamiento de recordatorios** y emplear **Firebase Cloud Messaging** como proveedor para la entrega de notificaciones push.
 
+**Aplicación de la decisión en VetPax:**
+
+Cuando un profesional veterinario registra un tratamiento con horarios de medicación, Medication Treatment conserva la información del tratamiento y programa los recordatorios correspondientes.
+
+Al llegar el horario de una dosis, el mecanismo de procesamiento de recordatorios genera una solicitud de envío que es atendida mediante el adaptador de Firebase Cloud Messaging.
+
+Si Firebase Cloud Messaging presenta una indisponibilidad temporal, la falla no debe modificar el tratamiento registrado ni impedir su consulta. La solicitud de notificación pendiente debe conservarse en almacenamiento persistente para permitir su posterior reintento.
+
+El procesamiento debe contemplar identificación única de notificaciones, control de reintentos y registro de los fallos para evitar pérdidas o envíos duplicados innecesarios.
+
 
 #### **Iteración 5: Organización de las capacidades del dominio**
 
@@ -248,6 +287,26 @@ La organización modular orientada al dominio permite establecer límites explí
 **Decisión resultante:** organizar las capacidades principales de VetPax mediante **módulos orientados al dominio**, cuyos límites serán refinados posteriormente mediante EventStorming, Context Discovery y Bounded Context Mapping.
 
 
+**Aplicación de la decisión en VetPax:**
+
+VetPax propone un backend modular organizado de acuerdo con los siete bounded contexts identificados mediante Domain-Driven Design:
+
+- Pet & Clinical Care.
+- Appointment Management.
+- Medication Treatment.
+- Nutrition Management.
+- Clinic Management.
+- Adherence & Gamification.
+- Identity & Access Management.
+
+Cada módulo concentra sus reglas de negocio, casos de uso, interfaces y adaptadores de persistencia. Los módulos mantienen responsabilidades diferenciadas y colaboran mediante contratos de aplicación o eventos de dominio.
+
+Por ejemplo, Appointment Management administra las reservas y estados de las citas, mientras que Pet & Clinical Care es responsable de registrar las atenciones clínicas. Una cita atendida no crea automáticamente un diagnóstico ni sustituye el registro realizado por el veterinario.
+
+En esta propuesta, los bounded contexts constituyen límites lógicos dentro de un backend desplegado como una unidad, por lo que no se consideran siete microservicios independientes.
+
+
+
 #### **Iteración 6: Escalabilidad y rendimiento del backend**
 
 **Drivers considerados:** AD05 - Rendimiento de operaciones frecuentes, AD06 - Escalabilidad de la solución y AD11 - Disponibilidad de funcionalidades principales.
@@ -267,6 +326,45 @@ El escalamiento vertical presenta menor complejidad operacional, pero se encuent
 Un backend modular y stateless permite conservar una complejidad operativa menor y, al mismo tiempo, habilitar el escalamiento horizontal cuando la demanda aumente.
 
 **Decisión resultante:** mantener un **backend modular con procesamiento stateless y capacidad de escalamiento horizontal**, evitando introducir inicialmente la complejidad operacional de una arquitectura distribuida basada en microservicios.
+
+
+**Aplicación de la decisión en VetPax:**
+
+Cuando aumenta la cantidad de propietarios y veterinarias que consultan historiales clínicos o gestionan citas, una arquitectura backend stateless permite distribuir las solicitudes entre varias instancias de la API mediante un balanceador de carga.
+
+Esta organización facilita ampliar la capacidad de procesamiento del backend sin modificar las reglas principales del dominio. Sin embargo, no garantiza por sí misma el cumplimiento de los objetivos de rendimiento ni de disponibilidad.
+
+La base de datos compartida, las conexiones WebSocket y los servicios externos pueden convertirse en cuellos de botella. Por ello, el escalamiento deberá evaluarse mediante pruebas de carga, supervisión de recursos y análisis de las dependencias compartidas.
+
+Asimismo, la existencia de varias instancias de la API no evita una interrupción global cuando falla la base de datos principal, por lo que es necesario definir una estrategia de redundancia y recuperación para la persistencia.
+
+
+#### **Iteración 7: Disponibilidad y recuperación de la persistencia**
+
+**Drivers considerados:** AD11 - Disponibilidad de funcionalidades principales, AD18 - Manejo de fallos de servicios externos y AD07 - Mantenibilidad y desacoplamiento.
+
+La arquitectura de VetPax contempla una base de datos lógica centralizada utilizada por los siete bounded contexts. Aunque este enfoque facilita la administración inicial de la persistencia, también introduce una dependencia compartida cuya indisponibilidad puede afectar simultáneamente varias funcionalidades del sistema.
+
+Las principales tácticas consideradas fueron:
+
+- **Redundancy**, para disponer de capacidad alternativa ante fallos.
+- **Failure Detection**, para detectar oportunamente la indisponibilidad de la persistencia.
+- **Backup and Restore**, para recuperar información ante fallos o pérdida de datos.
+- **Failover**, para permitir la conmutación a una instancia de respaldo cuando la infraestructura lo soporte.
+- **Monitoring**, para supervisar el estado de los componentes críticos.
+
+Se consideraron tres alternativas: una única instancia de base de datos sin redundancia, una base de datos administrada con respaldos periódicos y una base de datos administrada con redundancia, mecanismo de failover y respaldos recuperables.
+
+La primera alternativa presenta menor complejidad y costo, pero mantiene un punto único de falla. La segunda permite recuperar información mediante restauración, aunque puede requerir una interrupción significativa. La tercera busca reducir el tiempo de interrupción mediante una instancia de respaldo, pero incrementa el costo y requiere configurar y verificar correctamente la conmutación y los mecanismos de recuperación.
+
+**Decisión propuesta:** utilizar una base de datos lógica centralizada con separación de datos por bounded context, contemplando como arquitectura objetivo una solución administrada con redundancia, respaldos recuperables y supervisión de disponibilidad.
+
+**Aplicación en VetPax:** ante una falla de la instancia principal, el mecanismo de supervisión detecta la indisponibilidad. Si el proveedor seleccionado ofrece failover y existe una réplica preparada, se realiza la conmutación correspondiente. Las instancias del backend restablecen sus conexiones y las aplicaciones recuperan el estado confirmado mediante la API REST.
+
+Cuando la recuperación automática no se encuentre disponible, se ejecutará un procedimiento documentado de restauración desde respaldos. El tiempo de recuperación y la posible pérdida de datos se contrastarán con los objetivos RTO y RPO definidos.
+
+Esta decisión constituye una propuesta de arquitectura objetivo y deberá ajustarse a las características y costos del proveedor de infraestructura que seleccione el equipo.
+
 
 
 #### **Candidate Pattern Evaluation Matrix**
@@ -450,13 +548,12 @@ A partir de estas decisiones, los escenarios son refinados incorporando respuest
 | **Relevant Quality Attributes** | Disponibilidad |
 | **Stimulus** | Un propietario o profesional veterinario solicita utilizar una de las funcionalidades principales de VetPax. |
 | **Stimulus Source** | Propietario o profesional veterinario. |
-| **Environment** | Operación habitual del sistema durante el periodo de servicio. |
+| **Environment** | Operación normal y condición de falla de la base de datos principal. |
 | **Artifact (if Known)** | Servicios backend, APIs y almacenamiento persistente. |
-| **Response** | Los servicios procesan las solicitudes mientras los componentes principales se encuentren disponibles. La persistencia mantiene la información confirmada aun cuando ocurra una falla temporal de algún componente externo. |
-| **Response Measure** | Los servicios principales deben mantener una disponibilidad mensual mínima de **99%**, excluyendo los periodos de mantenimiento planificado. |
-| **Questions** | ¿Qué componentes representan puntos únicos de falla? ¿Cómo se supervisará la disponibilidad de los servicios? ¿Qué mecanismos se utilizarán para recuperación ante fallas? |
-| **Issues** | La disponibilidad global puede verse condicionada por servicios externos utilizados para autenticación, notificaciones u otras integraciones. |
-
+| **Response** | El sistema detecta la indisponibilidad de la persistencia, evita confirmar escrituras no realizadas y ejecuta el procedimiento de recuperación. Cuando existe infraestructura redundante, se contempla la conmutación a una instancia de respaldo; de lo contrario, se requiere restauración desde un respaldo válido. |
+| **Response Measure** | Disponibilidad mensual objetivo del 99%. Adicionalmente, se registrarán el RTO y RPO observados durante pruebas de recuperación y se contrastarán con las metas definidas para la solución. |
+| **Questions** | ¿Qué proveedor de base de datos se utilizará? ¿Ofrecerá réplica y failover? ¿Con qué frecuencia se realizarán respaldos? ¿Cómo se verificará la restauración? |
+| **Issues** | Una base de datos lógica centralizada puede convertirse en un punto único de falla si no dispone de redundancia. Los respaldos reducen el riesgo de pérdida permanente, pero no evitan por sí mismos la interrupción del servicio. |
 
 #### **Scenario Refinement for Scenario 5 — Escalabilidad**
 
@@ -572,7 +669,7 @@ Luego de identificar los Domain Events, estos fueron organizados de acuerdo con 
 
 Por ejemplo, el registro de una mascota precede al registro de información clínica; una cita veterinaria puede ser programada, reprogramada, cancelada o atendida; y un tratamiento de medicación puede ser registrado, actualizado y posteriormente generar el registro de dosis administradas.
 
-También se diferenciaron las rutas alternativas. Una cita cancelada no continúa hacia una atención clínica, mientras que una cita atendida puede dar lugar al registro de una nueva atención y a la correspondiente actualización del historial clínico. De forma similar, las modificaciones en tratamientos, planes de alimentación o citas requieren mantener actualizada la información asociada a sus recordatorios.
+También se diferenciaron las rutas alternativas. Una cita cancelada no debe generar una atención clínica asociada a esa reserva. En cambio, cuando el profesional veterinario realiza una consulta, registra la información clínica correspondiente en Pet & Clinical Care. Posteriormente, el profesional autorizado puede confirmar la cita como atendida en Appointment Management, conservando la relación entre la reserva y la atención efectivamente registrada.
 
 La construcción del Timeline permitió pasar de una colección de eventos independientes a una representación coherente de los principales flujos del dominio.
 
@@ -765,7 +862,9 @@ El Aggregate **Appointment** representa el estado principal de esta capacidad, d
 
 La programación o modificación de una cita también puede originar acciones asociadas con sus recordatorios. Estas acciones permanecen vinculadas al proceso de Appointments, mientras que la entrega de las notificaciones se realiza mediante Firebase Cloud Messaging.
 
-Asimismo, `Cita veterinaria atendida` fue considerado un Pivotal Event relevante debido a que permite conectar Appointments con otros procesos del dominio. Una cita atendida puede conducir al registro de una atención clínica y también aportar información utilizada posteriormente por Gamification.
+Asimismo, `CitaVeterinariaAtendida` fue considerado un Pivotal Event relevante porque representa la confirmación de que una cita programada fue efectivamente atendida. Esta confirmación corresponde al profesional veterinario autorizado y debe relacionarse con la atención clínica registrada en Pet & Clinical Care.
+
+El evento puede ser utilizado por Adherence & Gamification como evidencia para evaluar la constancia del propietario, sin permitir que el cálculo de adherencia modifique o genere información clínica.
 
 Estas características justificaron la identificación de **Appointments** como candidate bounded context independiente.
 
@@ -813,7 +912,7 @@ Aunque Clinic mantiene relaciones con otras capacidades, especialmente Pet & Cli
 
 Por estas razones se consideró **Clinic** como un candidate bounded context independiente.
 
-![Candidate Context Discovery - Clinic](feature/Chapter-4/CandidateContext_7.jpg)
+![Candidate Context Discovery - Clinic](feature/Chapter-4/7.jpg)
 
 ### Resultado del Candidate Context Discovery
 
@@ -829,7 +928,9 @@ Al finalizar la sesión se obtuvo la siguiente propuesta preliminar de candidate
 | **Gamification** | Cálculo de constancia, progreso, niveles y reconocimientos. |
 | **Clinic** | Gestión de la información correspondiente a la clínica veterinaria. |
 
-El proceso también permitió identificar relaciones preliminares entre los candidate contexts. **Appointments** se relaciona con **Pet & Clinical Care** cuando una cita atendida deriva en una nueva atención clínica. **Medication** y **Appointments** pueden producir eventos utilizados por **Gamification** para calcular la constancia del propietario. Por su parte, **IAM** proporciona soporte de identidad y acceso para los actores que participan en las distintas capacidades del dominio.
+El proceso también permitió identificar relaciones preliminares entre los candidate contexts. 
+**Appointment Management** se relaciona con **Pet & Clinical Care** para verificar la información del paciente y mantener la referencia a la atención clínica registrada por el profesional veterinario. La confirmación del estado de una cita no crea automáticamente una atención clínica.
+**Medication** y **Appointments** pueden producir eventos utilizados por **Gamification** para calcular la constancia del propietario. Por su parte, **IAM** proporciona soporte de identidad y acceso para los actores que participan en las distintas capacidades del dominio.
 
 Asimismo, las funcionalidades relacionadas con recordatorios aparecen en Medication, Appointments y Nutrition. Durante esta etapa se decidió no promoverlas a un candidate bounded context independiente, debido a que su significado y ciclo de vida se encuentran asociados principalmente con la capacidad de negocio que origina cada recordatorio. La interacción con Firebase Cloud Messaging corresponde a la entrega externa de las notificaciones y será considerada posteriormente al analizar las relaciones entre contexts.
 
@@ -844,15 +945,19 @@ solicitudes sincrónicas, para resolver los principales casos de uso de VetPax. 
 de **Domain Storytelling** para describir estas interacciones, tanto humanas (dueño, veterinario)
 como de sistemas (contextos, sistemas externos).
 
-#### Historia A — Cita Atendida: Actualización de Historial y Cálculo de Adherencia
 
-1. El dueño marca la cita de su mascota como atendida desde la App Móvil.
-2. La App Móvil envía el command `MarcarCitaComoAtendida` al contexto **Appointment**.
-3. Appointment persiste el nuevo estado de la cita y publica el evento de dominio `CitaVeterinariaAtendida`.
-4. El contexto **Pet & Clinical Record** consume el evento y actualiza el historial clínico, incorporando la atención registrada.
-5. En paralelo, el contexto **Adherence & Gamification** también consume el evento `CitaVeterinariaAtendida`, calcula la adherencia del dueño y evalúa si corresponde actualizar su nivel de constancia (Bronce, Plata, Oro).
-6. Adherence & Gamification publica el evento `NivelDeConstanciaActualizado`.
-7. La App Móvil refresca la vista, mostrando al dueño el historial actualizado y su progreso de constancia.
+#### Historia A — Registro de Atención Clínica, Confirmación de Cita y Cálculo de Adherencia
+
+1. El propietario asiste con su mascota a la cita veterinaria programada.
+2. El profesional veterinario consulta la cita y la información disponible del paciente desde el Panel Web.
+3. Después de realizar la evaluación clínica, el veterinario autorizado ejecuta el comando `RegistrarAtenciónClínica` en **Pet & Clinical Care**.
+4. Pet & Clinical Care verifica la autorización, registra la información clínica y publica el evento `AtenciónClínicaRegistrada`.
+5. El profesional veterinario confirma la finalización de la cita mediante el comando `MarcarCitaComoAtendida` en **Appointment Management**, incluyendo la referencia a la atención registrada.
+6. Appointment Management verifica la relación entre la cita y la atención clínica, actualiza el estado de la reserva y publica `CitaVeterinariaAtendida`.
+7. **Adherence & Gamification** consume el evento `CitaVeterinariaAtendida` y actualiza la constancia del propietario conforme a las reglas de negocio. El procesamiento debe evitar contabilizar repetidamente el mismo evento.
+8. El backend comunica las actualizaciones relevantes a los clientes autorizados conectados.
+9. El propietario puede consultar desde la App Móvil la atención registrada por el veterinario y su progreso de constancia.
+
 
 ![Storytelling 1](feature/Chapter-4/Storytelling1.png)
 
@@ -861,8 +966,8 @@ como de sistemas (contextos, sistemas externos).
 1. El dueño administra la dosis de medicación indicada a su mascota y lo registra desde la App Móvil.
 2. La App Móvil envía el command `RegistrarDosisAdministrada` al contexto **Medication**.
 3. Medication persiste la dosis administrada y publica el evento de dominio `DosisDeMedicacionAdministrada`.
-4. El contexto **Adherence & Gamification** consume el evento, recalcula la adherencia del propietario y evalúa su nivel de constancia, publicando el evento `NivelDeConstanciaActualizado`.
-5. Adherence & Gamification despacha una notificación de reconocimiento a través del sistema externo **Firebase Cloud Messaging**.
+4. Adherence & Gamification consume el evento `DosisDeMedicaciónAdministrada`, recalcula la constancia del propietario y verifica si el progreso alcanza el umbral establecido para un nuevo nivel.
+5. Solo si se produce un ascenso de nivel, Adherence & Gamification publica `PropietarioAscendióDeNivel` y solicita el envío de la notificación de reconocimiento mediante Firebase Cloud Messaging.
 6. Firebase Cloud Messaging entrega la notificación push a la App Móvil.
 7. La App Móvil muestra al dueño el nuevo nivel alcanzado.
 
@@ -885,9 +990,11 @@ como de sistemas (contextos, sistemas externos).
 2. La App Móvil envía el command `RegistrarMascota` al contexto **Pet & Clinical Record**.
 3. Pet & Clinical Record persiste el perfil de la mascota y publica el evento `MascotaRegistrada`.
 4. Con la mascota ya registrada, la App Móvil envía el command `AgendarCitaVeterinaria` al contexto **Appointment**.
-5. Appointment crea la cita en estado "Programada" y se sincroniza con el **servicio externo de calendario** para reservar la fecha y hora seleccionadas.
-6. Una vez confirmada la reserva, Appointment publica el evento `CitaVeterinariaProgramada`.
-7. La App Móvil confirma al dueño el registro de la mascota y la programación de su primera cita.
+5. Appointment Management valida la disponibilidad, registra la cita en estado "Programada" y publica `CitaVeterinariaProgramada`.
+6. El sistema solicita de manera desacoplada la sincronización de la cita con el servicio externo de calendario.
+7. Si el calendario externo no está disponible, la reserva interna permanece registrada y se conserva la solicitud de sincronización pendiente para un reintento posterior.
+8. La App Móvil confirma al propietario que la cita fue programada en VetPax, diferenciando ese resultado del estado de sincronización con el calendario externo.
+
 
 ![Storytelling 4](feature/Chapter-4/Storytelling4.png)
 
@@ -919,7 +1026,7 @@ Este contexto tiene como propósito registrar el perfil de cada mascota y manten
 
 - **Comunicación de entrada:** los comandos `RegistrarMascota` y `RegistrarAtenciónClínica`, y las consultas `ConsultarHistorialClínico` y `ConsultarEvoluciónClínica`, iniciados por el dueño y el veterinario, con los permisos validados por IAM.
 - **Comunicación de salida:** los eventos `MascotaRegistrada`, `AtenciónClínicaRegistrada` e `HistorialClínicoActualizado`, y el suministro del identificador de la mascota y de los pacientes a Appointment Management, Medication Treatment, Nutrition Management y Clinic Management.
-- **Decisiones de negocio:** toda mascota debe estar asociada a la cuenta de un dueño; solo usuarios autorizados consultan el historial; una atención clínica solo se registra sobre una mascota existente.
+- **Decisiones de negocio:** toda mascota debe estar asociada a la cuenta de un propietario; únicamente un profesional veterinario autorizado puede registrar y validar atenciones clínicas; el registro debe identificar al profesional responsable y la fecha de atención; los propietarios pueden consultar el historial de sus mascotas, pero no registrar diagnósticos ni modificar las atenciones profesionales.
 - **Preguntas abiertas:** qué indicadores clínicos se comparan en la evolución, cómo se vincula una mascota con una clínica, si el dueño puede ver notas internas del veterinario y si el borrado de mascotas es lógico o físico.
 
 #### Appointment Management
@@ -930,7 +1037,7 @@ Su propósito es gestionar la programación, reprogramación, cancelación y ate
 
 - **Comunicación de entrada:** los comandos `AgendarCitaVeterinaria`, `ReprogramarCita`, `CancelarCita` y `MarcarCitaComoAtendida`, y la consulta `ConsultarAgenda`, iniciados por el dueño y el veterinario; además consume los horarios de atención publicados por Clinic Management.
 - **Comunicación de salida:** los eventos `CitaVeterinariaProgramada`, `CitaVeterinariaReprogramada`, `CitaVeterinariaCancelada` y `CitaVeterinariaAtendida`; este último es consumido por Adherence & Gamification. También solicita la sincronización de citas confirmadas al servicio externo de calendario.
-- **Decisiones de negocio:** un horario ocupado no puede reservarse; una cita atendida o cancelada no puede modificarse; al cancelar una cita se libera su horario.
+- **Decisiones de negocio:** una reserva no puede generar conflictos de horario; el propietario puede agendar, cancelar o reprogramar citas conforme a las reglas establecidas; únicamente un profesional veterinario autorizado puede confirmar que una cita fue atendida; dicha confirmación debe conservar la relación con la atención clínica efectivamente registrada; una cita atendida o cancelada no puede modificarse mediante las operaciones habituales de reprogramación.
 - **Preguntas abiertas:** si la duración de la cita es fija o variable, si el dueño elige veterinario o solo clínica, qué contexto genera el recordatorio de cita y con cuánta anticipación puede cancelarse.
 
 #### Medication Treatment
@@ -941,7 +1048,7 @@ Este contexto gestiona los tratamientos de medicación activos de cada mascota, 
 
 - **Comunicación de entrada:** los comandos `ActivarRecordatoriosDeMedicación`, `GenerarRecordatorioDeMedicación` (disparado por una policy al alcanzar el horario de una dosis pendiente) y `RegistrarDosisAdministrada`, y la consulta `ConsultarTratamientos`.
 - **Comunicación de salida:** los eventos `RecordatoriosDeMedicaciónActivados`, `RecordatorioDeMedicaciónGenerado` y `DosisDeMedicaciónAdministrada`; este último es consumido por Adherence & Gamification. La entrega del recordatorio se realiza mediante Firebase Cloud Messaging.
-- **Decisiones de negocio:** solo se activan recordatorios si el tratamiento tiene horarios definidos; una dosis no puede registrarse dos veces; la dosis debe pertenecer a un tratamiento activo.
+- **Decisiones de negocio:** únicamente el profesional veterinario autorizado registra o modifica las indicaciones clínicas de un tratamiento de medicación; el propietario puede activar recordatorios y registrar la administración de dosis previamente prescritas; una dosis no puede registrarse dos veces; una dosis debe pertenecer a un tratamiento activo; el registro de cumplimiento realizado por el propietario no equivale a una nueva prescripción.
 - **Preguntas abiertas:** quién crea el plan de medicación, qué ocurre si se omite una dosis, si el dueño puede ajustar horarios sin el veterinario y cuántos reintentos se realizan si falla la notificación.
 
 #### Nutrition Management
@@ -1007,6 +1114,20 @@ A partir de este análisis se identificaron y aplicaron los siguientes patrones 
 - **Open Host Service (OHS) y Published Language**, en el contexto **IAM**, que expone un mecanismo estandarizado de autenticación y autorización basado en roles (dueño de mascota, veterinario y administrador de veterinaria), consumido por el resto de contextos para proteger sus operaciones. Los contextos consumidores adoptan el modelo de identidad y roles definido por IAM sin imponer el suyo (**Conformist**).
 - **Event-Driven Consistency**, en la propagación de los eventos `CitaVeterinariaAtendida` (publicado por Appointment Management) y `DosisDeMedicaciónAdministrada` (publicado por Medication Treatment), ambos consumidos por **Adherence & Gamification** como evidencia de cumplimiento para recalcular la adherencia y el nivel de constancia del dueño. Adherence & Gamification se comporta como *conformist* frente al contrato de dichos eventos, lo que evita acoplar los contextos clínicos a la lógica de gamificación.
 - **Anticorruption Layer (ACL)**, mediante adaptadores en la capa de infraestructura, en la integración de **IAM** con **Keycloak**, de **Medication Treatment, Nutrition Management y Adherence & Gamification** con **Firebase Cloud Messaging** para el envío de notificaciones push, y de **Appointment Management** con el **servicio externo de calendario**. Esto aísla el modelo de dominio de los contratos de cada proveedor y permite reemplazarlos sin afectar el núcleo del sistema, en línea con la decisión arquitectónica ADD08 (patrón Adapter).
+
+#### Límites de datos y contratos entre bounded contexts
+
+Los siete bounded contexts de VetPax representan límites lógicos de responsabilidad dentro de un backend modular. Aunque sus datos de negocio puedan almacenarse en una misma base de datos física, cada contexto mantiene la propiedad de sus estructuras de persistencia y controla las operaciones que modifican su información.
+
+La comunicación síncrona entre contextos se realiza mediante interfaces o contratos de aplicación definidos por el contexto proveedor. La comunicación asíncrona se utiliza para propagar eventos de dominio relevantes que otros contextos necesitan consumir.
+
+Por ejemplo, Appointment Management puede verificar la existencia de una mascota utilizando un contrato provisto por Pet & Clinical Care, pero no debe insertar ni modificar directamente sus registros clínicos.
+
+Asimismo, Adherence & Gamification consume eventos provenientes de Appointment Management y Medication Treatment para calcular la constancia, sin modificar las tablas ni las reglas de negocio de dichos contextos.
+
+Las referencias entre contextos se mantienen mediante identificadores y contratos explícitos. Cada contexto es responsable de validar sus propias reglas de negocio y de mantener la consistencia de sus datos.
+
+Esta separación lógica reduce el acoplamiento entre módulos, aunque no elimina la dependencia compartida sobre la disponibilidad y capacidad de la infraestructura de almacenamiento.
 
 La siguiente tabla detalla cada relación del Context Map:
 
@@ -1083,7 +1204,12 @@ Las dependencias externas reflejan los atributos de calidad de seguridad (el con
 
 ### 4.3.3. Software Architecture Container Level Diagrams
 
-El Container Diagram descompone la plataforma VetPax en las aplicaciones y almacenes de datos que la componen. Todos los clientes consumen la misma API, lo que asegura coherencia de la información entre el dueño y la veterinaria. La Landing Page, como sistema independiente, se comunica con la API únicamente para registrar leads.
+
+El Container Diagram descompone VetPax en sus aplicaciones cliente, backend y almacenamiento persistente. La aplicación móvil y el panel veterinario consumen los casos de uso expuestos mediante una API compartida.
+
+El backend se plantea como un monolito modular organizado mediante siete bounded contexts, cada uno con responsabilidades y reglas de negocio propias. La información se mantiene consistente mediante validaciones del dominio, operaciones transaccionales y contratos de comunicación entre módulos, no únicamente por utilizar una misma API.
+
+La Landing Page se comunica con el backend para registrar los datos de los interesados, mediante una funcionalidad de captación de leads diferenciada de los siete bounded contexts principales.
 
 **Contenedores**
 
@@ -1123,11 +1249,63 @@ El Container Diagram descompone la plataforma VetPax en las aplicaciones y almac
 
 La comunicación en tiempo real mediante WebSockets (TS13) sincroniza las actualizaciones clínicas, los cambios de tratamiento y otros eventos relevantes entre la aplicación móvil del dueño y el panel web de la veterinaria, evitando consultas constantes al servidor.
 
+
+#### Separación lógica y propiedad de datos
+
+VetPax propone una única base de datos lógica para almacenar información de negocio correspondiente a sus siete bounded contexts, manteniendo límites explícitos de propiedad de datos.
+
+La separación puede implementarse mediante esquemas diferenciados o conjuntos de tablas privadas para cada módulo, según las capacidades del sistema gestor de base de datos seleccionado.
+
+| Bounded Context | Separación lógica propuesta | Información bajo su responsabilidad |
+|---|---|---|
+| Pet & Clinical Care | `pet_clinical` | Mascotas, historiales clínicos, atenciones e indicadores clínicos. |
+| Appointment Management | `appointments` | Reservas, horarios asignados y estados de las citas. |
+| Medication Treatment | `medication` | Tratamientos, dosis programadas y administraciones registradas. |
+| Nutrition Management | `nutrition` | Planes alimentarios, indicaciones y horarios de alimentación. |
+| Clinic Management | `clinics` | Información de clínicas, horarios institucionales y relaciones administrativas. |
+| Adherence & Gamification | `gamification` | Progreso, niveles y registros utilizados para calcular la constancia. |
+| Identity & Access Management | `iam` | Datos propios de perfiles y asociaciones de negocio que requiera VetPax. Las credenciales son gestionadas por Keycloak. |
+
+Los nombres de los esquemas son ilustrativos y deberán ajustarse a la tecnología de persistencia seleccionada.
+
+Cada módulo dispone de repositorios y adaptadores responsables de leer y modificar sus propios datos. Un contexto no debe realizar escrituras directas sobre las tablas de otro contexto.
+
+Cuando un módulo necesita información perteneciente a otro, utiliza contratos internos de aplicación, modelos de consulta autorizados o eventos de dominio, según el tipo de interacción requerido.
+
+Por ejemplo, Appointment Management utiliza el identificador de la mascota proporcionado por Pet & Clinical Care para registrar una reserva, pero no modifica directamente los datos clínicos. De manera similar, Adherence & Gamification recibe los eventos de citas atendidas y dosis administradas sin acceder directamente a las tablas operacionales de los contextos que los producen.
+
+Esta propuesta establece independencia lógica y mantenibilidad de los módulos. No implica que los siete bounded contexts puedan escalar, desplegarse o recuperarse individualmente, porque comparten una misma API desplegada y una infraestructura de persistencia centralizada.
+
+
+#### Justificación de la arquitectura de backend modular
+
+VetPax adopta una arquitectura de monolito modular, en la cual los siete bounded contexts identificados mediante Domain-Driven Design se organizan como módulos dentro de un único Backend API.
+
+Esta decisión responde al alcance inicial del proyecto, permitiendo centralizar el despliegue y la operación del backend, así como reducir la complejidad de infraestructura y comunicación que implicaría administrar múltiples servicios independientes.
+
+La utilización de un único backend no significa que los bounded contexts compartan sus responsabilidades de negocio. Cada módulo mantiene sus propios casos de uso, entidades, reglas de dominio y contratos de comunicación, siguiendo los principios de la arquitectura hexagonal.
+
+De manera similar, la base de datos centralizada puede organizarse mediante esquemas lógicos o tablas pertenecientes a cada contexto. Cada módulo administra sus propios datos mediante repositorios y adaptadores de persistencia, evitando que otros módulos modifiquen directamente las tablas bajo su responsabilidad.
+
+Cuando un bounded context necesita información perteneciente a otro, utiliza contratos internos o eventos de dominio. Esto permite mantener una separación lógica del dominio aun cuando los módulos comparten una misma infraestructura de ejecución y persistencia.
+
+La principal ventaja de esta propuesta es su menor complejidad operativa inicial. Como contrapartida, los módulos comparten recursos de procesamiento y almacenamiento, por lo que no pueden escalarse o desplegarse individualmente sin realizar cambios adicionales en la arquitectura.
+
+
+
 ![Container Diagram](./feature/Chapter-4/4.3.3-container-diagram.png)
 
 ### 4.3.4. Software Architecture Deployment Diagrams
 
-El Deployment Diagram muestra el entorno de producción y dónde se ejecuta cada contenedor. Separar el backend y la base de datos en nodos distintos permite escalar cada uno de forma independiente conforme crezca la cantidad de usuarios, mascotas y veterinarias afiliadas (ADD09), y mantener las integraciones externas fuera del núcleo desplegado.
+
+El Deployment Diagram representa la distribución de los componentes de VetPax sobre la infraestructura propuesta para su operación.
+
+La arquitectura contempla un Backend API que agrupa los siete bounded contexts como módulos de un monolito modular y una base de datos centralizada que almacena la información de negocio.
+
+La separación del backend y la base de datos en nodos distintos facilita la administración de sus recursos y permite evaluar estrategias de escalamiento según el crecimiento de la plataforma. Sin embargo, no garantiza un escalamiento completamente independiente, debido a que los módulos comparten la misma unidad de despliegue y la infraestructura de persistencia.
+
+Esta decisión prioriza una menor complejidad operativa durante las etapas iniciales de VetPax. Como contrapartida, requiere considerar las dependencias compartidas y definir mecanismos de recuperación ante posibles fallos.
+
 
 | Nodo de despliegue | Elemento desplegado | Tecnología |
 | --- | --- | --- |
@@ -1143,8 +1321,26 @@ El Deployment Diagram muestra el entorno de producción y dónde se ejecuta cada
 Las consideraciones principales del despliegue son las siguientes:
 
 - **Seguridad:** toda la comunicación entre clientes, backend y servicios externos se realiza mediante HTTPS, y el acceso a los recursos protegidos se controla con la identidad y los roles gestionados por Keycloak.
-- **Escalabilidad:** el backend se despliega de forma independiente de la base de datos, por lo que puede ampliarse su capacidad sin modificar la lógica del dominio.
-- **Disponibilidad:** la información clínica se centraliza en una única base de datos gestionada, accesible desde la aplicación móvil y el panel web, lo que garantiza continuidad en el seguimiento.
+- **Escalabilidad:** la separación del Backend API y la base de datos facilita administrar y ampliar sus recursos de acuerdo con las necesidades de la plataforma. El procesamiento stateless permite considerar el despliegue de múltiples instancias del backend cuando aumente la demanda. Sin embargo, los siete bounded contexts comparten recursos de ejecución y persistencia, por lo que esta arquitectura no garantiza un escalamiento independiente por módulo. Su capacidad deberá verificarse mediante pruebas de carga.
+- **Disponibilidad:** la base de datos centralizada constituye una dependencia crítica de VetPax, debido a que almacena la información utilizada por sus distintos módulos. Por ello, se propone implementar mecanismos de monitoreo, respaldos periódicos y procedimientos de restauración para responder ante posibles fallos. Dependiendo de las capacidades de la infraestructura seleccionada, también podrá contemplarse redundancia mediante una instancia de respaldo. Estas medidas buscan reducir el impacto de las interrupciones, pero no garantizan disponibilidad absoluta.
 - **Interoperabilidad:** Firebase Cloud Messaging y el servicio de calendario se consumen mediante adaptadores, por lo que pueden reemplazarse sin afectar los nodos propios de VetPax.
+
+
+#### Estrategia de respuesta y recuperación ante fallos
+
+Debido a que VetPax utiliza una base de datos centralizada, es necesario contemplar los escenarios en los que su indisponibilidad pueda afectar simultáneamente a los módulos del backend.
+
+| Escenario | Respuesta propuesta |
+|---|---|
+| Falla de la instancia del backend | Detectar el fallo y restablecer el servicio. Como mejora de disponibilidad, se contempla utilizar instancias redundantes y balanceo de carga. |
+| Falla de la base de datos principal | Detectar la indisponibilidad, rechazar de forma controlada las operaciones que no puedan confirmarse y ejecutar el procedimiento de recuperación. Si existe una réplica disponible, se contempla realizar failover. |
+| Pérdida o corrupción de datos | Recuperar la información mediante respaldos y verificar la integridad de los datos restaurados. |
+| Indisponibilidad de Firebase Cloud Messaging | Conservar los recordatorios pendientes para su posterior reintento, sin alterar los tratamientos registrados. |
+| Falla del servicio de calendario | Mantener las citas confirmadas en VetPax y reintentar posteriormente la sincronización externa. |
+
+Los mecanismos de redundancia y recuperación forman parte de la arquitectura objetivo propuesta. Su implementación dependerá de la infraestructura seleccionada.
+
+Para evaluar su efectividad se utilizarán los indicadores RTO (Recovery Time Objective) y RPO (Recovery Point Objective), que permitirán establecer y verificar los objetivos de recuperación del sistema.
+
 
 ![Deployment Diagram](./feature/Chapter-4/4.3.4-deployment-diagram.png)

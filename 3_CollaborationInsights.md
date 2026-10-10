@@ -13,3 +13,12 @@ TB1:
 
 <img src="./feature/CollaborationInsight/NetworkGraph_1.png">
 
+TP1:
+
+<img src="./feature/CollaborationInsight/Insight_2.png">
+
+<img src="./feature/CollaborationInsight/Collaboration_2.png">
+
+<img src="./feature/CollaborationInsight/NetworkGraph_2.png">
+
+
