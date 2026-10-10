@@ -1,6 +1,6 @@
 <div style="page-break-after: always;"></div>
 
-# **Capítulo I: Presentación**
+# **Capítulo I: Introducción**
 
 ## **1.1. Startup Profile**
 
@@ -22,10 +22,10 @@ A continuación, se detallan los perfiles de los integrantes del equipo que llev
 
 |                       Photo                       | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 |:-------------------------------------------------:|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-|     ![Rafael](./feature/Chapter-1/Rafael_2.png)      | **Nombre y Apellido:** Rafael Alexander Dominguez Vargas  <br> **Carrera:** Ingeniería de Software (8vo ciclo) <br> **Acerca de:** Soy una persona responsable y ordenada. Poseo conocimientos en lenguajes de programación como C++, Java y Python, lo que me permite desarrollar soluciones diversas dentro de mi formación en Ingeniería de Software.                                                                                                    |
-|     ![Valentino](./feature/Chapter-1/Esteban-alvarez.png)      | **Nombre y Apellido:** Esteban Valentino Alvarez Falen  <br> **Carrera:** Ingeneria de Software <br> **Acerca de:** Soy Esteban Alvarez Falen. Soy un estudiante de la carrera de Ingeniería de Software, estoy en la universidad UPC. No cuento con experiencia laboral en programas, sin embargo a lo largo de mi carrera estoy realizando proyectos para mejorar en código, trabajo en equipo y organización de proyectos. Soy una persona que le gusta pensar en soluciones y encontrar motivaciones para innovar e implementar.                                                                                                    |
+|     ![Rafael](./feature/Chapter-1/Rafael_2.png)      | **Nombre y Apellido:** Rafael Alexander Dominguez Vargas (U202312318)  <br> **Carrera:** Ingeniería de Software (8vo ciclo) <br> **Acerca de:** Soy una persona responsable y ordenada. Poseo conocimientos en lenguajes de programación como C++, Java y Python, lo que me permite desarrollar soluciones diversas dentro de mi formación en Ingeniería de Software.                                                                                                    |
+|     ![Valentino](./feature/Chapter-1/Esteban-alvarez.png)      | **Nombre y Apellido:** Esteban Valentino Alvarez Falen (U202315628)  <br> **Carrera:** Ingeneria de Software <br> **Acerca de:** Soy Esteban Alvarez Falen. Soy un estudiante de la carrera de Ingeniería de Software, estoy en la universidad UPC. No cuento con experiencia laboral en programas, sin embargo a lo largo de mi carrera estoy realizando proyectos para mejorar en código, trabajo en equipo y organización de proyectos. Soy una persona que le gusta pensar en soluciones y encontrar motivaciones para innovar e implementar.                                                                                                    |
 |     ![Henry](./feature/Chapter-1/Henry.png)       | **Nombre y Apellido:** Henry Kevin Diaz Gutierrez (U201819674)  <br> **Carrera:** Ingeniería de Software <br> **Acerca de:** Soy estudiante de Ingeniería de Software en la UPC. Me caracterizo por ser creativo , cumplir con lo que se me brinda y ayudar a resolver problemas si se presenta. Desde siempre me intereso el tema de los videojuegos y de el tipo de diseño que se empleaba, eso hizo que me guste el desarrollo de software.                                                                                                    |
-|    ![Adrian](./feature/Chapter-1/AdrianValProfile.jpg)        | **Nombre y Apellido:** Adrian Valerio Garcia  <br> **Carrera:** Ingenieria de Software <br> **Acerca de:**  Me interesa el aprendizaje continuo y suelo enfocarme en resolver problemas de manera rápida y eficiente. Disfruto los videojuegos y aprender nuevas tecnologías, además de trabajar en equipo para lograr objetivos en conjunto. Tengo conocimientos en lenguajes de programación y procuro mejorar constantemente mis métodos de estudio para ampliar mis habilidades.                                                                                                   |
+|    ![Adrian](./feature/Chapter-1/AdrianValProfile.jpg)        | **Nombre y Apellido:** Adrian Valerio Garcia (U202010334)  <br> **Carrera:** Ingenieria de Software <br> **Acerca de:**  Me interesa el aprendizaje continuo y suelo enfocarme en resolver problemas de manera rápida y eficiente. Disfruto los videojuegos y aprender nuevas tecnologías, además de trabajar en equipo para lograr objetivos en conjunto. Tengo conocimientos en lenguajes de programación y procuro mejorar constantemente mis métodos de estudio para ampliar mis habilidades.                                                                                                   |
 
 ## **1.2. Solution Profile**
 En esta sección se presenta el perfil de la solución VetPax, abordando la problemática que motiva su desarrollo y la aplicación del Lean UX Process para identificar las necesidades de los segmentos objetivo, las principales suposiciones del producto y las hipótesis que orientarán su validación.
@@ -43,7 +43,12 @@ Esta sección analiza los antecedentes y la problemática relacionada con el seg
 
 - **Why (¿Por qué?)** <br> Las mascotas geriátricas o con enfermedades crónicas pueden requerir controles frecuentes y tratamientos prolongados, por lo que la continuidad del seguimiento resulta especialmente relevante. Cuando la información clínica se encuentra fragmentada o el propietario no dispone de mecanismos adecuados para organizar medicamentos, citas e indicaciones de cuidado, aumenta la posibilidad de perder información necesaria para continuar el tratamiento entre consultas.
 
-- **How (¿Cómo?)**<br> VetPax propone abordar la problemática mediante una plataforma digital compuesta por una aplicación orientada a propietarios de mascotas y un entorno web dirigido a veterinarias. La solución busca centralizar información clínica relevante, facilitar el seguimiento de citas, medicación y cuidados nutricionales, y mantener una interacción continua entre ambos segmentos durante el tratamiento de la mascota.
+
+- **How (¿Cómo?)** <br>
+Actualmente, el seguimiento de mascotas geriátricas o con enfermedades crónicas puede depender de controles veterinarios periódicos, documentación clínica almacenada en diferentes establecimientos y registros personales utilizados por los propietarios para organizar medicamentos, citas e indicaciones nutricionales.
+Esta gestión puede dificultar la continuidad del cuidado cuando la información no se encuentra centralizada o no está disponible para los profesionales responsables.
+Frente a esta problemática, VetPax propone una plataforma que integra el seguimiento clínico, la gestión de citas, los recordatorios de medicación y los planes nutricionales, facilitando el intercambio de información entre propietarios y profesionales veterinarios.
+
 
 - **How much (¿Cuánto?)** <br> La problemática puede generar costos asociados a controles adicionales, pérdida de continuidad en tratamientos y mayor tiempo dedicado por propietarios y veterinarias a recuperar o reconstruir información clínica. En esta etapa del proyecto no se dispone todavía de evidencia cuantitativa suficiente para estimar con precisión el impacto económico, por lo que este aspecto deberá complementarse mediante información estadística y los resultados obtenidos durante la investigación con los segmentos objetivo.
 
@@ -89,7 +94,9 @@ El proyecto tendrá como segmento inicial a propietarios de mascotas geriátrica
 
  **Business Outcomes**
 
-- Lograr que al menos el **60 % de los propietarios registrados** actualice el historial clínico de su mascota al menos una vez al mes durante el periodo de validación.
+
+- Lograr que al menos el **60 % de los propietarios registrados consulte el historial clínico de su mascota al menos una vez al mes** durante el periodo de validación, con el propósito de fomentar el seguimiento continuo de la información registrada por los profesionales veterinarios.
+
 
 - Incrementar en al menos un **40 % la tasa de asistencia a citas veterinarias programadas** mediante el uso de recordatorios automáticos, en comparación con el seguimiento realizado sin estos recordatorios.
 
@@ -155,9 +162,9 @@ A continuación, se presentan las declaraciones de hipótesis Lean UX que orient
 
 ##### **Hipótesis 1: Historial clínico centralizado**
 
-Creemos que al ofrecer un historial clínico centralizado y accesible para propietarios de mascotas geriátricas o con enfermedades crónicas que necesitan mantener la continuidad del seguimiento, obtendremos una mayor constancia en la gestión de la información clínica de sus mascotas.
+Creemos que al proporcionar un historial clínico centralizado y accesible para propietarios de mascotas geriátricas o con enfermedades crónicas, facilitaremos la consulta continua de información clínica registrada por profesionales veterinarios, contribuyendo a un mejor seguimiento de la salud de sus mascotas.
 
-**Sabremos que esta hipótesis se valida** cuando al menos el **60 % de los propietarios registrados actualice el historial clínico de su mascota al menos una vez al mes** durante el periodo de validación.
+**Sabremos que esta hipótesis se valida** cuando al menos el **60 % de los propietarios registrados consulte el historial clínico de su mascota al menos una vez al mes** durante el periodo de validación.
 
 
 ##### **Hipótesis 2: Recordatorios de medicación y citas**
@@ -246,3 +253,11 @@ El seguimiento veterinario adquiere especial relevancia en mascotas geriátricas
 - **Propietarios:** Personas interesadas en mantener el bienestar de sus mascotas y cumplir adecuadamente con citas, medicamentos y cuidados indicados.
 - **Veterinarias y clínicas:** Organizaciones interesadas en mantener información clínica organizada y proporcionar continuidad en el seguimiento de sus pacientes.
 - **Uso de tecnología:** Usuarios con disposición para utilizar herramientas digitales que faciliten la organización y seguimiento de la salud de las mascotas.
+
+### Relación entre los datos cuantitativos y la solución propuesta
+
+La implementación de plataformas digitales en clínicas veterinarias de otros países proporciona antecedentes sobre los beneficios potenciales de integrar recordatorios, gestión de citas y comunicación con los propietarios de mascotas. En Estados Unidos, PetDesk reportó el caso de una clínica veterinaria de San Diego que incorporó una aplicación móvil, mensajería electrónica y recordatorios automatizados. Según los resultados publicados por la empresa, la proporción de inasistencias a citas disminuyó del 11 % a menos del 3 % durante un año (PetDesk, s. f.).
+
+Asimismo, Silva (2023), en una investigación desarrollada en la Facultad de Medicina Veterinaria de la Universidad de Lisboa, evaluó el uso de herramientas digitales para incentivar el cumplimiento de los programas de vacunación canina. El estudio registró 54 asistencias a consultas de revacunación entre los grupos que recibieron recordatorios mediante SMS, frente a 4 asistencias en el grupo de control. Los resultados identificaron una asociación entre los recordatorios digitales y la asistencia a las consultas veterinarias.
+
+Estos antecedentes respaldan la pertinencia de incorporar mecanismos digitales de comunicación y seguimiento en VetPax. En particular, la gestión de citas y los recordatorios automatizados podrían contribuir a reducir los olvidos y favorecer la continuidad de los controles veterinarios. Sin embargo, estos resultados no garantizan que VetPax obtenga el mismo impacto, ya que corresponden a otras poblaciones y contextos. Por ello, se propone evaluar la efectividad de la solución mediante indicadores como la tasa de asistencia a citas, la frecuencia de consulta del historial clínico y el cumplimiento registrado de las actividades de cuidado.
