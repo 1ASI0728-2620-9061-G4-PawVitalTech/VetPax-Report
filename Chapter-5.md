@@ -37,20 +37,20 @@ La Domain Layer concentra las reglas de la mascota y de su historial clínico. M
 ##### Diccionario de clases
 
 **Aggregate Roots**
-
+ 
 | Clase | Propósito | Atributos | Métodos |
 |---|---|---|---|
 | **Pet** | Representa a la mascota y es la referencia de identidad usada por los demás contextos. | `petId: PetId`<br>`ownerId: OwnerId`<br>`name: String`<br>`species: Species`<br>`breed: String` (opcional)<br>`sex: Sex` (opcional)<br>`birthDate: Date`<br>`registeredAt: DateTime` | `isOwnedBy(ownerId): Boolean`<br>`calculateAge(referenceDate): Integer`<br>`pullDomainEvents(): List<DomainEvent>` |
 | **ClinicalRecord** | Historial clínico de una mascota. Controla el registro de atenciones y garantiza el orden cronológico. | `clinicalRecordId: ClinicalRecordId`<br>`petId: PetId`<br>`attentions: List<ClinicalAttention>`<br>`lastUpdatedAt: DateTime` | `registerAttention(attention): void`<br>`getAttentionsChronologically(): List<ClinicalAttention>`<br>`hasAttentions(): Boolean`<br>`pullDomainEvents(): List<DomainEvent>` |
-
+ 
 **Entities**
-
+ 
 | Clase | Propósito | Atributos | Métodos |
 |---|---|---|---|
 | **ClinicalAttention** | Atención veterinaria registrada dentro del historial. | `attentionId: AttentionId`<br>`clinicId: ClinicId`<br>`veterinarianId: VeterinarianId`<br>`attentionDate: DateTime`<br>`reason: String`<br>`diagnosis: String`<br>`treatmentSummary: String`<br>`observations: String` (opcional)<br>`indicators: List<ClinicalIndicator>` | `validateMandatoryData(): void`<br>`hasIndicators(): Boolean`<br>`findIndicator(name): ClinicalIndicator` |
-
+ 
 **Value Objects**
-
+ 
 | Clase | Propósito | Atributos | Métodos |
 |---|---|---|---|
 | **PetId, OwnerId, ClinicalRecordId, AttentionId, VeterinarianId, ClinicId** | Identificadores inmutables. `OwnerId`, `VeterinarianId` y `ClinicId` son referencias a otros contextos, no entidades propias. | `value: UUID` | `equals(other): Boolean`<br>`toString(): String` |
@@ -60,23 +60,23 @@ La Domain Layer concentra las reglas de la mascota y de su historial clínico. M
 | **ClinicalEvolution** | Resultado de comparar los indicadores a lo largo del tiempo. | `petId: PetId`<br>`entries: List<EvolutionEntry>` | `hasSufficientData(): Boolean` |
 | **EvolutionEntry** | Punto de la evolución: fecha, indicador y valor. | `attentionDate: DateTime`<br>`indicatorName: String`<br>`value: Decimal`<br>`unit: String` | — |
 | **AccessRequester** | Quién solicita el acceso, según la identidad que entrega IAM. | `userId: UUID`<br>`role: Role` (dueño, veterinario)<br>`clinicId: ClinicId` (opcional) | `isOwner(): Boolean`<br>`isVeterinarian(): Boolean` |
-
+ 
 **Factories**
-
+ 
 | Clase | Propósito | Métodos |
 |---|---|---|
 | **PetFactory** | Crea una mascota válida asociada a un dueño y emite `MascotaRegistrada`. | `register(ownerId, name, species, birthDate, breed, sex): Pet` |
 | **ClinicalRecordFactory** | Crea el historial vacío de una mascota recién registrada. | `openFor(petId): ClinicalRecord` |
-
+ 
 **Domain Services**
-
+ 
 | Clase | Propósito | Métodos |
 |---|---|---|
 | **ClinicalAccessPolicy** | Determina si un solicitante puede acceder al historial de una mascota (reglas 5 y 6). | `canAccess(requester: AccessRequester, pet: Pet): Boolean` |
 | **ClinicalEvolutionService** | Construye la evolución clínica a partir de las atenciones registradas (regla 7). | `buildEvolution(record: ClinicalRecord): ClinicalEvolution` |
-
+ 
 **Repository Interfaces y Read Models**
-
+ 
 | Clase | Tipo | Propósito | Métodos |
 |---|---|---|---|
 | **PetRepository** | Repository (puerto) | Persistencia del agregado Pet. | `save(pet): void`<br>`findById(petId): Pet`<br>`findByOwnerId(ownerId): List<Pet>`<br>`existsById(petId): Boolean` |
@@ -84,9 +84,9 @@ La Domain Layer concentra las reglas de la mascota y de su historial clínico. M
 | **PatientListReadModel** | Read Model | Pacientes vinculados a una clínica, que se entregan a Clinic Management. | `findPatientsByClinic(clinicId): List<PatientSummary>` |
 | **ClinicalRecordViewReadModel** | Read Model | Vista del historial para el dueño y el veterinario. | `findByPetId(petId): ClinicalRecordView` |
 | **PatientEvolutionViewReadModel** | Read Model | Vista de la evolución para el veterinario. | `findByPetId(petId): ClinicalEvolution` |
-
+ 
 **Domain Events**
-
+ 
 | Evento | Hecho que representa | Atributos |
 |---|---|---|
 | **MascotaRegistrada** | Se registró una mascota asociada a un dueño. | `petId`, `ownerId`, `occurredAt` |
@@ -195,13 +195,13 @@ El flujo principal es: **Dueño / Veterinario → Controller → Caso de Uso de 
 
 El diagrama tiene como alcance los agregados `Pet` y `ClinicalRecord`, la entidad `ClinicalAttention`, los repositorios, los read models y los eventos de dominio. Por legibilidad, los value objects, las factories y los servicios de dominio aparecen agrupados; su detalle de atributos y métodos está en el diccionario de clases de la sección 5.1.1.
 
-![Domain Layer Class Diagram - Pet & Clinical Care](feature/Chapter-5/PetClinicalCareDomainClasses.png)
+![Domain Layer Class Diagram - Pet & Clinical Care](feature/Chapter-5/PetClinicalCareDomainClases.png)
 
 ##### 5.1.6.2. Bounded Context Database Design Diagram
 
 El diseño de datos cubre las mascotas, el historial clínico, las atenciones y sus indicadores. Los identificadores de dueño, clínica y veterinario son referencias lógicas a otros contextos, no claves foráneas físicas.
 
-![Database Design Diagram - Pet & Clinical Care](feature/Chapter-5/PetClinicalCareDatabase.png)
+![Database Design Diagram - Pet & Clinical Care](feature/Chapter-5/PetClinicalCareDatabasse.png)
 
 | Tabla lógica | Propósito | Relación principal |
 |---|---|---|
@@ -371,13 +371,13 @@ El flujo principal es: **Administrador / Veterinario → Controller → Caso de 
 
 El diagrama tiene como alcance el agregado `Clinic`, el servicio de dominio, el repositorio, el read model y el evento de dominio. Por legibilidad, los value objects aparecen agrupados; su detalle de atributos y métodos está en el diccionario de clases de la sección 5.2.1.
 
-![Domain Layer Class Diagram - Clinic Management](feature/Chapter-5/ClinicManagementDomainClasses.png)
+![Domain Layer Class Diagram - Clinic Management](feature/Chapter-5/ClinicManagementDomainClases.png)
 
 ##### 5.2.6.2. Bounded Context Database Design Diagram
 
 El diseño de datos cubre el perfil de la clínica, sus administradores y sus horarios de atención. Los pacientes no se almacenan en este contexto: se obtienen de Pet & Clinical Care. El identificador de cada administrador es una referencia lógica a IAM, no una clave foránea física.
 
-![Database Design Diagram - Clinic Management](feature/Chapter-5/ClinicManagementDatabase.png)
+![Database Design Diagram - Clinic Management](feature/Chapter-5/ClinicManagementDatabasse.png)
 
 | Tabla lógica | Propósito | Relación principal |
 |---|---|---|
