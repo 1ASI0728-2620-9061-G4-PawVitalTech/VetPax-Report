@@ -96,9 +96,9 @@ La organización del equipo y el repositorio de documentación ya están identif
 |---|---|---|
 | Informe del proyecto | Markdown | https://github.com/1ASI0728-2620-9061-G4-PawVitalTech/VetPax-Report.git |
 | Backend Web Services y pruebas | C# / ASP.NET Core / .NET 10 | https://github.com/1ASI0728-2620-9061-G4-PawVitalTech/VetPax-Backend.git |
-| Web Application | Angular 21 | [PENDIENTE: URL REAL] |
-| Mobile Application | Flutter / Dart | [PENDIENTE: URL REAL] |
-| Landing Page | Tecnología y repositorio por confirmar | [PENDIENTE: URL REAL] |
+| Web Application | Angular 21 | https://github.com/1ASI0728-2620-9061-G4-PawVitalTech/VetPax-Web_Application.git |
+| Mobile Application | Flutter / Dart | https://github.com/1ASI0728-2620-9061-G4-PawVitalTech/VetPax-Mobile_Application.git |
+| Landing Page | Tecnología y repositorio por confirmar | https://github.com/1ASI0728-2620-9061-G4-PawVitalTech/VetPax-Landing_Page.git |
 
 El proyecto de pruebas `VetPax.Tests`, incluidos los archivos `.feature` y sus definiciones de pasos, deberá quedar accesible en el repositorio del backend, conforme a lo exigido por el enunciado.
 
