@@ -40,6 +40,7 @@ En la aplicación web, `package.json` contiene `ng build` y `ng test`, así como
 
 ![Realm de autenticación VetPax](<./feature/Chapter-7/KeyCloak/Captura de pantalla 2026-10-23 133427.png>)
 
+**Pendiente:** registrar versión concreta de Rider, SDK Flutter instalado por el equipo, sistema operativo/herramientas de cada integrante y, cuando corresponda, sus rutas de descarga.
 
 ### 7.1.2. Source Code Management
 
@@ -65,11 +66,6 @@ El proyecto utiliza cinco repositorios públicos de la organización PawVital Te
 
 **Estrategia de integración y control de versiones.** `feature/*` conserva los commits de desarrollo por capacidad; `develop` reúne cambios integrados y `main` representa una referencia de publicación. GitHub muestra además pull requests de incorporación hacia `develop` o `main`, aunque no todas las ramas funcionales se han fusionado. La evidencia de desarrollo debe consultarse en **la rama donde se generó el commit**, ya que una rama principal puede permanecer sin nuevos commits aunque existan funcionalidades implementadas en `feature/*`.
 
-Se observaron, entre otros, el **PR #9 del Backend** (`feature/deployment` hacia `develop`, 04/11), el **PR #19 del Backend** (`feature/authentication` hacia `develop`, 04/11), el **PR #20 del Backend** (`develop` hacia `main`, 04/11) y el **PR #1 de Web** (`develop` hacia `main`, registrado el **13/11 UTC**, equivalente al **12/11, 21:03, hora de Lima**). En el repositorio del informe, el PR #24 incorporó `feature/chapter-7` a `develop` el **23/10**, antes del Sprint 1. Esos merges son hechos de integración y **no deben contabilizarse como implementaciones independientes de los commits que ya incorporan**.
-
-Los mensajes de los cambios se ajustan en buena parte a **Conventional Commits** (`feat`, `fix`, `test`, `style`, `chore`, `build` y scopes como `auth` o `dashboard`). También existen mensajes de merge y commits documentales con formatos distintos: no se afirma uniformidad absoluta. Se proponen las ramas `release/<version>` y `hotfix/<issue>` como convenciones del flujo, pero no se encontraron ramas de esos tipos en el inventario consultado. Para versionado publicable se mantiene la referencia a Semantic Versioning (`MAJOR.MINOR.PATCH`), sin atribuir etiquetas o releases no verificados.
-
-**Trazabilidad detallada.** En **7.2.1.3** se documentan las 40 ramas con un commit real de referencia por rama, las fechas, los autores visibles en GitHub y ejemplos adicionales de commits anteriores a la fusión. En **7.2.1.8** se relaciona este historial con las capturas de GitHub Insights. Estas cifras describen el estado del repositorio al corte de revisión y no sustituyen el Sprint Backlog de Jira.
 
 ### 7.1.3. Source Code Style Guide & Conventions
 
@@ -89,7 +85,7 @@ La nomenclatura técnica se expresa en inglés y busca garantizar un estilo cons
 | Git: rama funcional | `feature/<capability>` | `feature/authentication` |
 | Git: commit | Conventional Commits | `feat(auth): ...` |
 
-La implementación disponible utiliza rutas HTTP bajo el prefijo `/api/v1/`. En las pruebas de aceptación se trabaja con Gherkin y Reqnroll. **Observación de consistencia:** cinco archivos `.feature` usan `# language: es` y pasos en español, mientras que `MedicationTreatmentApi.feature` usa `Feature/Scenario/Given/When/Then` en inglés. La guía del curso pide nomenclatura en inglés: se recomienda normalizar o justificar la excepción, sin alterar la intención de las pruebas ni afirmar que el cambio ya está realizado.
+La implementación disponible utiliza rutas HTTP bajo el prefijo `/api/v1/`. En las pruebas de aceptación se trabaja con Gherkin y Reqnroll.
 
 ### 7.1.4. Software Deployment Configuration
 
@@ -123,6 +119,59 @@ En Keycloak se ha configurado el realm de VetPax, roles como `owner`, `veterinar
 ![Audience mapper de Keycloak](<./feature/Chapter-7/KeyCloak/Captura de pantalla 2026-10-23 135710.png>)
 
 **Enlaces de referencia:** Landing Page publicada: https://vetpax-landing-page.netlify.app/ ; documentación Swagger configurada: https://vetpax-api-production.up.railway.app/swagger/ . Se dispone de capturas de Railway y Keycloak, pero no de una ejecución autenticada documentada con request/response ni de un diagrama C4 de despliegue final dentro del material revisado. Las credenciales, client secrets y cadenas de conexión no deben publicarse en el informe.
+
+### 7.1.5. Reliability, Authorization and Failure Recovery Review
+
+Las observaciones de revisión de arquitectura se contrastaron con el código disponible del repositorio `VetPax-Backend`. Este apartado distingue **controles implementados y observables en el código**, **pruebas existentes que requieren evidencia de ejecución** y **mejoras propuestas todavía no acreditadas**. No modifica el alcance de las cuatro historias del Sprint 1.
+
+**Vigencia de la autorización y relación usuario–clínica.** La autorización de acceso clínico no depende únicamente de tener un token válido. En `VeterinaryClinicalAccessPolicy.CanAccess` se exige el rol de veterinario, un usuario identificado, una clínica válida, membresía activa en esa clínica y vínculo activo entre la clínica y la mascota. `VerifiedClinicalAuthorizationAdapter` consulta ambas relaciones antes de permitir acceso a información clínica. Por otro lado, `ClinicalAccessPolicy` autoriza al propietario cuando la mascota le pertenece y rechaza el acceso veterinario que no haya sido verificado mediante el mecanismo correspondiente.
+
+| Aspecto de seguridad | Regla o evidencia identificada | Límite de lo comprobado |
+|---|---|---|
+| Identidad de usuario | Keycloak suministra autenticación y tokens; el backend utiliza el usuario autenticado para comprobar permisos. | No se ha documentado aquí el tiempo real de vida del access token, refresh token o sesión configurado en el realm. |
+| Relación usuario–clínica | `IClinicMembershipPort.IsActiveVeterinarianAsync` y verificación de membresía activa antes de acceder a pacientes. | Debe explicitarse en el diseño de dominio el ciclo de vida de esa membresía y sus reglas de revocación. |
+| Relación clínica–paciente | `VerifiedClinicalAuthorizationAdapter` verifica un vínculo de paciente activo antes del acceso veterinario. | La vigencia temporal exacta de dicho vínculo requiere revisar el modelo persistido y su política de expiración. |
+| Acceso del propietario | `ClinicalAccessPolicy.CanAccess` comprueba titularidad de la mascota. | No debe confundirse con los permisos del personal veterinario. |
+
+**Decisión que debe cerrarse con el equipo:** si la revisión solicita “cuánto dura la autorización”, deben documentarse por separado (a) la duración configurada en Keycloak para tokens y sesiones, y (b) la duración o revocación de la autorización clínica basada en membresía y vínculo con el paciente. No se asigna una cantidad de minutos o días sin evidencia de configuración o regla aprobada.
+
+**Reglas de dominio de medicación identificadas.** En `MedicationSchedule`, `MedicationScheduleFactory` y el agregado `MedicationPlan` se observan las siguientes restricciones:
+
+1. Cada horario define una hora local (`TimeOnly`), al menos un día válido de la semana y una dosis; los días se normalizan sin duplicados.
+2. La creación de horarios mediante `MedicationScheduleFactory` limita cada solicitud a un máximo de 24 horarios.
+3. El agregado impide dos horarios que coincidan en **la misma hora local** y tengan al menos **un día de la semana en común**.
+4. La fecha final del plan no puede ser anterior a la inicial y se exige un identificador de zona horaria.
+5. Un plan debe estar activo para permitir las operaciones restringidas a dicho estado; las dosis y recordatorios se relacionan con la versión del horario.
+
+Estas restricciones ya constituyen reglas concretas del dominio. Una regla de **intervalo mínimo entre tomas diferentes**, tolerancia por retraso de administración, cambios por horario de verano o precedencia de prescripciones simultáneas **no debe describirse como implementada** sin definición clínica/funcional y pruebas adicionales. La política de intervalos debe aprobarse en el dominio antes de incorporarse al código.
+
+**Concurrencia, procesos independientes y prevención de duplicados.** La implementación de `MedicationReminderProcessor` consulta recordatorios pendientes y realiza una actualización condicional para adquirir un *lease* mediante `LeaseToken` y `LockedUntilUtc` antes de enviar. Además, verifica que el plan esté activo, los recordatorios habilitados, la dosis pendiente y que su versión de horario coincida con la del plan. `MedicationOutboxProcessor` utiliza un patrón de adquisición condicional comparable para los eventos aún no publicados. Esto es una medida concreta frente a la competencia entre workers sobre el mismo registro. La prueba `MedicationConcurrencyTests.ConcurrentUpdates_SecondWriterIsRejected` comprueba que una segunda escritura de un plan basada en una versión antigua genera `DbUpdateConcurrencyException` en MySQL.
+
+**Límite técnico importante:** un *lease* y un token de concurrencia reducen la ejecución simultánea conflictiva, pero **no garantizan entrega exactamente una vez** frente a una caída después de enviar una notificación y antes de registrar su confirmación. Para cerrar esa observación se recomienda evaluar idempotencia del consumidor/proveedor, una clave de deduplicación estable y pruebas de reinicio en ese punto de fallo. La prueba de concurrencia descrita exige la variable `VETPAX_TEST_MYSQL` y una base de pruebas `vetpax_test_db`; su presencia en el repositorio no demuestra su ejecución en producción.
+
+**Manejo de indisponibilidad y recuperación:**
+
+| Escenario | Comportamiento o mecanismo identificado | Tratamiento por comprobar o diseñar | Evidencia necesaria |
+|---|---|---|---|
+| Dos workers reclaman el mismo recordatorio | Actualización condicional, `LeaseToken` y vencimiento de bloqueo en `MedicationReminderProcessor`. | Ensayar tres procesos paralelos y recuperación tras expiración del lease. | Prueba de concurrencia, resultado del runner y logs sin datos sensibles. |
+| Actualizaciones simultáneas de un plan | Control optimista de versión y prueba de rechazo del segundo escritor. | Comprobar respuesta HTTP del endpoint y procedimiento de reintento/conflicto. | Ejecución de `MedicationConcurrencyTests` contra MySQL de pruebas. |
+| Fallo al publicar un evento | Procesador de outbox persistente con estado, intentos y bloqueo temporal. | Confirmar límites de reintento, alertas y deduplicación ante caída entre publicación y confirmación. | Prueba de caída/reinicio y registros del procesador. |
+| Fallo de conexión a MySQL | Servicio desplegado por separado en Railway. | Definir estrategia de error controlado, supervisión y recuperación sin corrupción o duplicación. | Prueba de indisponibilidad y recuperación del servicio. |
+| Keycloak temporalmente inaccesible | Integración de identidad configurada en Railway. | Especificar tratamiento de errores de autenticación y separación de indisponibilidad de identidad frente a falta de permiso. | Solicitudes reales con Keycloak disponible/indisponible y resultados HTTP. |
+| Pérdida de datos o despliegue defectuoso | MySQL y PostgreSQL desplegados como servicios persistentes. | Formalizar backup, retención, responsable de restauración, RPO/RTO y procedimiento de rollback; **no hay evidencia adjunta de respaldo/restauración ejecutados**. | Captura de configuración de backups, restauración de prueba y registro de resultado. |
+
+La existencia de servicios con estado *Online* en Railway no prueba disponibilidad continua, respaldos programados ni recuperación satisfactoria. Estos puntos deben documentarse cuando se hayan configurado o probado realmente.
+
+**Fuentes técnicas específicas para esta revisión (no descripciones genéricas):**
+
+- `VetPax.Domain/Modules/PetClinicalCare/Services/VeterinaryClinicalAccessPolicy.cs` y `ClinicalAccessPolicy.cs`: reglas de acceso a información clínica.
+- `VetPax.Infrastructure/Modules/PetClinicalCare/Adapters/VerifiedClinicalAuthorizationAdapter.cs`: comprobación de membresía y vínculo clínico.
+- `VetPax.Domain/Modules/MedicationTreatment/ValueObjects/MedicationSchedule.cs`: regla de días y conflictos de horarios.
+- `VetPax.Application/Modules/MedicationTreatment/Services/MedicationScheduleFactory.cs`: validación de número máximo de horarios.
+- `VetPax.Domain/Modules/MedicationTreatment/Aggregates/MedicationPlan.cs`: invariantes de prescripción, estado y solapamiento.
+- `VetPax.Infrastructure/Modules/MedicationTreatment/Processing/MedicationReminderProcessor.cs` y `MedicationOutboxProcessor.cs`: adquisición condicional, leases y reintentos.
+- `tests/VetPax.Tests/Integration/MedicationTreatment/MedicationConcurrencyTests.cs`: prueba de control de concurrencia optimista.
+- Repositorio de referencia: https://github.com/1ASI0728-2620-9061-G4-PawVitalTech/VetPax-Backend . Estas rutas fueron verificadas en el ZIP del backend proporcionado; los cambios posteriores deben contrastarse contra el commit final de entrega.
 
 ## 7.2. Solution Implementation
 
@@ -328,9 +377,6 @@ La **Landing Page** cuenta con una sola rama visible (`main`). Su commit inicial
 
 En **VetPax-Report** se verificaron `main`, `develop`, `feature/frontmatter` y las siete ramas `feature/chapter-1` a `feature/chapter-7`. Los commits de referencia de estas ramas son **anteriores al Sprint 1**. El PR #24 de `feature/chapter-7` a `develop` es del **23/10/2026**. La presente actualización documental se entrega en un archivo Markdown; **no se afirma que haya sido subida como nuevo commit a GitHub**.
 
-**Correspondencia con el Sprint Backlog.** El Sprint 1 comprometió exclusivamente **US15 (`VET-6`), US16 (`VET-43`), US19 (`VET-44`) y TS11 (`VET-45`)**, con **10 Story Points**. La revisión de ramas refleja también trabajo paralelo de los bounded contexts y de las aplicaciones Web y Mobile, sin añadir esas funcionalidades al alcance oficial. US15 posee una línea base de código y evidencias visuales de ejecución de la Landing Page. En las ramas consultadas no se identificó una implementación específica del **formulario de interesados US16** ni del **endpoint de captación TS11**; los servicios clínicos y de identidad no sustituyen esos requisitos. Los CTA de US19 aparecen visualmente, pero su redirección externa no se acredita únicamente con las capturas disponibles.
-
-Las tablas anteriores usan commits verificables y enlaces al historial de cada rama. Su propósito es mostrar el avance real antes y después de las fusiones, identificar autores y evitar el error de analizar únicamente `main`.
 
 #### 7.2.1.4. Testing Suite Evidence for Sprint Review
 
@@ -345,13 +391,25 @@ Se revisaron evidencias de funcionamiento de la Landing Page en navegadores de e
 | US19 | Redirección de CTA hacia web/móvil | `Landing_Page/Web/12.png` y configuración `src/js/config.js` | CTA visible; los valores `APP_URLS.owner` y `APP_URLS.clinic` están vacíos en la versión revisada |
 | TS11 | Contrato HTTP, validación, duplicados y persistencia | No se identificó controlador específico de interesados en el backend revisado | Sin ejecución de servicio TS11 acreditada |
 
-**Resultados automatizados acumulados del backend:** en las capturas del runner de JetBrains Rider se observan **274 pruebas contabilizadas, 263 exitosas y 11 omitidas/ignoradas**, sin errores visibles en esa ejecución. Distribución: API 47, Application 50, Domain 63, Infrastructure 54, Integration 16 y Acceptance/BDD 33. Es evidencia del backend en conjunto, no una medición exclusiva del Sprint 1.
 
 ![Resumen de pruebas del backend](./feature/Chapter-7/Testing/6.png)
 
 *Figura 7.7. Evidencia de ejecución de escenarios BDD en Rider; 33 pruebas de aceptación exitosas en el registro compartido.*
 
 Los seis archivos `.feature` registrados en el backend suman **38 escenarios escritos** (RegisterPet 4, GetClinicalHistory 2, VeterinaryClinicalAccess 5, AppointmentManagement 14, ClinicManagement 8 y MedicationTreatmentApi 5). Su contenido se relaciona principalmente con otros módulos del producto; no se atribuye a US15, US16, US19 ni TS11 sin una prueba de correspondencia.
+
+**Matriz complementaria de verificación técnica — sin atribución automática al Sprint 1.** Las siguientes verificaciones responden a las observaciones de arquitectura y se relacionan con módulos que no forman parte de US15, US16, US19 ni TS11. La tabla registra casos propuestos y evidencia de código, no resultados ejecutados en el Sprint 1.
+
+| Caso de verificación | Regla o situación | Evidencia de código | Resultado de ejecución |
+|---|---|---|---|
+| ACC-01 | Veterinario con membresía y vínculo clínico activos puede superar la validación de política; cualquiera de los dos inactivos debe denegar acceso. | `VeterinaryClinicalAccessPolicy.cs`, `VerifiedClinicalAuthorizationAdapter.cs`. | Prueba funcional contra API desplegada no adjunta. |
+| MED-01 | Dos horarios con idéntica hora local y día compartido deben rechazarse. | `MedicationSchedule.cs`, `MedicationPlan.cs`. | Requiere evidencia específica del caso ejecutado. |
+| MED-02 | La creación no debe aceptar más de 24 horarios. | `MedicationScheduleFactory.cs`. | Requiere evidencia específica del caso ejecutado. |
+| CON-01 | Dos escrituras concurrentes del mismo plan no deben sobrescribirse silenciosamente. | `MedicationConcurrencyTests.ConcurrentUpdates_SecondWriterIsRejected`. | Test escrito; no se atribuye a la captura global de 263 exitosas sin identificarlo en el runner. |
+| CON-02 | Tres workers intentan reclamar el mismo recordatorio simultáneamente. | `MedicationReminderProcessor.cs` con `LeaseToken` y actualización condicional. | Caso de estrés/competencia por ejecutar y registrar. |
+| FAIL-01 | Caída después de enviar una notificación, antes de marcarla enviada, seguida de un reinicio. | `MedicationReminderProcessor.cs`, mecanismo de reintentos. | Debe comprobarse ausencia o tratamiento de duplicados; no acreditado. |
+| FAIL-02 | Pérdida temporal de MySQL o Keycloak y recuperación del servicio. | Configuración de Railway, Keycloak y backend. | Prueba de recuperación no adjunta. |
+| BCP-01 | Restauración de respaldo de MySQL y PostgreSQL en un entorno controlado. | Infraestructura de bases de datos documentada. | Política y simulacro de restauración no adjuntos. |
 
 #### 7.2.1.5. Execution Evidence for Sprint Review
 
@@ -408,7 +466,6 @@ La Landing Page de VetPax se encuentra publicada en **Netlify**, con evidencias 
 
 *Figura 7.14. Estado desplegado del menú de navegación en dispositivo móvil.*
 
-Estas capturas **sí acreditan la ejecución visual de la Landing Page publicada y su adaptación responsive**. No contienen un envío de formulario de interesados ni el resultado de una API TS11. Tampoco se adjuntó un video de demostración con intervalos temporales en el material revisado; por ello, no se inventa una URL ni un timing.
 
 #### 7.2.1.6. Services Documentation Evidence for Sprint Review
 
@@ -466,7 +523,6 @@ Los códigos HTTP anteriores representan **respuestas declaradas por los control
 }
 ```
 
-Los identificadores son de ejemplo: esta transcripción representa la estructura de los recursos C# disponibles, **no una respuesta real de producción** ni una operación correspondiente a TS11.
 
 **Commits de soporte a Swagger y API en producción:** Estos cambios se realizaron en `feature/authentication`, se integraron a `develop` mediante PR y aparecen posteriormente en `main`. La siguiente tabla señala la **rama de implementación original**, no solo la rama que los contiene tras el merge.
 
@@ -561,6 +617,60 @@ La coordinación de PawVital Tech se realizó mediante Discord para la planifica
 El panel *Contributors* de Web Application identifica **24 commits de Valentino10113, 13 de HenryDiaz12, 7 de adrianvalerio13 y 2 de Radv2005**. En conjunto suman 46 commits para el período y criterio de GitHub mostrado; no deben tratarse como horas trabajadas, Story Points ni trabajo dedicado exclusivamente a EP06.
 
 
+**Lectura complementaria de los commits por rama.** Además de los totales visibles en los paneles Insights, el historial revisado en 7.2.1.3 aporta evidencia concreta de aportes de `Valentino10113` en `feature/dashboard` y `feature/pet-clinical-care`, `HenryDiaz12` en `feature/medication-treatment`, `feature/nutrition-management` y las ramas móviles de citas y clínicas, y `adrianvalerio13` en `feature/appointment-management`, `feature/clinic-management`, `feature/dashboard` (Mobile) y `feature/treatments` (Mobile). La coordinación e integración de backend queda ilustrada por los PR #9, #14, #19 y #20. **No se infiere que las funcionalidades de esas ramas sean parte de las cuatro historias planificadas del Sprint 1.**
 
 **Colaboración y trazabilidad del Sprint 1.** Jira registra el compromiso funcional de cuatro historias y GitHub proporciona una historia de contribuciones, ramas y fusiones. Las capturas de Insights refuerzan la evidencia de trabajo colaborativo en la aplicación web y de integración técnica en el backend, sin demostrar por sí solas la implementación del formulario US16 o del endpoint TS11. La finalización administrativa de una historia, una actividad de commit y la aprobación de sus criterios de aceptación son tres evidencias diferentes, que se documentan por separado en este capítulo.
 
+## 7.3. Validation Interviews
+
+La validación de VetPax considera dos segmentos: **propietarios de mascotas geriátricas o con enfermedades crónicas** y **profesionales/administradores de clínicas veterinarias**. El criterio de la asignatura contempla de **3 a 5 entrevistas por segmento**. En el conjunto de archivos recibido no se adjuntaron grabaciones, fichas de participantes ni resultados de entrevistas; en consecuencia, esta sección documenta el diseño de las sesiones sin presentar respuestas simuladas como hallazgos.
+
+### 7.3.1. Diseño de Entrevistas
+
+Las entrevistas se estructuran con una introducción y consentimiento, exploración inicial del contexto del participante, ejecución de tareas en el producto y preguntas de cierre. Para mantener la coherencia con la entrega del **Sprint 1**, la evaluación inicial se enfoca en la Landing Page efectivamente publicada, especialmente en la comprensión del producto (US15) y la identificación de botones de acceso (US19). Los escenarios de registro de interesados (US16) solo podrán evaluarse como flujo real cuando se disponga de la funcionalidad verificable.
+
+| Segmento | Tareas de validación | Indicadores y preguntas de observación |
+|---|---|---|
+| Propietarios de mascotas | Abrir la Landing Page, explicar qué problema resuelve VetPax, localizar beneficios para propietarios, buscar el acceso a la aplicación móvil | ¿Comprende la propuesta de valor? ¿Encuentra las secciones sin ayuda? ¿Identifica correctamente el botón dirigido a propietarios? |
+| Profesionales y clínicas veterinarias | Abrir la Landing Page, identificar la solución dirigida a clínicas, explicar las funciones clínicas anunciadas y localizar el acceso a la aplicación web | ¿El contenido es entendible para el perfil profesional? ¿Distingue los dos productos? ¿El acceso para clínicas resulta reconocible? |
+
+Para cada sesión, la ficha de registro debe recoger la fecha, código o identificación autorizada del participante, segmento, edad y distrito si el participante consiente, duración, tareas, observaciones, dificultades, respuestas textuales autorizadas y enlace de video con su minuto de inicio. Se solicitará consentimiento antes de grabar o difundir testimonios.
+
+### 7.3.2. Registro de Entrevistas
+
+**Estado de la evidencia recibida:** no se aportaron entrevistas de usuarios ni enlaces de grabación. No se consignan nombres, edades, puntuaciones o testimonios inexistentes. El siguiente formato se deja como instrumento de registro para las sesiones que se realicen:
+
+| Sesión | Segmento | Participante autorizado | Tareas ejecutadas | Resultado y observaciones | Video / minuto |
+|---|---|---|---|---|---|
+| Por registrar | Propietarios | Sin registro recibido | Según protocolo de 7.3.1 | Sin resultados de sesión recibidos | Sin grabación recibida |
+| Por registrar | Veterinarios / clínicas | Sin registro recibido | Según protocolo de 7.3.1 | Sin resultados de sesión recibidos | Sin grabación recibida |
+
+### 7.3.3. Evaluaciones según heurísticas
+
+Se utilizará la matriz de evaluación heurística indicada en el **Anexo D** del enunciado, relacionando hallazgos de entrevistas con el principio afectado, su severidad y una recomendación de mejora. Como preparación, se plantean estos aspectos a observar; **no constituyen resultados atribuidos a entrevistados**:
+
+| Aspecto por evaluar | Heurística asociada | Evidencia que se deberá registrar |
+|---|---|---|
+| Claridad de los mensajes y nombres de secciones | Correspondencia con el mundo real | Comentarios sobre términos desconocidos o ambiguos |
+| Identificación y comportamiento de los botones CTA | Consistencia y estándares | Ruta elegida, expectativas y destino observado |
+| Navegación móvil y retorno a secciones | Control y libertad del usuario | Errores de navegación, retrocesos y facilidad de uso |
+| Organización de beneficios para propietarios y clínicas | Reconocimiento antes que recuerdo | Dificultades para encontrar información relevante |
+| Legibilidad y adaptación a distintos tamaños de pantalla | Diseño estético y minimalista / accesibilidad | Observaciones sobre lectura, jerarquía y tamaño de controles |
+
+La severidad de cada problema, las evidencias específicas y las recomendaciones finales deberán basarse en los registros reales de las sesiones, no en supuestos.
+
+## 7.4. Video About-the-Product
+
+El video *About-the-Product* tiene el propósito de presentar la solución VetPax y permitir que ambos segmentos objetivo comprendan su propuesta de valor, el alcance de la Landing Page y la relación con las aplicaciones móvil y web. La Landing Page contiene un espacio previsto para incorporar un video, pero **no se adjuntó un video publicado, su enlace de Microsoft Stream/YouTube ni un testimonio autorizado**. Por tanto, no se indica una duración o un enlace ficticio.
+
+**Secuencia propuesta para la producción del video**
+
+| Bloque | Contenido previsto | Evidencia disponible para su preparación |
+|---|---|---|
+| Introducción | Problema del seguimiento de mascotas geriátricas y crónicas y presentación de PawVital Tech | Contexto del proyecto y capturas de la Landing Page |
+| Presentación de VetPax | Descripción de la solución, segmento de propietarios y segmento veterinario | `Landing_Page/Web/1.png`, `Web/3.png`, `Web/5.png`, `Web/6.png` |
+| Demostración | Recorrido por la Landing Page y botones CTA, mostrando versiones de escritorio y móvil | `Landing_Page/Web/*`, `Landing_Page/Mobil/*` |
+| Evidencia de producto | Breve vista de aplicaciones y arquitectura que solo muestre módulos efectivamente ejecutados | Repositorios GitHub y evidencias técnicas de este capítulo |
+| Cierre y testimonio | Opinión positiva real de un entrevistado, con su autorización, y llamado a conocer VetPax | Se incorpora únicamente cuando exista una entrevista real y consentimiento |
+
+**Estado de publicación:** el material recibido contiene capturas de la Landing Page, pero no un archivo final de video ni enlaces o timings demostrables. Los enlaces y el testimonio se documentarán cuando existan, sin tratarlos como entregables realizados en esta versión.
