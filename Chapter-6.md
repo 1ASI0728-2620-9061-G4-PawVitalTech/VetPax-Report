@@ -1,3 +1,5 @@
+<div style="page-break-after: always;"></div>
+
 # **Capítulo VI: Solution UX Design**
 
 El presente capítulo desarrolla la propuesta de experiencia de usuario e interfaz de usuario de VetPax para los productos digitales que interactúan directamente con sus segmentos objetivo. Las decisiones de diseño consideran la Landing Page, la Web Application destinada principalmente a veterinarios y administradores de clínicas, y la Mobile Application orientada a propietarios de mascotas.
