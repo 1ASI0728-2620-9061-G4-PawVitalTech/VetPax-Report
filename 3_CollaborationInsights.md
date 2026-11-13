@@ -21,4 +21,11 @@ TP1:
 
 <img src="./feature/CollaborationInsight/NetworkGraph_2.png">
 
+TB2:
+
+<img src="./feature/CollaborationInsight/Insight_3.png">
+
+<img src="./feature/CollaborationInsight/Collaboration_3.png">
+
+<img src="./feature/CollaborationInsight/NetworkGraph_3.png">
 

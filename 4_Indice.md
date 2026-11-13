@@ -1,10 +1,12 @@
 <div style="page-break-after: always;"></div>
-
 # Contenido
 
 - [**Registro de Versiones del Informe**](#registro-de-versiones-del-informe)
+
 - [**Project Report Collaboration Insights**](#project-report-collaboration-insights)
+
 - [**Contenido**](#contenido)
+
 - [**Student Outcome**](#student-outcome)
 
 - [**Capítulo I: Introducción**](#capítulo-i-introducción)
@@ -76,7 +78,6 @@
     - [5.1.6. Bounded Context Software Architecture Code Level Diagrams](#516-bounded-context-software-architecture-code-level-diagrams)
       - [5.1.6.1. Bounded Context Domain Layer Class Diagrams](#5161-bounded-context-domain-layer-class-diagrams)
       - [5.1.6.2. Bounded Context Database Design Diagram](#5162-bounded-context-database-design-diagram)
-
   - [5.2. Bounded Context: Clinic Management](#52-bounded-context-clinic-management)
     - [5.2.1. Domain Layer](#521-domain-layer)
     - [5.2.2. Interface Layer](#522-interface-layer)
@@ -86,7 +87,6 @@
     - [5.2.6. Bounded Context Software Architecture Code Level Diagrams](#526-bounded-context-software-architecture-code-level-diagrams)
       - [5.2.6.1. Bounded Context Domain Layer Class Diagrams](#5261-bounded-context-domain-layer-class-diagrams)
       - [5.2.6.2. Bounded Context Database Design Diagram](#5262-bounded-context-database-design-diagram)
-
   - [5.3. Bounded Context: Appointment Management](#53-bounded-context-appointment-management)
     - [5.3.1. Domain Layer](#531-domain-layer)
     - [5.3.2. Interface Layer](#532-interface-layer)
@@ -96,7 +96,6 @@
     - [5.3.6. Bounded Context Software Architecture Code Level Diagrams](#536-bounded-context-software-architecture-code-level-diagrams)
       - [5.3.6.1. Bounded Context Domain Layer Class Diagrams](#5361-bounded-context-domain-layer-class-diagrams)
       - [5.3.6.2. Bounded Context Database Design Diagram](#5362-bounded-context-database-design-diagram)
-
   - [5.4. Bounded Context: Identity & Access Management (IAM)](#54-bounded-context-identity--access-management-iam)
     - [5.4.1. Domain Layer](#541-domain-layer)
     - [5.4.2. Interface Layer](#542-interface-layer)
@@ -106,7 +105,6 @@
     - [5.4.6. Bounded Context Software Architecture Code Level Diagrams](#546-bounded-context-software-architecture-code-level-diagrams)
       - [5.4.6.1. Bounded Context Domain Layer Class Diagrams](#5461-bounded-context-domain-layer-class-diagrams)
       - [5.4.6.2. Bounded Context Database Design Diagram](#5462-bounded-context-database-design-diagram)
-
   - [5.5. Bounded Context: Medication Treatment](#55-bounded-context-medication-treatment)
     - [5.5.1. Domain Layer](#551-domain-layer)
     - [5.5.2. Interface Layer](#552-interface-layer)
@@ -116,7 +114,6 @@
     - [5.5.6. Bounded Context Software Architecture Code Level Diagrams](#556-bounded-context-software-architecture-code-level-diagrams)
       - [5.5.6.1. Bounded Context Domain Layer Class Diagram](#5561-bounded-context-domain-layer-class-diagram)
       - [5.5.6.2. Bounded Context Database Design Diagram](#5562-bounded-context-database-design-diagram)
-
   - [5.6. Bounded Context: Nutrition Management](#56-bounded-context-nutrition-management)
     - [5.6.1. Domain Layer](#561-domain-layer)
     - [5.6.2. Interface Layer](#562-interface-layer)
@@ -126,7 +123,6 @@
     - [5.6.6. Bounded Context Software Architecture Code Level Diagrams](#566-bounded-context-software-architecture-code-level-diagrams)
       - [5.6.6.1. Bounded Context Domain Layer Class Diagram](#5661-bounded-context-domain-layer-class-diagram)
       - [5.6.6.2. Bounded Context Database Design Diagram](#5662-bounded-context-database-design-diagram)
-
   - [5.7. Bounded Context: Adherence & Gamification](#57-bounded-context-adherence--gamification)
     - [5.7.1. Domain Layer](#571-domain-layer)
     - [5.7.2. Interface Layer](#572-interface-layer)
@@ -167,6 +163,36 @@
     - [6.5.1. Mobile Application Prototype](#651-mobile-application-prototype)
     - [6.5.2. Web Application Prototype](#652-web-application-prototype)
 
+- [**Capítulo VII: Product Implementation, Validation & Deployment**](#capítulo-vii-product-implementation-validation--deployment)
+  - [7.1. Software Configuration Management](#71-software-configuration-management)
+    - [7.1.1. Software Development Environment Configuration](#711-software-development-environment-configuration)
+    - [7.1.2. Source Code Management](#712-source-code-management)
+    - [7.1.3. Source Code Style Guide & Conventions](#713-source-code-style-guide--conventions)
+    - [7.1.4. Software Deployment Configuration](#714-software-deployment-configuration)
+    - [7.1.5. Security, Domain Rules, Concurrency and Fault Recovery](#715-security-domain-rules-concurrency-and-fault-recovery)
+      - [7.1.5.1. Authentication, Clinical Authorization and User–Clinic Relationships](#7151-authentication-clinical-authorization-and-userclinic-relationships)
+      - [7.1.5.2. Medication Scheduling and Domain Invariants](#7152-medication-scheduling-and-domain-invariants)
+      - [7.1.5.3. Concurrent Processing and Duplicate Prevention](#7153-concurrent-processing-and-duplicate-prevention)
+      - [7.1.5.4. External Service Failure and Data Recovery](#7154-external-service-failure-and-data-recovery)
+      - [7.1.5.5. Traceability of Functional and Quality Requirements](#7155-traceability-of-functional-and-quality-requirements)
+  - [7.2. Solution Implementation](#72-solution-implementation)
+    - [7.2.1. Sprint 1](#721-sprint-1)
+      - [7.2.1.1. Sprint Planning 1](#7211-sprint-planning-1)
+      - [7.2.1.2. Sprint Backlog 1](#7212-sprint-backlog-1)
+      - [7.2.1.3. Development Evidence for Sprint Review](#7213-development-evidence-for-sprint-review)
+      - [7.2.1.4. Testing Suite Evidence for Sprint Review](#7214-testing-suite-evidence-for-sprint-review)
+      - [7.2.1.5. Execution Evidence for Sprint Review](#7215-execution-evidence-for-sprint-review)
+      - [7.2.1.6. Services Documentation Evidence for Sprint Review](#7216-services-documentation-evidence-for-sprint-review)
+      - [7.2.1.7. Software Deployment Evidence for Sprint Review](#7217-software-deployment-evidence-for-sprint-review)
+      - [7.2.1.8. Team Collaboration Insights during Sprint](#7218-team-collaboration-insights-during-sprint)
+  - [7.3. Validation Interviews](#73-validation-interviews)
+    - [7.3.1. Diseño de Entrevistas](#731-diseño-de-entrevistas)
+    - [7.3.2. Registro de Entrevistas](#732-registro-de-entrevistas)
+    - [7.3.3. Evaluaciones según heurísticas](#733-evaluaciones-según-heurísticas)
+  - [7.4. Video About-the-Product](#74-video-about-the-product)
+
 - [**Conclusiones**](#conclusiones)
+
 - [**Bibliografía**](#bibliografía)
+
 - [**Anexo**](#anexo)
