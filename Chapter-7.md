@@ -1,3 +1,5 @@
+<div style="page-break-after: always;"></div>
+
 # Capítulo VII: Product Implementation, Validation & Deployment
 
 VetPax es una solución digital de **PawVital Tech** orientada al seguimiento clínico, nutricional y terapéutico de mascotas geriátricas o con enfermedades crónicas. Está integrada por una Landing Page, una aplicación web Angular, una aplicación móvil Flutter y servicios REST en ASP.NET Core/.NET 10. El backend sigue DDD, separación por capas y un monolito modular con componentes de dominio, aplicación, infraestructura e interfaz. Para autenticar y autorizar se ha configurado Keycloak; para alojar la API y servicios complementarios se emplea Railway.
