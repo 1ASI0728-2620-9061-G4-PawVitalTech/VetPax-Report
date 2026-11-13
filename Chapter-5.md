@@ -1,10 +1,12 @@
+<div style="page-break-after: always;"></div>
+
 ## **Capítulo V: Tactical-Level Software Design**
 
 Este capítulo desarrolla el diseño táctico de los siete bounded contexts definidos para VetPax. En coherencia con el capítulo IV, se mantiene **un único Backend API organizado como monolito modular**, aplicando arquitectura hexagonal y una **base de datos lógica centralizada**. Cada bounded context conserva la responsabilidad sobre sus reglas de negocio y datos mediante puertos, repositorios y contratos internos; no se presupone que los contextos sean microservicios o que dispongan de bases de datos físicas independientes.
 
 La separación lógica puede implementarse mediante esquemas o grupos de tablas de propiedad exclusiva de cada módulo, según el gestor de base de datos seleccionado. Las referencias entre contextos se representan mediante identificadores y contratos de aplicación o eventos, sin realizar escrituras directas en las tablas de otro contexto. La infraestructura compartida sigue siendo una dependencia crítica, tal como se explica en el análisis de disponibilidad y recuperación del capítulo IV.
 
-**Convención de trazabilidad:** la integración con calendarios externos se identifica en este capítulo como **TS15 (propuesta)**, para distinguirla de **TS04**, que en `Chapter-3.md` corresponde a la programación de recordatorios. Antes de la entrega final, el equipo debe incorporar y aprobar TS15 en la especificación y el Product Backlog del capítulo III, o bien retirar su código y documentar la integración como una capacidad técnica pendiente. Las imágenes originales de este capítulo se conservan; cuando una corrección introduzca una regla o relación adicional, será necesario reflejarla también en la figura correspondiente.
+La trazabilidad tecnológica utiliza **TS04** para la programación de recordatorios, **TS15** para la integración propuesta con un calendario externo y **TS17** para respaldo y recuperación, conforme a la especificación y al Product Backlog del capítulo III. Las capacidades diseñadas y las efectivamente implementadas se distinguen mediante referencias al código cuando existe evidencia.
 
 ### 5.1. Bounded Context: Pet & Clinical Care
 
@@ -26,7 +28,7 @@ Es el contexto central de VetPax: Appointment Management, Medication Treatment, 
 
 #### 5.1.1. Domain Layer
 
-La Domain Layer concentra las reglas de la mascota y de su historial clínico. Mantiene el modelo separado de HTTP, de la base de datos y de los proveedores externos, conforme a la arquitectura hexagonal (ADD01 y ADD02). Los tipos se expresan de forma agnóstica al lenguaje, porque el framework del backend aún no está definido.
+La Domain Layer concentra las reglas de la mascota y de su historial clínico. Mantiene el modelo separado de HTTP, de la base de datos y de los proveedores externos, conforme a la arquitectura hexagonal (ADD01 y ADD02). Los elementos de diseño se representan de forma independiente de la plataforma; su implementación en VetPax utiliza C#, ASP.NET Core/.NET 10, Entity Framework Core y MySQL.
 
 ##### Reglas de negocio
 
@@ -41,7 +43,10 @@ La Domain Layer concentra las reglas de la mascota y de su historial clínico. M
 | 7 | La evolución solo se calcula si existen registros comparables suficientes. | US11 E02 |
 | 8 | Las atenciones registradas se conservan para mantener la trazabilidad (Audit Context). | Canvas |
 | 9 | Únicamente un profesional veterinario autorizado y vinculado con la atención puede registrar información clínica. Se debe identificar al profesional responsable, registrar la fecha y hora, y rechazar modificaciones no autorizadas. | US03, Canvas de Pet & Clinical Care |
-| 10 | Cuando la atención se realiza como parte de una cita programada, puede conservarse el `appointmentId` como referencia lógica al contexto Appointment Management; las consultas sin cita previa también pueden registrarse. | Historia A de 4.2.3; separación de bounded contexts |
+| 10 | Cuando la atención se realiza como parte de una cita programada, puede conservarse el `appointmentId` como referencia lógica a Appointment Management; las consultas sin cita previa también pueden registrarse. | Cap. IV, 4.2.3 Historia A; US03 |
+| 11 | El rol `veterinarian` no es suficiente por sí solo: para acceder o registrar información clínica debe existir una pertenencia activa del profesional a la clínica y un vínculo activo de la mascota con esa clínica. | US02 E03, US03 E03, US10 E03; RNF-18; `VeterinaryClinicalAccessPolicy` |
+| 12 | La autorización clínica del veterinario se mantiene mientras los dos vínculos anteriores permanezcan activos; cuando cualquiera se desactiva, la siguiente verificación deniega el recurso, independientemente de que el token de Keycloak todavía sea válido. | RNF-01, RNF-18; `VerifiedClinicalAuthorizationAdapter` |
+| 13 | La autorización del propietario se evalúa sobre la titularidad de la mascota. Las operaciones para las cuales no exista una relación válida se deniegan por defecto. | US01 E01, US02 E03; `ClinicalAccessPolicy` |
 
 ##### Diccionario de clases
 
@@ -101,6 +106,8 @@ La Domain Layer concentra las reglas de la mascota y de su historial clínico. M
 | **MascotaRegistrada** | Se registró una mascota asociada a un dueño. | `petId`, `ownerId`, `occurredAt` |
 | **AtenciónClínicaRegistrada** | Se registró una atención sobre una mascota existente. | `clinicalRecordId`, `petId`, `attentionId`, `clinicId`, `veterinarianId`, `occurredAt` |
 | **HistorialClínicoActualizado** | El historial incorporó una nueva atención. | `clinicalRecordId`, `petId`, `occurredAt` |
+
+**Política de acceso clínico por vínculos activos.** La integración de infraestructura utiliza `IClinicalRelationshipPort` y `VerifiedClinicalAuthorizationAdapter` para consultar `HasActiveVeterinarianMembershipAsync` y `HasActivePatientLinkAsync` antes de ejecutar `VeterinaryClinicalAccessPolicy`. La relación profesional–clínica y la relación clínica–paciente son referencias de autorización de negocio. Su activación y desactivación afectan nuevas solicitudes; no se fija un vencimiento de días u horas que no esté definido por la especificación del dominio. La sesión autenticada permanece sujeta a la configuración independiente del proveedor Keycloak.
 
 ##### Relaciones entre clases
 
@@ -255,7 +262,9 @@ La Domain Layer concentra las reglas del perfil de la clínica y de sus horarios
 | 3 | Los horarios deben ser consistentes: el cierre es posterior a la apertura y no hay traslapes en un mismo día. | Canvas, US12 E02 |
 | 4 | Un veterinario solo ve los pacientes de su propia clínica. | Canvas, US10 E03, TS08 E03 |
 | 5 | Si la clínica no tiene pacientes vinculados, se informa que no hay pacientes disponibles. | US10 E02 |
-| 6 | Cada actualización válida del perfil comunica los horarios mediante `PerfilDeClínicaActualizado`. | Canvas, Context Map |
+| 6 | Cada actualización válida del perfil comunica los horarios mediante `PerfilDeClínicaActualizado`. | Cap. IV, 4.2.5 Context Mapping; US12 |
+| 7 | Una pertenencia profesional–clínica se considera autorizante únicamente si el identificador del profesional y el de la clínica corresponden a la relación activa registrada. La pertenencia no se deduce del rol global `veterinarian`. | US10 E03; RNF-18; `IClinicMembershipPort`, `ClinicMembershipAdapter` |
+| 8 | Para modificar el perfil se requiere que la cuenta sea administradora de la clínica concreta; no es suficiente un rol administrativo sin asociación con dicha clínica. | US12 E03; `ClinicAccessPolicy` |
 
 ##### Diccionario de clases
 
@@ -294,6 +303,14 @@ La Domain Layer concentra las reglas del perfil de la clínica y de sus horarios
 | Evento | Hecho que representa | Atributos |
 |---|---|---|
 | **PerfilDeClínicaActualizado** | Se actualizaron los datos generales o los horarios de atención de la clínica. | `clinicId`, `generalData`, `openingSchedule`, `occurredAt` |
+
+**Relación entre cuenta, profesional y clínica.** El usuario representa una identidad autenticada mediante IAM; `Clinic` representa la organización. Su asociación no se modela como identidad de usuario adicional, sino mediante el registro persistente `ClinicVeterinarianRow` (`ClinicId`, `VeterinarianId`, `IsActive`). `ClinicMembershipAdapter` consulta la pertenencia activa y `ClinicAccessPolicy` diferencia permisos administrativos y veterinarios. Por separado, `PetClinicLinkRow` relaciona el paciente con la clínica. Esta separación permite que la revocación de una pertenencia no altere el historial clínico, pero sí cambie la capacidad de acceder a él.
+
+| Relación | Atributos funcionales | Restricción |
+|---|---|---|
+| Usuario (IAM) – Clínica | `veterinarianId`, `clinicId`, `isActive` | Solo la relación activa habilita acceso profesional al ámbito de la clínica. |
+| Clínica – Paciente | `clinicId`, `petId`, estado de vinculación | Solo el vínculo activo permite acceso clínico del profesional autorizado. |
+| Administrador – Clínica | `administratorId`, `clinicId` | Solo la pertenencia administrativa a la clínica concreta habilita modificación del perfil. |
 
 ##### Relaciones entre clases
 
@@ -414,7 +431,7 @@ El contexto utiliza la referencia de la mascota proporcionada por Pet & Clinical
 | US05 — Cancelar o reprogramar cita | Modificar una cita pendiente, liberar el horario al cancelarla y evitar duplicados al reprogramarla. |
 | US06 — Gestionar agenda de citas | Consultar la agenda por periodo y permitir que el veterinario registre una cita como atendida. |
 | TS03 — API para gestionar citas veterinarias | Exponer la creación y actualización de citas y comunicar los conflictos de horario. |
-| TS04 — Integración de citas con servicio de calendario | Sincronizar las citas confirmadas y conservar la cita interna si el proveedor externo falla. |
+| TS15 — Integración de citas con calendario externo | Sincronizar las citas confirmadas y conservar la cita interna si el proveedor externo falla. |
 | Secciones 4.2.1, 4.2.4 y 4.2.5 | Establecer el agregado Appointment, los mensajes del contexto y sus relaciones con otros contextos. |
 
 #### 5.3.1. Domain Layer
@@ -437,6 +454,7 @@ Las operaciones sobre una cita dependen de su estado: las citas pendientes admit
 | Cancelar | La cita debe encontrarse pendiente. | Se cambia a cancelada y se libera el horario reservado. |
 | Restringir modificaciones | Una cita atendida o cancelada no puede modificarse. | Se rechaza la operación. |
 | Marcar como atendida | La cita debe estar pendiente; el profesional veterinario debe estar autorizado y debe existir una atención clínica previamente registrada y asociada a esa cita, verificada mediante un contrato de Pet & Clinical Care. | Se conserva la referencia lógica a la atención clínica, se actualiza la cita a **Atendida** y, después de persistir el cambio, se publica `CitaVeterinariaAtendida`. |
+| Reservas concurrentes | Dos o más operaciones no deben confirmar simultáneamente reservas incompatibles del mismo profesional en el mismo intervalo. | La persistencia debe aplicar una protección transaccional o restricción de unicidad apropiada, además de la consulta de disponibilidad; la segunda solicitud recibe conflicto. |
 
 La disponibilidad requiere considerar tanto las reservas existentes como los horarios que proporciona Clinic Management.
 
@@ -507,7 +525,7 @@ Los manejadores de estos mensajes coordinarán las operaciones de cada caso de u
 - **Adherence & Gamification:** recibe `CitaVeterinariaAtendida` y ejecuta su propio cálculo de constancia.
 - **Servicio de calendario:** recibe la solicitud de sincronización de las citas confirmadas; cuando una cita sincronizada se reprograma, se actualiza el evento externo asociado.
 
-La sincronización con el calendario externo se ejecuta **después de confirmar y persistir la cita en VetPax**, de manera desacoplada respecto de la reserva interna. Ante un fallo del proveedor, la aplicación conserva la cita y registra la solicitud de sincronización pendiente para su posterior reintento, sin indicar que la sincronización externa fue exitosa. Esta integración corresponde a la propuesta TS15 (pendiente de registrar en el capítulo III); TS04 permanece reservado al servicio de programación de recordatorios.
+La sincronización con el calendario externo se ejecuta **después de confirmar y persistir la cita en VetPax**, de manera desacoplada respecto de la reserva interna. Ante un fallo del proveedor, la aplicación conserva la cita y registra la solicitud de sincronización pendiente para su posterior reintento, sin indicar que la sincronización externa fue exitosa. Esta integración corresponde a TS15 del capítulo III; TS04 permanece reservado al servicio de programación de recordatorios.
 
 #### 5.3.4. Infrastructure Layer
 
@@ -515,11 +533,11 @@ La Infrastructure Layer implementa la persistencia de las citas y la comunicaci�
 
 **Persistencia**
 
-La implementación del contrato de repositorio almacenará las citas y sus cambios de estado, y proporcionará la información necesaria para consultar la agenda y comprobar reservas. Deberá evitar la duplicación de una cita al reprogramarla y rechazar reservas que entren en conflicto.
+El repositorio de citas almacena las reservas, sus cambios de estado y los datos de agenda necesarios para verificar disponibilidad. La consulta previa de horarios libres no sustituye una operación atómica de confirmación: ante solicitudes concurrentes sobre la misma franja debe preservarse el invariante de no solapamiento mediante control transaccional, bloqueo o restricción de persistencia coherente con el esquema elegido. Una reprogramación modifica la reserva existente sin crear otra. El mecanismo concreto de exclusión sobre franjas superpuestas constituye una decisión de implementación distinta del control de concurrencia de workers de recordatorios.
 
 **Adaptador del servicio de calendario**
 
-La integración se encapsulará mediante un adaptador, de acuerdo con la separación de puertos y adaptadores y con la relación Anticorruption Layer definida en el Context Map. Este componente traducirá la información de la cita al contrato del proveedor y permitirá registrar el identificador del evento externo cuando la sincronización sea exitosa. También permitirá actualizar dicho evento al reprogramar la cita. Una solicitud de sincronización pendiente se conservará con un identificador que permita reintentar la operación y reducir el riesgo de duplicar eventos externos. Esta capacidad se identifica como TS15 (propuesta pendiente de incorporación al capítulo III), no como TS04.
+La integración se encapsulará mediante un adaptador, de acuerdo con la separación de puertos y adaptadores y con la relación Anticorruption Layer definida en el Context Map. Este componente traducirá la información de la cita al contrato del proveedor y permitirá registrar el identificador del evento externo cuando la sincronización sea exitosa. También permitirá actualizar dicho evento al reprogramar la cita. Una solicitud de sincronización pendiente se conservará con un identificador que permita reintentar la operación y reducir el riesgo de duplicar eventos externos. Esta capacidad corresponde a TS15 del capítulo III; TS04 se reserva al servicio de programación de recordatorios.
 
 **Integración de mensajes**
 
@@ -527,7 +545,7 @@ La infraestructura deberá dar soporte a la recepción de los horarios publicado
 
 #### 5.3.5. Bounded Context Software Architecture Component Level Diagrams
 
-El diagrama deberá representar la interfaz de citas, la coordinación de comandos y consultas, el agregado Appointment, la persistencia y el adaptador del calendario. También deberá reflejar las dependencias con IAM, Pet & Clinical Care y Clinic Management, y la salida de eventos hacia Adherence & Gamification, manteniendo la separación de capas descrita.
+El modelo de componentes reúne la interfaz de citas, los comandos y consultas, el agregado Appointment, la persistencia y el adaptador de calendario previsto en TS15. Sus contratos externos se relacionan con IAM, Pet & Clinical Care y Clinic Management, mientras que los eventos de atención se dirigen hacia Adherence & Gamification.
 
 ![AppointmentComponent](feature/Chapter-5/AppointmentComponentDiagram.png)
 
@@ -557,7 +575,7 @@ IAM utiliza Keycloak como proveedor de identidad, conforme a TS12 y ADD03, y enc
 | --- | --- |
 | US20 — Registrarse en VetPax mediante autenticación segura | Crear la identidad mediante Keycloak, validar los datos y rechazar un correo ya registrado. |
 | US21 — Iniciar sesión mediante autenticación segura | Validar credenciales y solicitar nueva autenticación cuando la sesión haya expirado. |
-| US22 — Gestionar acceso según rol de usuario | Permitir o denegar funcionalidades según permisos y aplicar cambios de permisos en una nueva sesión. |
+| US22 — Recuperar acceso a la cuenta | Iniciar el proceso de restablecimiento de contraseña y rechazar enlaces de recuperación expirados. La autorización por roles corresponde a TS12 y RF-04. |
 | TS12 — Implementación de autenticación y autorización mediante Keycloak | Integrar el proveedor de identidad y proteger los recursos de la plataforma. |
 | ADD03, ADD08 y secciones 4.2.4, 4.2.5 y 4.3.3 | Delimitar IAM, aislar al proveedor y establecer la comunicación de identidad con los clientes y el backend. |
 
@@ -577,7 +595,7 @@ El agregado **User Account** representa la cuenta que permite relacionar una ide
 | Veterinario | Consultar los pacientes autorizados, registrar atenciones, gestionar su agenda y prescribir planes nutricionales. |
 | Administrador de veterinaria | Configurar los datos generales y los horarios de atención de la clínica. |
 
-Las operaciones protegidas requieren una identidad autenticada y permisos suficientes. Un usuario no debe acceder a funcionalidades ajenas a su rol. US22 establece que las modificaciones de permisos se aplican cuando el usuario inicia una nueva sesión.
+Las operaciones protegidas requieren identidad autenticada y permisos suficientes, y el backend comprueba la autorización específica del recurso solicitado. US22 regula la recuperación de acceso a la cuenta, mientras que TS12 regula la integración de autenticación y autorización con Keycloak. La expiración del access token se rige por la configuración de Keycloak y es independiente de la validez de la relación clínica que autoriza el acceso a un paciente.
 
 La autorización también debe respetar las restricciones de cada contexto: US02 limita el historial a las mascotas asociadas al dueño y US10 restringe la consulta de pacientes de otras clínicas sin autorización. IAM proporciona la identidad y los roles; los contextos que administran esos recursos deben aplicar las condiciones de asociación correspondientes.
 
@@ -647,7 +665,7 @@ La gestión de identidad y credenciales permanece delegada en Keycloak. IAM inte
 
 #### 5.4.5. Bounded Context Software Architecture Component Level Diagrams
 
-El diagrama deberá mostrar las interacciones de registro y autenticación, la coordinación de identidad y permisos, el modelo conceptual User Account y el adaptador de Keycloak. Deberá representar al proveedor de identidad y su relación con los clientes y el backend, conforme al Container Diagram existente.
+El modelo de componentes considera las operaciones de registro y autenticación, la coordinación de identidad y permisos, la cuenta conceptual User Account y el adaptador Keycloak. La validación contextual de los recursos clínicos permanece en los contextos de negocio, conforme al diseño de contenedores.
 
 ![IAMComponent](feature/Chapter-5/IAMComponentDiagram.png)
 
@@ -663,7 +681,7 @@ El diagrama de clases tendrá como alcance los conceptos de cuenta y roles, y lo
 
 ![IAMBDComponent](feature/Chapter-5/IAMbd.png)
 
-**Separación entre datos de VetPax y datos de Keycloak.** En la base de datos de negocio de VetPax se conservan únicamente los perfiles, asociaciones y referencias de identidad necesarios para las reglas de cada módulo. Las contraseñas, credenciales y mecanismos internos de autenticación son responsabilidad de Keycloak y no deben modelarse como tablas propias del almacenamiento clínico centralizado. La vinculación entre ambos se realiza mediante identificadores de usuario y contratos de integración. Se debe revisar el diagrama anterior para asegurar que esta separación esté representada.
+**Separación entre datos de VetPax y datos de Keycloak.** En la base de datos de negocio de VetPax se conservan únicamente los perfiles, asociaciones y referencias de identidad necesarios para las reglas de cada módulo. Las contraseñas, credenciales y mecanismos internos de autenticación son responsabilidad de Keycloak y no deben modelarse como tablas propias del almacenamiento clínico centralizado. La vinculación entre ambos se realiza mediante identificadores de usuario y contratos de integración. La separación de almacenamiento distingue la base de negocio de la base de identidad y conserva únicamente referencias entre ambos dominios.
 
 
 
@@ -686,11 +704,26 @@ La capa de dominio representa el tratamiento con medicación y las reglas establ
 
 **Reglas de negocio**
 
-1. Los recordatorios se activan únicamente cuando el tratamiento tiene horarios definidos.
-2. Una dosis no puede registrarse dos veces.
-3. La dosis debe pertenecer a un tratamiento activo.
-4. Únicamente un profesional veterinario autorizado puede registrar o modificar las indicaciones de un tratamiento de medicación; el registro identifica al profesional responsable.
-5. El propietario puede consultar las indicaciones, activar recordatorios y registrar la administración de dosis ya prescritas, pero no modificar medicamentos, dosis o duración del tratamiento por su cuenta.
+1. La prescripción registra identificadores válidos de propietario, mascota, clínica y veterinario; el nombre del medicamento tiene entre 1 y 200 caracteres y la vía de administración entre 1 y 100. Las instrucciones no exceden 2000 caracteres (`MedicationPlan.ValidatePrescription`).
+2. La fecha de fin, cuando existe, no puede ser anterior a la fecha inicial; la prescripción identifica una zona horaria y utiliza marcas temporales UTC para sus operaciones. La fecha de aplicación de una dosis debe pertenecer al intervalo activo del tratamiento (`MedicationPlan.IsActiveOn`).
+3. Cada horario de medicación incluye una hora local, por lo menos un día válido de la semana y una dosis con cantidad positiva y unidad válida. La capa de aplicación limita a 24 horarios por plan (`MedicationSchedule`, `MedicationDosage`, `MedicationScheduleFactory`).
+4. No se aceptan identificadores de horarios duplicados. Dos horarios de una misma prescripción son incompatibles cuando comparten **el mismo día de la semana y la misma hora local**; no se impone un intervalo farmacológico mínimo genérico que no figure en la indicación médica (`MedicationSchedule.ConflictsWith`, `MedicationPlan.ValidateSchedules`).
+5. La activación de recordatorios requiere tratamiento activo y horarios definidos. Desactivarlos cambia la configuración de notificaciones sin registrar falsamente las dosis como administradas; al cerrar o reprogramar el tratamiento, las dosis pendientes se cancelan o invalidan según el flujo del agregado (`MedicationPlan.ConfigureReminders`, `ChangeSchedules`, `Complete`).
+6. Una administración se registra únicamente sobre una dosis pendiente. Si está administrada o cancelada, la operación se rechaza; el momento de administración no puede ser posterior al registro y ambos se expresan en UTC (`MedicationDose.Administer`).
+7. Solo un veterinario con autorización clínica sobre la mascota prescribe o modifica indicaciones. El propietario autorizado consulta el tratamiento y registra el cumplimiento de sus dosis, sin alterar la prescripción (US17, US18, TS05).
+8. Un recordatorio pendiente se considera elegible si el plan sigue activo, los avisos están habilitados, la dosis está pendiente y coincide la versión de horarios. Una nueva programación no debe reactivar recordatorios correspondientes a una versión anterior (`MedicationReminderProcessor`).
+
+**Concurrencia y entrega de recordatorios.** El procesador `MedicationReminderProcessor` selecciona recordatorios pendientes y adquiere uno mediante `ExecuteUpdateAsync` condicionado al estado y al vencimiento de `LockedUntilUtc`. La adquisición crea un `LeaseToken` y mantiene una reserva de **cinco minutos**. La elegibilidad del plan y la dosis se revisa antes de llamar al adaptador de notificaciones. Si el envío falla, el intento queda registrado y la siguiente ejecución se programa con espera exponencial acotada a **60 minutos**. Por tanto, ante tres workers que compiten por el mismo recordatorio, solo uno puede adquirir exitosamente la reserva vigente; esto no equivale a garantizar una única entrega cuando un proceso se interrumpe después de enviar y antes de persistir el estado `Sent`.
+
+| Prueba de regla | Entrada y condición | Resultado esperado |
+|---|---|---|
+| Solapamiento de horarios | Dos horarios con el mismo día y hora local | Prescripción rechazada por conflicto |
+| Horarios compatibles | Días distintos con la misma hora o distintas horas en un mismo día | Horarios válidos si cumplen las demás restricciones |
+| Dosis inválida | Cantidad menor o igual a cero | Prescripción rechazada |
+| Administración duplicada | Registrar una dosis ya administrada | Operación rechazada sin segundo registro |
+| Reprogramación de tratamiento | Recordatorio cuya versión no coincide con la vigente | No se envía el recordatorio obsoleto |
+| Tres workers concurrentes | Tres intentos sobre el mismo `ReminderId` pendiente | Una sola adquisición válida durante el lease |
+| Falla de FCM | Error al enviar una notificación elegible | Registro del fallo y nuevo intento según backoff; tratamiento conservado |
 
 ### 5.5.2. Interface Layer
 
@@ -777,9 +810,11 @@ La vista a nivel de clases se centra en `MedicationTreatment` como **Aggregate R
 
 **Reglas de negocio**
 
-1. Solo el veterinario prescribe los planes nutricionales.
-2. La cantidad y la frecuencia deben tener valores válidos.
-3. Un plan inactivo no genera notificaciones.
+1. Solo un profesional veterinario autorizado para la mascota puede prescribir o modificar el plan nutricional; el propietario consulta el plan vigente sin cambiar indicaciones clínicas (US08 E01, US24 E01).
+2. Cada indicación debe contener el alimento, la cantidad y la frecuencia necesarias para una pauta verificable; no se conserva un cambio con datos obligatorios incompletos (US08 E02, RF-15).
+3. La modificación de un plan debe permitir reconocer cuál es la versión vigente y mantener trazabilidad suficiente del cambio (US08 E03).
+4. Los recordatorios se calculan únicamente a partir del plan activo y sus horarios definidos. Si el plan queda inactivo, no se deben generar nuevas entregas correspondientes a ese plan (US09 E02, RF-17).
+5. Una falla del proveedor de notificaciones no modifica la prescripción ya persistida; el mecanismo de reintento debe gestionar la misma referencia al recordatorio para no generar nuevas pautas de alimentación (RNF-13, TS06).
 
 ### 5.6.2. Interface Layer
 
@@ -929,12 +964,18 @@ La vista a nivel de clases se centra en `Adherence` como **Aggregate Root**. `Ad
 | **Recognition** | Almacena los reconocimientos generados por ascensos de nivel. | Pertenece a Adherence. |
 | **ProcessedAdherenceEvent** (propuesta) | Conserva el identificador único del evento externo de cumplimiento ya contabilizado y la fecha de procesamiento, para prevenir duplicaciones. | Referencia lógica al evento de origen; es propiedad de Adherence & Gamification. |
 
----
+### 5.8. Invariantes transversales y trazabilidad de decisiones
 
-### Verificación de coherencia antes de la entrega
+Las relaciones entre bounded contexts se basan en identificadores y contratos de aplicación; su separación lógica no implica siete procesos ni siete bases de datos físicamente independientes. El backend ASP.NET Core se despliega como monolito modular, con MySQL como persistencia del negocio y PostgreSQL como almacenamiento de Keycloak. Los límites de autorización se aplican por recurso y por relación de negocio, no exclusivamente por el rol incluido en el token.
 
-Este archivo conserva las referencias a los diagramas existentes en `feature/Chapter-5/`. Las imágenes deben revisarse en el repositorio para confirmar que representan las reglas actualizadas, especialmente la confirmación de citas por el veterinario, la referencia `appointmentId`/`attentionId` entre los contextos de citas y clínica, la separación de identidad con Keycloak y la deduplicación de eventos de adherencia.
+| Aspecto | Contexto propietario | Contrato o mecanismo | Referencia de requisitos |
+|---|---|---|---|
+| Identidad y expiración de sesión | IAM | Keycloak; validación de tokens y roles | US21, US22, TS12, RNF-01 |
+| Autorización clínica revocable | Pet & Clinical Care / Clinic Management | Pertenencia profesional–clínica activa y vínculo clínica–paciente activo | US02, US03, US10, RNF-18 |
+| Medicación y horarios | Medication Treatment | `MedicationPlan`, `MedicationSchedule`, `MedicationDose` y versión de programación | US07, US17, US18, TS05 |
+| Concurrencia de recordatorios | Medication Treatment | `MedicationReminderProcessor`, `LeaseToken`, `LockedUntilUtc` y backoff | TS04, TS06, RNF-17 |
+| Reserva y modificación de citas | Appointment Management | Disponibilidad y persistencia consistente ante conflictos | US04, US05, TS03, RNF-17 |
+| Sincronización con calendario externo | Appointment Management | Adaptador desacoplado y estado de sincronización | TS15 |
+| Respaldo y restauración | Infraestructura de VetPax e IAM | Procedimiento separado para MySQL y PostgreSQL; verificación de integridad | TS17, RNF-16 |
 
-Asimismo, la referencia **TS15** para la integración con calendario es una propuesta **pendiente de incorporarse formalmente al capítulo III**. No debe confundirse con **TS04**, que corresponde a la programación de recordatorios. Las secciones 4.2.5 y 4.3.3 del capítulo IV también deben actualizarse para reflejar el carácter desacoplado de la sincronización del calendario y mantener la misma trazabilidad.
-
-La separación de datos por bounded context y los mecanismos de recuperación descritos representan decisiones de diseño u objetivos arquitectónicos; su cumplimiento debe evidenciarse durante la implementación y las pruebas, sin afirmar que están ya desplegados.
+El control de concurrencia de recordatorios se verifica en el procesamiento persistente y no implica tolerancia automática a cualquier fallo externo. Los objetivos RTO/RPO y los mecanismos de redundancia descritos en el capítulo IV se mantienen como requisitos de arquitectura, cuya conformidad operativa depende de una restauración efectivamente ensayada. La trazabilidad vincula estas decisiones con los requerimientos del capítulo III y con los escenarios de calidad del capítulo IV.
