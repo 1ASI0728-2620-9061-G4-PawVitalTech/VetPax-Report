@@ -2,7 +2,7 @@
 
 # Capítulo VII: Product Implementation, Validation & Deployment
 
-VetPax es una solución digital de **PawVital Tech** orientada al seguimiento clínico, nutricional y terapéutico de mascotas geriátricas o con enfermedades crónicas. Está integrada por una Landing Page, una aplicación web Angular, una aplicación móvil Flutter y servicios REST en ASP.NET Core/.NET 10. El backend sigue DDD, separación por capas y un monolito modular con componentes de dominio, aplicación, infraestructura e interfaz. Para autenticar y autorizar se ha configurado Keycloak; para alojar la API y servicios complementarios se emplea Railway.
+VetPax es una solución digital de **PawVital Tech** orientada al seguimiento clínico, nutricional y terapéutico de mascotas geriátricas o con enfermedades crónicas. Está integrada por una Landing Page, una aplicación web Angular, una aplicación móvil Flutter y servicios REST en ASP.NET Core/.NET 10. El backend sigue DDD, separación por capas y un monolito modular con componentes de dominio, aplicación, infraestructura e interfaz. Para autenticar y autorizar se ha configurado Keycloak; para alojar la API y servicios complementarios se emplea Railway. La Landing Page y la aplicación web cuentan con evidencia de publicación en Netlify, y el cliente móvil con capturas de ejecución en Android.
 
 El capítulo documenta el proceso de configuración, implementación, pruebas, despliegue y validación. Las capturas incluyen estados del proyecto en fechas concretas; no sustituyen la evidencia de funcionamiento actual de todas las integraciones.
 
@@ -17,7 +17,7 @@ Para implementar VetPax se han identificado las siguientes herramientas y depend
 | Categoría | Software / versión comprobable | Propósito | Referencia |
 |---|---|---|---|
 | Desarrollo backend | .NET 10, C#, ASP.NET Core Web API | Implementar servicios REST, reglas de aplicación y endpoints HTTP | https://dotnet.microsoft.com/ |
-| IDE y ejecución de pruebas | JetBrains Rider (versión pendiente) | Edición y ejecución de pruebas del backend | https://www.jetbrains.com/rider/ |
+| IDE y ejecución de pruebas | JetBrains Rider (versión no identificada en las capturas) | Edición y ejecución de pruebas del backend | https://www.jetbrains.com/rider/ |
 | ORM y base de datos | Entity Framework Core; Pomelo.EntityFrameworkCore.MySql 9.0.0; MySQL | Persistencia de datos de negocio y migraciones | https://learn.microsoft.com/ef/core/ |
 | Identidad | Keycloak, OpenID Connect / OAuth 2.0 | Autenticación, realms, clientes, roles y tokens | https://www.keycloak.org/ |
 | Base de datos de identidad | PostgreSQL | Persistencia independiente del servidor Keycloak | https://www.postgresql.org/ |
@@ -34,13 +34,13 @@ Para implementar VetPax se han identificado las siguientes herramientas y depend
 
 El backend está separado en `VetPax.Domain` (entidades y reglas de negocio), `VetPax.Application` (casos de uso y handlers), `VetPax.Infrastructure` (persistencia y adaptadores), `VetPax.Api` (controladores y configuración HTTP) y `tests/VetPax.Tests` (pruebas). Los módulos observados incluyen `IdentityAccessManagement`, `ClinicManagement`, `PetClinicalCare`, `AppointmentManagement`, `MedicationTreatment`, `NutritionManagement` y `AdherenceGamification`.
 
-En la aplicación web, `package.json` contiene `ng build` y `ng test`, así como Angular Material y Vitest. La aplicación móvil incluye una prueba Dart en `test/vetpax_api_test.dart` con simulación de respuestas HTTP; esto acredita existencia del código de prueba, no necesariamente su ejecución final. La Landing Page contiene Vite y `netlify.toml`; su publicación se evidencia adicionalmente mediante las 24 capturas de navegador (13 de escritorio y 11 móviles) en la dirección `https://vetpax-landing-page.netlify.app/`.
+En la aplicación web, `package.json` contiene `ng build` y `ng test`, así como Angular Material y Vitest. La aplicación móvil incluye una prueba Dart en `test/vetpax_api_test.dart` con simulación de respuestas HTTP; esto acredita existencia del código de prueba, no necesariamente su ejecución final. La Landing Page contiene Vite y `netlify.toml`; su publicación se evidencia mediante 24 capturas (13 de escritorio y 11 móviles) y la dirección `https://vetpax-landing-page.netlify.app/`. La aplicación web también presenta evidencia del dominio `https://vetpax-web-application.netlify.app/`; las capturas de Mobile documentan ejecución en Android, sin publicación en tiendas acreditada.
 
 **Figura 7.1.** Configuración de realm y clientes en Keycloak.
 
 ![Realm de autenticación VetPax](<./feature/Chapter-7/KeyCloak/Captura de pantalla 2026-10-23 133427.png>)
 
-**Pendiente:** registrar versión concreta de Rider, SDK Flutter instalado por el equipo, sistema operativo/herramientas de cada integrante y, cuando corresponda, sus rutas de descarga.
+Las capturas proporcionadas no permiten determinar la versión exacta de Rider ni la versión del SDK Flutter instalada en cada estación de trabajo. Las dependencias del producto se especifican a partir de los archivos de proyecto, mientras que las versiones de los entornos personales se mantienen diferenciadas de aquellas declaradas en el código.
 
 ### 7.1.2. Source Code Management
 
@@ -110,7 +110,7 @@ La implementación disponible utiliza rutas HTTP bajo el prefijo `/api/v1/`. En 
 
 ![Clientes Keycloak](<./feature/Chapter-7/KeyCloak/Captura de pantalla 2026-10-23 134356.png>)
 
-El despliegue de la API se respalda con un `Dockerfile` versionado en el backend. La Landing Page tiene publicación documentada en Netlify mediante capturas de ejecución. La preparación reproducible comprende: (1) mantener un repositorio de código integrado y construir la aplicación; (2) configurar servicios Railway; (3) aportar de forma protegida las variables de conexión y configuración de identidad; (4) desplegar los contenedores; (5) comprobar el estado del servicio; (6) validar por HTTPS un endpoint de salud/documentación y una solicitud autenticada con roles; (7) actualizar el diagrama C4 de despliegue con las conexiones reales. Existen capturas del estado *Online* de los servicios en Railway y evidencia de publicación de la Landing Page en Netlify. Estas capturas acreditan los estados observados en sus respectivas fechas; una solicitud HTTP autenticada en producción y el diagrama de despliegue definitivo son verificaciones distintas.
+El despliegue de la API se respalda con un `Dockerfile` versionado en el backend. La Landing Page y la Web Application presentan capturas de publicación en Netlify; la aplicación móvil cuenta con capturas de ejecución en Android. Los recorridos visuales de Web y Mobile se detallan en los apartados siguientes. La preparación reproducible comprende: (1) mantener un repositorio de código integrado y construir la aplicación; (2) configurar servicios Railway; (3) aportar de forma protegida las variables de conexión y configuración de identidad; (4) desplegar los contenedores; (5) comprobar el estado del servicio; (6) validar por HTTPS un endpoint de salud/documentación y una solicitud autenticada con roles; (7) actualizar el diagrama C4 de despliegue con las conexiones reales. Existen capturas del estado *Online* de los servicios en Railway y evidencia de publicación de la Landing Page en Netlify. Estas capturas acreditan los estados observados en sus respectivas fechas; una solicitud HTTP autenticada en producción y el diagrama de despliegue definitivo son verificaciones distintas.
 
 En Keycloak se ha configurado el realm de VetPax, roles como `owner`, `veterinarian` y `clinic_administrator`, clientes OpenID Connect y un *audience mapper* para la API. La imagen de Postman muestra un intento de autorización que termina en timeout; no demuestra un inicio de sesión satisfactorio. Por ello, la autenticación completa entre aplicación web/móvil, Keycloak y backend se debe acreditar adicionalmente.
 
@@ -118,7 +118,162 @@ En Keycloak se ha configurado el realm de VetPax, roles como `owner`, `veterinar
 
 ![Audience mapper de Keycloak](<./feature/Chapter-7/KeyCloak/Captura de pantalla 2026-10-23 135710.png>)
 
-**Enlaces de referencia:** Landing Page publicada: https://vetpax-landing-page.netlify.app/ ; documentación Swagger configurada: https://vetpax-api-production.up.railway.app/swagger/ . Se dispone de capturas de Railway y Keycloak, pero no de una ejecución autenticada documentada con request/response ni de un diagrama C4 de despliegue final dentro del material revisado. Las credenciales, client secrets y cadenas de conexión no deben publicarse en el informe.
+**Enlaces de referencia:** Landing Page publicada: https://vetpax-landing-page.netlify.app/ ; Web Application publicada (visible en las capturas): https://vetpax-web-application.netlify.app/ ; documentación Swagger configurada: https://vetpax-api-production.up.railway.app/swagger/ . Se dispone de capturas de Railway y Keycloak, pero no de una ejecución autenticada documentada con request/response ni de un diagrama C4 de despliegue final dentro del material revisado. Las credenciales, client secrets y cadenas de conexión no deben publicarse en el informe.
+
+
+
+#### Publicación y verificación de Web Application (Netlify)
+
+La aplicación web de VetPax, desarrollada con Angular, cuenta con evidencia visual de publicación bajo el subdominio `https://vetpax-web-application.netlify.app/`. La configuración de Netlify se relaciona con el cambio de repositorio identificado en la sección 7.2.1.3 (`chore: configure Netlify deployment`). Las capturas proporcionadas corresponden al sitio abierto en navegador y a las pantallas de sus módulos. No incluyen el asistente de importación de repositorios, la configuración de variables de entorno ni el registro de construcción de Netlify; por ello, los siguientes pasos describen la **verificación del despliegue y el recorrido de ejecución**, no una secuencia reconstruida de configuración que no esté fotografiada.
+
+**Paso 1. Acceso a la aplicación web publicada.** Se ingresa a `https://vetpax-web-application.netlify.app/` y se observa la página de inicio de sesión. La barra de direcciones de la captura identifica el dominio de Netlify; esta evidencia corresponde a la ejecución de la versión web publicada.
+
+![Figura 7.W01. Inicio de sesión de VetPax Web en el dominio Netlify](./feature/Chapter-7/Web_Application/1.png)
+
+*Figura 7.W01. Inicio de sesión de VetPax Web en el dominio Netlify. Evidencia visual del producto VetPax.*
+
+
+**Paso 2. Acceso al espacio de trabajo veterinario.** Se visualiza el panel inicial con navegación por las principales capacidades clínicas. La captura permite observar la interfaz desplegada después de acceder al panel, sin sustituir una prueba de autenticación de extremo a extremo.
+
+![Figura 7.W02. Dashboard veterinario en la aplicación web](./feature/Chapter-7/Web_Application/2.png)
+
+*Figura 7.W02. Dashboard veterinario en la aplicación web. Evidencia visual del producto VetPax.*
+
+
+**Paso 3. Consulta de pacientes e información clínica.** El panel permite identificar la sección de pacientes, visualizar una ficha individual, consultar el historial clínico y mostrar la evolución disponible. Estas vistas corresponden a las responsabilidades de Pet & Clinical Care descritas en el Capítulo V.
+
+![Figura 7.W03. Vista de pacientes del panel veterinario](./feature/Chapter-7/Web_Application/3.png)
+
+*Figura 7.W03. Vista de pacientes del panel veterinario. Evidencia visual del producto VetPax.*
+
+![Figura 7.W04. Ficha de paciente en VetPax Web](./feature/Chapter-7/Web_Application/2.jpeg)
+
+*Figura 7.W04. Ficha de paciente en VetPax Web. Evidencia visual del producto VetPax.*
+
+![Figura 7.W05. Historial clínico del paciente](./feature/Chapter-7/Web_Application/3.jpeg)
+
+*Figura 7.W05. Historial clínico del paciente. Evidencia visual del producto VetPax.*
+
+![Figura 7.W06. Evolución clínica registrada en la ficha del paciente](./feature/Chapter-7/Web_Application/4.jpeg)
+
+*Figura 7.W06. Evolución clínica registrada en la ficha del paciente. Evidencia visual del producto VetPax.*
+
+
+**Paso 4. Verificación de la agenda.** Se inspeccionan la vista de calendario, el listado de citas y el detalle de una cita. Estas capturas muestran la navegación y los estados visibles del módulo Appointment Management; no demuestran por sí solas una reserva concurrente o su persistencia transaccional.
+
+![Figura 7.W07. Agenda en vista de calendario](./feature/Chapter-7/Web_Application/4.png)
+
+*Figura 7.W07. Agenda en vista de calendario. Evidencia visual del producto VetPax.*
+
+![Figura 7.W08. Agenda de citas en vista de listado](./feature/Chapter-7/Web_Application/6.jpeg)
+
+*Figura 7.W08. Agenda de citas en vista de listado. Evidencia visual del producto VetPax.*
+
+![Figura 7.W09. Panel de detalle de una cita veterinaria](./feature/Chapter-7/Web_Application/8.jpeg)
+
+*Figura 7.W09. Panel de detalle de una cita veterinaria. Evidencia visual del producto VetPax.*
+
+
+**Paso 5. Verificación de medicación y prescripciones.** Se revisan tanto estados sin registros como vistas de tratamientos registrados, su detalle y el formulario de prescripción. La diferencia entre estados demuestra las representaciones de la interfaz; la validación de reglas de horarios y permisos corresponde a pruebas backend independientes.
+
+![Figura 7.W10. Pantalla de medicación sin registros](./feature/Chapter-7/Web_Application/5.png)
+
+*Figura 7.W10. Pantalla de medicación sin registros. Evidencia visual del producto VetPax.*
+
+![Figura 7.W11. Estado inicial del listado de medicación](./feature/Chapter-7/Web_Application/5.jpeg)
+
+*Figura 7.W11. Estado inicial del listado de medicación. Evidencia visual del producto VetPax.*
+
+![Figura 7.W12. Listado de tratamientos de medicación](./feature/Chapter-7/Web_Application/7.jpeg)
+
+*Figura 7.W12. Listado de tratamientos de medicación. Evidencia visual del producto VetPax.*
+
+![Figura 7.W13. Detalle de tratamiento de medicación](./feature/Chapter-7/Web_Application/9.jpeg)
+
+*Figura 7.W13. Detalle de tratamiento de medicación. Evidencia visual del producto VetPax.*
+
+![Figura 7.W14. Formulario para prescribir medicación](./feature/Chapter-7/Web_Application/10.jpeg)
+
+*Figura 7.W14. Formulario para prescribir medicación. Evidencia visual del producto VetPax.*
+
+
+**Paso 6. Verificación del módulo nutricional.** Se visualizan el listado de planes, el detalle de un plan vigente y la edición de sus indicaciones. La evidencia muestra pantallas de Nutrition Management en un navegador conectado al sitio publicado.
+
+![Figura 7.W15. Listado de planes de alimentación](./feature/Chapter-7/Web_Application/11.jpeg)
+
+*Figura 7.W15. Listado de planes de alimentación. Evidencia visual del producto VetPax.*
+
+![Figura 7.W16. Detalle del plan nutricional](./feature/Chapter-7/Web_Application/12.jpeg)
+
+*Figura 7.W16. Detalle del plan nutricional. Evidencia visual del producto VetPax.*
+
+![Figura 7.W17. Pantalla de edición de un plan alimentario](./feature/Chapter-7/Web_Application/1.jpeg)
+
+*Figura 7.W17. Pantalla de edición de un plan alimentario. Evidencia visual del producto VetPax.*
+
+
+La evidencia visual permite identificar el dominio público de Netlify y distintas interfaces web funcionales. La conformidad de los permisos por recurso, el registro persistente de datos y la disponibilidad continua del sitio se evalúan por mecanismos distintos, como pruebas de API y monitoreo.
+
+#### Ejecución y verificación de Mobile Application (Android)
+
+La aplicación móvil de VetPax está desarrollada con Flutter. Las ocho capturas aportadas permiten documentar el recorrido de ejecución de la interfaz en Android y la navegación hacia funcionalidades del propietario. No se adjuntó una publicación en Google Play o App Store, ni artefactos firmados de distribución; por tanto, la evidencia se presenta como **ejecución del cliente móvil**, sin atribuirle un despliegue en una tienda de aplicaciones.
+
+**Paso 1. Apertura de VetPax Mobile en Android.** La captura muestra la pantalla inicial de acceso con la opción de iniciar sesión a través de Keycloak. La ejecución del cliente no acredita por sí misma que la autenticación remota haya finalizado correctamente.
+
+![Figura 7.M01. Pantalla de acceso de VetPax Mobile](./feature/Chapter-7/Mobil_Application/1.jpeg)
+
+*Figura 7.M01. Pantalla de acceso de VetPax Mobile. Evidencia visual del producto VetPax.*
+
+
+**Paso 2. Consulta del historial de una mascota.** Desde la navegación principal se accede a la mascota seleccionada y se muestra el estado del historial clínico. La captura permite identificar el mensaje correspondiente cuando no existen atenciones registradas.
+
+![Figura 7.M02. Historial clínico desde la aplicación móvil](./feature/Chapter-7/Mobil_Application/4.jpeg)
+
+*Figura 7.M02. Historial clínico desde la aplicación móvil. Evidencia visual del producto VetPax.*
+
+
+**Paso 3. Registro de mascota.** Se abre el formulario de registro, se observan los datos de la mascota y la selección de raza mediante el teclado de Android. Estas pantallas documentan la interfaz del proceso, pero no sustituyen una respuesta HTTP de registro exitoso.
+
+![Figura 7.M03. Formulario de registro de mascota](./feature/Chapter-7/Mobil_Application/5.jpeg)
+
+*Figura 7.M03. Formulario de registro de mascota. Evidencia visual del producto VetPax.*
+
+![Figura 7.M04. Ingreso de datos y raza en el registro de mascota](./feature/Chapter-7/Mobil_Application/6.jpeg)
+
+*Figura 7.M04. Ingreso de datos y raza en el registro de mascota. Evidencia visual del producto VetPax.*
+
+
+**Paso 4. Consulta de clínicas.** Se visualiza el módulo de clínicas y su estado sin resultados registrados, desde el cual el propietario podrá identificar clínicas disponibles.
+
+![Figura 7.M05. Vista de clínicas de VetPax Mobile](./feature/Chapter-7/Mobil_Application/3.jpeg)
+
+*Figura 7.M05. Vista de clínicas de VetPax Mobile. Evidencia visual del producto VetPax.*
+
+
+**Paso 5. Consulta de cuidados.** Se observa la navegación a los apartados de medicación y alimentación de la mascota, con estados vacíos o sin plan activo según la captura aportada.
+
+![Figura 7.M06. Vista de cuidados, medicación y alimentación](./feature/Chapter-7/Mobil_Application/2.jpeg)
+
+*Figura 7.M06. Vista de cuidados, medicación y alimentación. Evidencia visual del producto VetPax.*
+
+
+**Paso 6. Consulta de constancia.** Se muestra la pantalla de progreso de adherencia en estado *Aún sin evaluar*, coherente con la ausencia de actividades suficientes para establecer una puntuación.
+
+![Figura 7.M07. Pantalla de constancia y adherencia del propietario](./feature/Chapter-7/Mobil_Application/8.jpeg)
+
+*Figura 7.M07. Pantalla de constancia y adherencia del propietario. Evidencia visual del producto VetPax.*
+
+
+**Paso 7. Revisión del perfil.** Se observa la sección de perfil con identificador de propietario y opción de cerrar sesión. Su visualización evidencia la pantalla y sus controles, no el resultado de una prueba de cierre de sesión.
+
+![Figura 7.M08. Perfil del propietario en VetPax Mobile](./feature/Chapter-7/Mobil_Application/7.jpeg)
+
+*Figura 7.M08. Perfil del propietario en VetPax Mobile. Evidencia visual del producto VetPax.*
+
+
+Estas capturas complementan la evidencia de desarrollo descrita en 7.2.1.3, sin constituir una validación de todos los flujos REST ni una prueba de publicación en tiendas. El acceso a una API de producción y el correcto procesamiento de una operación se verifican mediante respuestas HTTP y registros del servicio, no únicamente por la pantalla renderizada.
+
+**Trazabilidad con la iteración.** Los pasos anteriores describen el estado observable de dos productos digitales de VetPax, pero no se contabilizan como cumplimiento adicional de las cuatro historias de EP06 que conformaron el Sprint 1. La revisión de esas historias se mantiene en 7.2.1.4 a 7.2.1.7.
 
 ### 7.1.5. Reliability, Authorization and Failure Recovery Review
 
@@ -148,6 +303,21 @@ Estas restricciones ya constituyen reglas concretas del dominio. Una regla de **
 **Concurrencia, procesos independientes y prevención de duplicados.** La implementación de `MedicationReminderProcessor` consulta recordatorios pendientes y realiza una actualización condicional para adquirir un *lease* mediante `LeaseToken` y `LockedUntilUtc` antes de enviar. Además, verifica que el plan esté activo, los recordatorios habilitados, la dosis pendiente y que su versión de horario coincida con la del plan. `MedicationOutboxProcessor` utiliza un patrón de adquisición condicional comparable para los eventos aún no publicados. Esto es una medida concreta frente a la competencia entre workers sobre el mismo registro. La prueba `MedicationConcurrencyTests.ConcurrentUpdates_SecondWriterIsRejected` comprueba que una segunda escritura de un plan basada en una versión antigua genera `DbUpdateConcurrencyException` en MySQL.
 
 **Límite técnico importante:** un *lease* y un token de concurrencia reducen la ejecución simultánea conflictiva, pero **no garantizan entrega exactamente una vez** frente a una caída después de enviar una notificación y antes de registrar su confirmación. Para cerrar esa observación se recomienda evaluar idempotencia del consumidor/proveedor, una clave de deduplicación estable y pruebas de reinicio en ese punto de fallo. La prueba de concurrencia descrita exige la variable `VETPAX_TEST_MYSQL` y una base de pruebas `vetpax_test_db`; su presencia en el repositorio no demuestra su ejecución en producción.
+
+
+
+**Recorrido técnico del caso de uso US03: registrar atención clínica.** La trazabilidad de este caso se reconstruye a partir del código fuente del backend y se contrasta con la división por capas del Capítulo V. La información siguiente describe un flujo implementado en las clases citadas; no constituye una captura de una operación ejecutada contra producción.
+
+| Etapa | Elemento en el backend | Responsabilidad y contrato observable |
+|---|---|---|
+| Entrada HTTP | `ClinicalRecordsController.RegisterAttention` (`VetPax.Api`) | Recibe `POST /api/v1/pets/{petId}/clinical-records`, con `clinicId` y `appointmentId` opcional en query, y `RegisterClinicalAttentionRequest` en el body. Exige rol `veterinarian`, valida identificadores y obtiene la identidad actual mediante `IAuthenticatedUserPort`. |
+| Aplicación | `RegisterClinicalAttentionHandler` (`VetPax.Application`) | Recupera la mascota con `IPetRepository`, consulta la autorización mediante `IClinicalAuthorizationPort` y carga el historial con `IClinicalRecordRepository`. No consulta directamente tablas de clínicas ni gestiona tokens de Keycloak. |
+| Autorización contextual | `VerifiedClinicalAuthorizationAdapter` (`VetPax.Infrastructure`) | Implementa el puerto de autorización y consulta `IClinicalRelationshipPort`: comprueba membresía activa profesional–clínica y vínculo activo clínica–mascota antes de invocar `VeterinaryClinicalAccessPolicy`. |
+| Dominio | `ClinicalAttention` y `ClinicalRecord.RegisterAttention` (`VetPax.Domain`) | Construyen y agregan la atención al historial aplicando las reglas clínicas del contexto propietario. |
+| Integración opcional de cita | `IClinicalAppointmentLinkPort` | Cuando se proporciona `appointmentId`, prepara la asociación con la atención antes del commit. La operación no traslada la propiedad del historial clínico a Appointment Management. |
+| Persistencia y salida | `IClinicalRecordRepository`, `IUnitOfWork` | Guarda el historial y confirma la unidad de trabajo. Después del commit solicita publicar eventos y comunicar la actualización mediante `IClinicalUpdateNotifier`. El controlador declara `201 Created` para el registro válido y respuestas de error para solicitudes rechazadas. |
+
+El recorrido evidencia la **inversión de dependencias**: el caso de uso conoce las interfaces `IPetRepository`, `IClinicalRecordRepository`, `IClinicalAuthorizationPort` e `IUnitOfWork`, mientras que los detalles de persistencia, autorización de relaciones y notificación quedan en adaptadores. Para comprobar QAS07 y QAS15 del capítulo IV, la medida sobre una sustitución de adaptador es que no cambien las clases de dominio; el resultado cuantitativo requiere comparar un cambio ejecutado y sus pruebas, y no se infiere de esta inspección estática.
 
 **Manejo de indisponibilidad y recuperación:**
 
@@ -548,6 +718,8 @@ Los códigos HTTP anteriores representan **respuestas declaradas por los control
 | Keycloak | Railway | `Railway/3.png` y capturas KeyCloak | Servicio y configuración de identidad documentados |
 | PostgreSQL para Keycloak | Railway | `Railway/3.png` | Servicio mostrado Online en Railway |
 | Swagger / OpenAPI | ASP.NET Core API | Rutas configuradas y commits de Swagger | Configuración documentada; ejecución interactiva no adjuntada |
+| VetPax Web Application | Netlify | `Web_Application/1.png`, `2.png` y otras 15 capturas | Dominio Netlify visible y pantallas de módulos renderizadas; recorrido documentado en 7.1.4 |
+| VetPax Mobile Application | Entorno Android (Flutter) | `Mobil_Application/1.jpeg` a `8.jpeg` | Ejecución de pantallas móviles; no acredita publicación en tienda |
 
 ![Estado de los servicios de Railway](./feature/Chapter-7/Railway/3.png)
 
@@ -557,7 +729,7 @@ Los códigos HTTP anteriores representan **respuestas declaradas por los control
 
 *Figura 7.16. Configuración del servicio VetPax-Api. No se deben divulgar contraseñas ni secretos en las imágenes finales.*
 
-**Secuencia de despliegue documentada:** versionamiento del código en GitHub; construcción de la Landing Page mediante Vite y publicación de contenido estático en Netlify; construcción del backend con Dockerfile; configuración de servicios y variables protegidas en Railway; despliegue de `VetPax-Api`, MySQL, Keycloak y Postgres; y comprobación del estado indicado por la plataforma. La URL del sitio y las capturas respaldan la ejecución visual de la Landing Page, pero no sustituyen las pruebas de integración del formulario TS11.
+**Secuencia de despliegue documentada:** versionamiento del código en GitHub; construcción de la Landing Page mediante Vite y publicación de contenido estático en Netlify; publicación de la Web Application Angular con evidencia de acceso al subdominio de Netlify; ejecución de la aplicación Flutter en Android; construcción del backend con Dockerfile; configuración de servicios y variables protegidas en Railway; despliegue de `VetPax-Api`, MySQL, Keycloak y Postgres; y comprobación del estado indicado por la plataforma. Las capturas de Web y Mobile se presentan paso a paso en 7.1.4, utilizando las carpetas `feature/Chapter-7/Web_Application/` y `feature/Chapter-7/Mobil_Application/`, respectivamente. Las URLs y las capturas respaldan las interfaces observadas, pero no sustituyen las pruebas de integración del formulario TS11 ni demuestran que la aplicación móvil se haya publicado en una tienda.
 
 #### 7.2.1.8. Team Collaboration Insights during Sprint
 
