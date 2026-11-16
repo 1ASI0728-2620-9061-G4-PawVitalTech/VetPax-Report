@@ -79,7 +79,7 @@ Para esta primera versión se consideran principalmente escenarios relacionados 
 | **QAS04** | Seguridad | Usuario no autenticado | Intenta acceder a un recurso protegido de VetPax. | Mecanismo de autenticación y servicios backend | Operación normal | El sistema verifica la autenticación antes de permitir el acceso y rechaza la solicitud cuando el usuario no está autenticado. | El **100% de las solicitudes a recursos protegidos** debe validar autenticación. Las solicitudes no autenticadas deben ser rechazadas con una respuesta equivalente a **401 Unauthorized**. |
 | **QAS05** | Seguridad | Usuario autenticado sin autorización | Intenta consultar o modificar información clínica de una mascota para la cual no posee permisos. | Servicios de autorización y módulo de gestión clínica | Operación normal | El sistema verifica los permisos del usuario y deniega el acceso al recurso solicitado. | El **100% de los intentos detectados como no autorizados** debe ser rechazado, sin exponer información clínica protegida. |
 | **QAS06** | Escalabilidad | Incremento de usuarios y clínicas incorporadas a VetPax | Aumenta la cantidad de usuarios concurrentes y solicitudes realizadas al sistema. | Servicios backend, APIs y almacenamiento de datos | Periodo de alta carga | El sistema incrementa su capacidad manteniendo el funcionamiento de las funcionalidades principales. | En una prueba con al menos **500 usuarios concurrentes**, el **95% de las solicitudes** debe responder en un tiempo menor o igual a **3 segundos**. |
-| **QAS07** | Mantenibilidad | Equipo de desarrollo | Se requiere sustituir una integración externa por otra que implemente el mismo contrato. | Componentes responsables de las integraciones externas y lógica de dominio | Evolución o mantenimiento del sistema | El equipo sustituye el componente de integración sin modificar las reglas de negocio del dominio. | La sustitución debe requerir **0 modificaciones en las reglas de negocio del dominio**, limitando los cambios al componente de integración y su configuración. |
+| **QAS07** | Mantenibilidad | Equipo de desarrollo | Se requiere sustituir una integración externa por otra que implemente el mismo contrato. | Componentes responsables de las integraciones externas y lógica de dominio | Evolución o mantenimiento del sistema | El equipo sustituye el componente de integración sin modificar las reglas de negocio del dominio. | En un cambio controlado del proveedor de notificaciones, **0 archivos de `VetPax.Domain` y 0 reglas de negocio** deben modificarse; los cambios se limitan al adaptador y su configuración. La batería de pruebas afectada debe conservar el mismo resultado después de sustituir el adaptador. |
 | **QAS08** | Interoperabilidad | Aplicación móvil, aplicación web o servicio externo | Requiere intercambiar información con los servicios de VetPax. | APIs expuestas por el backend | Operación normal | El sistema recibe y entrega información utilizando interfaces y formatos estandarizados. | El **100% de los servicios HTTP expuestos a los clientes** debe utilizar interfaces RESTful y **JSON** como formato principal de intercambio de información. |
 | **QAS09** | Confiabilidad | Firebase Cloud Messaging o proveedor de calendario externo | Presenta una indisponibilidad temporal o devuelve un error durante una operación. | Componente de integración con servicios externos | Falla de un proveedor externo | El sistema controla la falla, registra el incidente y evita que afecte funcionalidades que no dependan directamente del servicio externo. | Ante una falla controlada, deben producirse **0 pérdidas de datos previamente persistidos** y la falla no debe propagarse hacia módulos independientes de la integración afectada. |
 | **QAS10** | Integridad / Trazabilidad | Profesional veterinario o propietario autorizado | Registra o modifica información clínica relacionada con una mascota. | Servicios de gestión clínica y almacenamiento de datos | Operación normal | El sistema persiste la modificación e identifica al usuario responsable y el momento de la operación. | El **100% de los registros y modificaciones clínicas** debe almacenar como mínimo el identificador del usuario responsable y la **fecha y hora** de la operación. |
@@ -87,6 +87,7 @@ Para esta primera versión se consideran principalmente escenarios relacionados 
 | **QAS12** | Seguridad y revocación | Administrador de clínica que desactiva la vinculación de un veterinario, o registro de desvinculación de paciente | Un veterinario intenta consultar el historial de una mascota después de perder la pertenencia activa o el vínculo clínica-paciente, aunque conserve un token no expirado. | `VeterinaryClinicalAccessPolicy`, servicio de autorización y relaciones clínicas | Operación normal con modificación de permisos | La operación vuelve a consultar las relaciones activas y deniega el acceso al recurso protegido. | El 100% de los intentos del escenario con vinculación inactiva debe rechazarse; la revocación se aplica a la **siguiente solicitud** verificada. |
 | **QAS13** | Consistencia concurrente | Tres instancias del procesador de recordatorios | Tres workers intentan reclamar simultáneamente la misma notificación pendiente. | Estado persistido del recordatorio y procesadores de Medication Treatment | Ejecución simultánea | Se utiliza una actualización condicional de adquisición temporal; únicamente el worker que obtiene la reserva procesa el intento vigente. | Para un recordatorio y tres competidores debe haber como máximo una adquisición exitosa del lease en el mismo intervalo. |
 | **QAS14** | Recuperación y continuidad | Interrupción de MySQL o PostgreSQL del proveedor de identidad | Se pierde temporalmente la persistencia o se necesita restaurar una copia válida. | Base de datos de negocio, base de Keycloak y procedimientos operativos | Simulación controlada de falla | Se rechazan escrituras no confirmadas, se restituye el componente afectado y se verifica la consistencia antes de reabrir el servicio. | Objetivos de diseño RTO ≤ 60 min y RPO ≤ 15 min; resultados reales obtenidos en ensayo de restauración. |
+| **QAS15** | Modificabilidad y aislamiento modular | Equipo de desarrollo | Se modifica el adaptador de notificaciones de Medication Treatment o se incorpora una variante que satisface el mismo puerto de aplicación. | `VetPax.Domain`, `VetPax.Application`, `VetPax.Infrastructure` y pruebas automatizadas | Mantenimiento evolutivo con contrato estable | El adaptador se sustituye sin alterar agregados, invariantes ni funcionalidades de otros bounded contexts; se ejecutan pruebas del dominio y de aplicación. | **0 archivos de dominio modificados; 0 referencias de `VetPax.Domain` hacia `VetPax.Infrastructure`; 0 dependencias directas entre dominios de contextos diferentes** y sin regresiones en las pruebas seleccionadas. |
 
 
 #### **4.1.2.3. Constraints**
@@ -122,7 +123,7 @@ El backlog incluye los Functional Drivers seleccionados, los Quality Attribute D
 | **AD04** | Sincronización oportuna de actualizaciones | Los cambios clínicos relevantes deben estar disponibles oportunamente para los usuarios autorizados que utilizan la aplicación móvil y la aplicación web, evitando inconsistencias entre los productos digitales. | High | High |
 | **AD05** | Rendimiento de operaciones frecuentes | Las operaciones habituales de consulta y registro deben procesarse con tiempos de respuesta que permitan una interacción fluida. Al menos el 95% de estas solicitudes debe completarse en un tiempo menor o igual a 2 segundos bajo condiciones normales. | High | High |
 | **AD06** | Escalabilidad de la solución | VetPax debe soportar el crecimiento progresivo de usuarios, mascotas y clínicas sin degradar significativamente el rendimiento. La arquitectura debe soportar al menos 500 usuarios concurrentes manteniendo el 95% de las solicitudes en un tiempo menor o igual a 3 segundos durante las pruebas establecidas. | High | High |
-| **AD07** | Mantenibilidad y desacoplamiento | La solución debe permitir modificar o sustituir componentes de infraestructura e integraciones externas sin requerir cambios en las reglas principales del dominio, reduciendo el impacto de la evolución tecnológica sobre la lógica del negocio. | High | High |
+| **AD07** | Mantenibilidad y desacoplamiento | Las facetas de persistencia, identidad, notificaciones y comunicación deben poder evolucionar mediante contratos de aplicación y adaptadores. Un cambio de proveedor, si respeta el contrato, no debe modificar los agregados, reglas de dominio ni los módulos funcionales consumidores. Su conformidad se contrasta mediante el número de archivos afectados, la dirección de referencias entre proyectos y pruebas de regresión (QAS07, QAS15). | High | High |
 | **AD08** | Servicios web RESTful y tecnologías backend permitidas | Los servicios web de VetPax deben seguir el estilo RESTful y utilizar uno de los frameworks backend permitidos por el proyecto. Los contratos de los servicios deben documentarse mediante OpenAPI Specification utilizando Swagger. | High | High |
 | **AD09** | Gestión de citas veterinarias | Los propietarios deben poder programar, cancelar y reprogramar citas, mientras que los profesionales veterinarios deben disponer de información actualizada para gestionar su agenda y mantener la continuidad de los controles. | High | Medium |
 | **AD10** | Gestión de pacientes y evolución clínica | Los profesionales veterinarios deben poder consultar los pacientes vinculados con su clínica y analizar su evolución utilizando los registros clínicos históricos disponibles. | High | Medium |
@@ -140,6 +141,20 @@ El backlog incluye los Functional Drivers seleccionados, los Quality Attribute D
 | **AD22** | Autorización clínica por relación activa | La API debe combinar la identidad autenticada con el vínculo activo del profesional con su clínica y el vínculo activo de la clínica con el paciente, revocando el acceso ante la desactivación de cualquiera de ellos. | High | High |
 | **AD23** | Exclusión mutua e idempotencia en procesos | El sistema debe impedir que varios workers reclamen el mismo recordatorio de forma simultánea y controlar el efecto de reintentos sobre administraciones, eventos y notificaciones. | High | High |
 | **AD24** | Recuperación verificable de persistencia e identidad | El diseño debe permitir respaldar y restaurar por separado MySQL y PostgreSQL, con objetivos RTO/RPO explícitos y comprobación de integridad. | High | High |
+
+**Trazabilidad de drivers de calidad, facetas modificables y criterios de verificación**
+
+La modificabilidad de VetPax se analiza por facetas técnicas. La separación hexagonal distingue los contratos de aplicación del mecanismo que los implementa y preserva las invariantes del dominio frente a cambios de infraestructura. Los indicadores siguientes son criterios de aceptación arquitectónica; las pruebas de ejecución y sus resultados se registran por separado en la documentación de implementación.
+
+| Driver | Escenario de calidad | Faceta susceptible de cambio | Elemento que permanece estable | Evidencia y medición | 
+|---|---|---|---|---|
+| **AD07** | QAS07, QAS15 | Adaptador de notificaciones: Firebase Cloud Messaging o implementación de prueba | Agregados y reglas de `Medication Treatment`, `Nutrition Management` y `Adherence & Gamification` | Comparación de archivos modificados y pruebas: **0 cambios en `VetPax.Domain`** ante un reemplazo compatible. |
+| **AD07** | QAS07, QAS15 | Adaptadores de persistencia sobre Entity Framework Core / MySQL | Contratos de repositorio y casos de uso consumidores | Revisión de dependencias `.csproj` y diff: **0 referencias Domain → Infrastructure** y **0 cambios en invariantes** al sustituir el adaptador sin modificar el contrato. |
+| **AD01, AD22** | QAS04, QAS05, QAS12 | Proveedor de identidad y políticas de acceso a clínicas | Regla de autorización por pertenencia profesional y vínculo clínico activos | Casos de acceso permitido y denegado; **100 % de rechazos** ante relaciones revocadas dentro del escenario verificado. |
+| **AD12, AD23** | QAS09, QAS13 | Procesador de recordatorios y proveedor de entrega | Estado persistido, elegibilidad y adquisición exclusiva de la tarea | Prueba con **3 workers** sobre el mismo recordatorio: máximo **1 lease vigente adquirido**. |
+| **AD11, AD24** | QAS11, QAS14 | Infraestructura de almacenamiento MySQL y Keycloak/PostgreSQL | Consistencia de datos confirmados y contratos de acceso | Ensayo de restauración separado; medición de RTO y RPO frente a los objetivos arquitectónicos. |
+
+**Dirección de dependencias entre proyectos.** `VetPax.Domain` no referencia a los proyectos de infraestructura ni de interfaz; `VetPax.Application` referencia `VetPax.Domain`; `VetPax.Infrastructure` referencia `VetPax.Application` y `VetPax.Domain`; y `VetPax.Api` referencia `VetPax.Application` y `VetPax.Infrastructure`. Esta distribución puede comprobarse en los archivos `.csproj` y materializa la inversión de dependencias a escala de proyectos. La distinción entre los bounded contexts ocurre dentro de esos proyectos y requiere controlar, además, el acceso entre sus módulos.
 
 Los Architectural Drivers identificados representan las necesidades funcionales, atributos de calidad y restricciones que presentan mayor influencia sobre la arquitectura de VetPax. Estos drivers serán utilizados en las siguientes etapas del proceso ADD para evaluar tácticas, patrones y alternativas arquitectónicas antes de establecer las Architectural Design Decisions de la solución.
 
@@ -181,6 +196,8 @@ La persistencia se realiza mediante el puerto `ClinicalRecordRepository`, cuya i
 Esta separación permite reemplazar el adaptador de persistencia o modificar el framework sin alterar las reglas principales del dominio, siempre que se mantengan los contratos establecidos.
 
 
+
+**Comprobación estructural de la decisión de mantenibilidad.** La organización del backend en `VetPax.Domain`, `VetPax.Application`, `VetPax.Infrastructure` y `VetPax.Api` establece una dirección de referencias hacia el modelo de negocio. Los contratos `IClinicalAuthorizationPort`, `IAppointmentPatientPort`, `IAppointmentClinicPort` e `IClinicalUpdateNotifier` se declaran en la capa de aplicación; los adaptadores y la integración con proveedores se sitúan en infraestructura. Esta estructura permite introducir un adaptador alternativo manteniendo los mismos contratos y medir las modificaciones efectuadas. La conformidad con QAS07 requiere que dicho cambio no altere reglas de dominio, y QAS15 incorpora el aislamiento entre bounded contexts.
 
 #### **Iteración 2: Autenticación, autorización y gestión de identidad**
 
@@ -232,7 +249,7 @@ Polling tiene una implementación sencilla sobre HTTP, pero requiere realizar so
 
 WebSockets permite establecer un canal persistente con capacidad de comunicación bidireccional entre el servidor y los clientes conectados. Sin embargo, en el alcance actual de VetPax, las operaciones que modifican información de negocio se ejecutan principalmente mediante APIs RESTful, mientras que el canal en tiempo real se utiliza para distribuir avisos de actualización desde el servidor hacia los clientes autorizados.
 
-Por ejemplo, cuando el veterinario registra una atención clínica mediante la API REST, el backend confirma y persiste la operación. Posteriormente, comunica a través del canal WebSocket que el historial clínico fue actualizado, permitiendo que la aplicación móvil del propietario recupere y presente la información vigente.
+Cuando el veterinario registra una atención clínica mediante la API REST, el backend confirma y persiste la operación. La decisión de diseño contempla comunicar posteriormente, mediante un canal WebSocket autorizado, que el historial clínico fue actualizado, para que la aplicación móvil consulte la versión vigente. El puerto de notificación clínica desacopla este mecanismo de los agregados de dominio.
 
 Por tanto, la elección de WebSockets no implica que todas las operaciones de VetPax sean bidireccionales. Las funcionalidades documentadas requieren principalmente difusión unidireccional de eventos, capacidad que también puede ser cubierta mediante Server-Sent Events (SSE). WebSockets se mantiene como alternativa de diseño por su capacidad de comunicación persistente, aunque su mayor complejidad operativa deberá ser evaluada frente a SSE.
 
@@ -305,7 +322,7 @@ VetPax propone un backend modular organizado de acuerdo con los siete bounded co
 - Adherence & Gamification.
 - Identity & Access Management.
 
-Cada módulo concentra sus reglas de negocio, casos de uso, interfaces y adaptadores de persistencia. Los módulos mantienen responsabilidades diferenciadas y colaboran mediante contratos de aplicación o eventos de dominio.
+Cada módulo concentra reglas de negocio, casos de uso y puertos propios. Los agregados `Pet` y `ClinicalRecord` pertenecen a Pet & Clinical Care; `Appointment` a Appointment Management; `MedicationPlan` a Medication Treatment; `FeedingPlan` a Nutrition Management; `Clinic` a Clinic Management; `Adherence` a Adherence & Gamification; y `UserAccount` constituye el modelo conceptual de IAM, cuyas credenciales residen en Keycloak. Las colaboraciones entre contextos se realizan mediante contratos de aplicación y eventos, sin convertir un agregado en entidad propiedad de dos módulos.
 
 Por ejemplo, Appointment Management administra las reservas y estados de las citas, mientras que Pet & Clinical Care es responsable de registrar las atenciones clínicas. Una cita atendida no crea automáticamente un diagnóstico ni sustituye el registro realizado por el veterinario.
 
@@ -336,7 +353,7 @@ Un backend modular y stateless permite conservar una complejidad operativa menor
 
 **Aplicación de la decisión en VetPax:**
 
-Cuando aumenta la cantidad de propietarios y veterinarias que consultan historiales clínicos o gestionan citas, una arquitectura backend stateless permite distribuir las solicitudes entre varias instancias de la API mediante un balanceador de carga.
+Cuando aumenta la cantidad de propietarios y veterinarios que consultan historiales clínicos o gestionan citas, una arquitectura backend stateless permite distribuir solicitudes entre instancias de la API mediante un balanceador, siempre que la infraestructura habilite múltiples réplicas.
 
 Esta organización facilita ampliar la capacidad de procesamiento del backend sin modificar las reglas principales del dominio. Sin embargo, no garantiza por sí misma el cumplimiento de los objetivos de rendimiento ni de disponibilidad.
 
@@ -492,6 +509,58 @@ La siguiente matriz resume las principales alternativas consideradas durante las
       <td>Permite escalar y desplegar servicios de manera independiente.</td>
       <td>Introduce mayor complejidad en comunicación, despliegue, observabilidad y consistencia distribuida.</td>
     </tr>
+    <tr>
+      <td><strong>AD07 (QAS07, QAS15)</strong></td>
+      <td>Modificabilidad y aislamiento de facetas</td>
+      <td>Acceso directo a infraestructura</td>
+      <td>Reduce abstracciones de corto plazo.</td>
+      <td>Acopla las reglas del dominio al proveedor.</td>
+      <td>Servicios de aplicación con interfaces genéricas</td>
+      <td>Facilita sustituciones puntuales.</td>
+      <td>Puede conservar dependencias transversales si los límites no son explícitos.</td>
+      <td><strong>Ports and Adapters por capacidad</strong></td>
+      <td>Permite cambiar adaptadores y medir cero cambios en invariantes de dominio.</td>
+      <td>Exige contratos precisos y pruebas de regresión por faceta.</td>
+    </tr>
+    <tr>
+      <td><strong>AD01, AD22</strong></td>
+      <td>Autorización clínica contextual</td>
+      <td>Rol global del JWT</td>
+      <td>Validación simple.</td>
+      <td>No representa la revocación de vínculos de negocio.</td>
+      <td>Lista de permisos fijada en la sesión</td>
+      <td>Reduce consultas de relación.</td>
+      <td>Puede conservar permisos obsoletos.</td>
+      <td><strong>Identidad + vínculos activos por recurso</strong></td>
+      <td>Restringe la operación al veterinario y paciente autorizados en el momento de la solicitud.</td>
+      <td>Requiere consultar asociaciones de negocio y responder a su indisponibilidad.</td>
+    </tr>
+    <tr>
+      <td><strong>AD12, AD23</strong></td>
+      <td>Concurrencia de recordatorios</td>
+      <td>Procesamiento simultáneo sin exclusión</td>
+      <td>Menor complejidad inicial.</td>
+      <td>Permite reclamos duplicados.</td>
+      <td>Bloqueo local del proceso</td>
+      <td>Evita competencias en una sola instancia.</td>
+      <td>No coordina workers en instancias distintas.</td>
+      <td><strong>Lease persistido y actualización condicional</strong></td>
+      <td>Coordina la adquisición exclusiva entre workers concurrentes.</td>
+      <td>No garantiza por sí solo una entrega única del proveedor externo.</td>
+    </tr>
+    <tr>
+      <td><strong>AD11, AD24</strong></td>
+      <td>Respaldo y recuperación</td>
+      <td>Instancia única sin respaldo</td>
+      <td>Costo mínimo.</td>
+      <td>Riesgo de pérdida irreversible.</td>
+      <td>Backup y restauración verificada</td>
+      <td>Permite recuperar datos y medir RTO/RPO.</td>
+      <td>La recuperación puede requerir interrupción.</td>
+      <td><strong>Backup + réplica / failover cuando esté disponible</strong></td>
+      <td>Reduce potencialmente interrupciones con infraestructura compatible.</td>
+      <td>Mayor costo y operación; su adopción depende del proveedor.</td>
+    </tr>
   </tbody>
 </table>
 
@@ -601,14 +670,14 @@ A partir de estas decisiones, los escenarios son refinados incorporando respuest
 | **Scenario(s)** | QAS07 |
 | **Business Goals** | Facilitar la evolución de VetPax y reducir el impacto técnico y económico de modificaciones futuras en tecnologías o proveedores externos. |
 | **Relevant Quality Attributes** | Mantenibilidad, modificabilidad |
-| **Stimulus** | El equipo de desarrollo requiere reemplazar un proveedor externo o modificar un mecanismo de infraestructura manteniendo las mismas capacidades funcionales. |
+| **Stimulus** | El equipo sustituye el adaptador de notificaciones de Medication Treatment por una implementación compatible de prueba, o cambia un adaptador de persistencia manteniendo su contrato. |
 | **Stimulus Source** | Equipo de desarrollo. |
 | **Environment** | Actividades de mantenimiento o evolución del sistema. |
-| **Artifact (if Known)** | Dominio, Ports, Adapters y componentes de infraestructura del backend. |
-| **Response** | Mediante Hexagonal Architecture, las reglas del dominio interactúan con elementos externos a través de contratos definidos. La sustitución del proveedor se realiza implementando o modificando el Adapter correspondiente. |
-| **Response Measure** | La sustitución de un proveedor externo que implemente el mismo contrato debe requerir **0 modificaciones en las reglas de negocio del dominio**, limitando los cambios al Adapter y a la configuración correspondiente. |
-| **Questions** | ¿Qué integraciones necesitan Ports independientes? ¿Qué contratos deben mantenerse estables? ¿Qué pruebas permitirán comprobar que un nuevo Adapter mantiene el comportamiento esperado? |
-| **Issues** | Un contrato mal definido puede provocar dependencias indirectas entre el dominio y detalles específicos del proveedor, reduciendo el beneficio del desacoplamiento. |
+| **Artifact (if Known)** | Agregados de `VetPax.Domain`; puertos de `VetPax.Application`; adaptadores de `VetPax.Infrastructure`; registro de dependencias en `VetPax.Api`. |
+| **Response** | El equipo sustituye el adaptador y su registro de dependencias conservando los contratos de aplicación, las invariantes del dominio y las operaciones de los bounded contexts no relacionados. |
+| **Response Measure** | **0 archivos de `VetPax.Domain` modificados**, **0 reglas del dominio modificadas**, **0 dependencias de `VetPax.Domain` hacia `VetPax.Infrastructure`** y **sin regresiones en las pruebas seleccionadas**. Se registra el conjunto de archivos modificados antes y después del reemplazo. |
+| **Questions** | ¿Qué contratos de integración cuentan con dobles de prueba? ¿Cómo se documenta el alcance del cambio y la ejecución de las pruebas de regresión? |
+| **Issues** | Un cambio de contrato puede requerir modificaciones legítimas en aplicación; por ello, la medición se refiere a sustituciones compatibles, no a alteraciones funcionales del dominio. |
 
 
 #### **Scenario Refinement for Scenario 7 — Manejo de fallos en servicios externos**
@@ -661,6 +730,22 @@ A partir de estas decisiones, los escenarios son refinados incorporando respuest
 | **Questions** | ¿Qué modificaciones clínicas deben conservar historial de versiones? ¿Durante cuánto tiempo deben mantenerse los registros de trazabilidad? ¿Qué roles pueden consultar esta información? |
 | **Issues** | La modificación o eliminación de información clínica debe considerar reglas adicionales de auditoría para evitar la pérdida de trazabilidad histórica. |
 
+
+#### **Scenario Refinement for Scenario 10 — Independencia entre módulos y cambios de facetas técnicas**
+
+| **Elemento** | **Descripción** |
+|---|---|
+| **Scenario(s)** | QAS15 |
+| **Business Goals** | Mantener un backend sostenible y permitir que cada bounded context evolucione sin introducir cambios no justificados en otros dominios. |
+| **Relevant Quality Attributes** | Modificabilidad, mantenibilidad, cohesión |
+| **Stimulus** | Una modificación de la integración de notificaciones o de persistencia se introduce manteniendo el mismo contrato de aplicación. |
+| **Stimulus Source** | Equipo de desarrollo. |
+| **Environment** | Evolución del backend modular con pruebas automatizadas. |
+| **Artifact (if Known)** | Proyectos `VetPax.Domain`, `VetPax.Application`, `VetPax.Infrastructure` y sus módulos internos. |
+| **Response** | La modificación se mantiene en los adaptadores y en su configuración; las reglas y los agregados de dominio permanecen estables, y los casos de uso continúan utilizando puertos de aplicación. |
+| **Response Measure** | **0 cambios en clases de `VetPax.Domain`**, **0 referencias directas Domain → Infrastructure**, **0 referencias directas entre submódulos de dominio**, y sin regresiones en las pruebas funcionales seleccionadas. |
+| **Questions** | ¿Qué adaptadores admiten sustitución mediante dobles de prueba y qué conjuntos de pruebas permiten registrar la línea base? |
+| **Issues** | Compartir proceso y base de datos no equivale a despliegue independiente; la independencia medida es lógica y de código, y las integraciones requieren contratos explícitos. |
 
 Los escenarios refinados permiten establecer una relación explícita entre las necesidades de calidad identificadas inicialmente y las decisiones arquitectónicas obtenidas durante el Quality Attribute Workshop. Asimismo, proporcionan medidas verificables que posteriormente pueden utilizarse para evaluar si la arquitectura implementada responde a los niveles de calidad esperados para VetPax.
 
@@ -1135,13 +1220,13 @@ A partir de este análisis se identificaron y aplicaron los siguientes patrones 
 - **Customer/Supplier**, en la relación de **Pet & Clinical Care** con **Appointment Management, Medication Treatment, Nutrition Management y Clinic Management**, donde Pet & Clinical Care actúa como *supplier* al proveer el identificador y los datos de la mascota y de los pacientes vinculados. De igual forma, **Clinic Management** actúa como *supplier* de **Appointment Management** al proveer los horarios de atención de la clínica mediante el evento `PerfilDeClínicaActualizado`. Al pertenecer todos los contextos al mismo equipo, los contextos *customer* pueden negociar directamente los datos que necesitan.
 - **Open Host Service (OHS) y Published Language**, en el contexto **IAM**, que expone un mecanismo estandarizado de autenticación y autorización basado en roles (dueño de mascota, veterinario y administrador de veterinaria), consumido por el resto de contextos para proteger sus operaciones. Los contextos consumidores adoptan el modelo de identidad y roles definido por IAM sin imponer el suyo (**Conformist**).
 - **Event-Driven Consistency**, en la propagación de los eventos `CitaVeterinariaAtendida` (publicado por Appointment Management) y `DosisDeMedicaciónAdministrada` (publicado por Medication Treatment), ambos consumidos por **Adherence & Gamification** como evidencia de cumplimiento para recalcular la adherencia y el nivel de constancia del dueño. Adherence & Gamification se comporta como *conformist* frente al contrato de dichos eventos, lo que evita acoplar los contextos clínicos a la lógica de gamificación.
-- **Anticorruption Layer (ACL)**, mediante adaptadores en la capa de infraestructura, en la integración de **IAM** con **Keycloak**, de **Medication Treatment, Nutrition Management y Adherence & Gamification** con **Firebase Cloud Messaging** para el envío de notificaciones push, y de **Appointment Management** con el **servicio externo de calendario**. Esto aísla el modelo de dominio de los contratos de cada proveedor y permite reemplazarlos sin afectar el núcleo del sistema, en línea con la decisión arquitectónica ADD08 (patrón Adapter).
+- **Anticorruption Layer (ACL)**, mediante adaptadores en la capa de infraestructura, en la integración de **IAM** con **Keycloak**, de **Medication Treatment, Nutrition Management y Adherence & Gamification** con **Firebase Cloud Messaging** para el envío de notificaciones push, y de **Appointment Management** con el **servicio externo de calendario**. Esto aísla el modelo de dominio de los contratos de cada proveedor y permite reemplazarlos sin afectar el núcleo del sistema, de acuerdo con las decisiones de Ports and Adapters y aislamiento de proveedores de las iteraciones 1 y 4 del ADD.
 
 #### Límites de datos y contratos entre bounded contexts
 
 Los siete bounded contexts de VetPax representan límites lógicos de responsabilidad dentro de un backend modular. Aunque sus datos de negocio puedan almacenarse en una misma base de datos física, cada contexto mantiene la propiedad de sus estructuras de persistencia y controla las operaciones que modifican su información.
 
-La comunicación síncrona entre contextos se realiza mediante interfaces o contratos de aplicación definidos por el contexto proveedor. La comunicación asíncrona se utiliza para propagar eventos de dominio relevantes que otros contextos necesitan consumir.
+La comunicación síncrona entre contextos se realiza mediante interfaces o contratos de aplicación definidos por el contexto proveedor. La comunicación asíncrona se contempla para propagar eventos de dominio relevantes que otros contextos necesitan consumir. El Context Map expresa los contratos del diseño; la implementación de cada canal se verifica independientemente en la capa de infraestructura.
 
 Por ejemplo, Appointment Management puede verificar la existencia de una mascota utilizando un contrato provisto por Pet & Clinical Care, pero no debe insertar ni modificar directamente sus registros clínicos.
 
@@ -1150,6 +1235,10 @@ Asimismo, Adherence & Gamification consume eventos provenientes de Appointment M
 Las referencias entre contextos se mantienen mediante identificadores y contratos explícitos. Cada contexto es responsable de validar sus propias reglas de negocio y de mantener la consistencia de sus datos.
 
 Esta separación lógica reduce el acoplamiento entre módulos, aunque no elimina la dependencia compartida sobre la disponibilidad y capacidad de la infraestructura de almacenamiento.
+
+**Verificación de los límites mediante contratos.** En el backend de VetPax, los módulos están organizados dentro de un único despliegue ASP.NET Core. Las interfaces de aplicación permiten consultar datos de otro contexto sin incorporar sus agregados ni escribir directamente en sus tablas; los adaptadores se encargan de resolver las consultas. Entre los contratos identificados están `IAppointmentPatientPort`, `IAppointmentClinicPort`, `IAppointmentClinicalAttentionPort`, `IClinicalRelationshipPort`, `IClinicPatientsProvider`, `IPetClinicPatientReadPort`, `IMedicationPatientPort`, `IMedicationVeterinarianPort`, `INutritionPatientPort` y `INutritionVeterinarianPort`. Los eventos de dominio representan la colaboración asíncrona cuando un hecho del negocio interesa a otro contexto.
+
+**Límites de propiedad de los agregados.** `ClinicalRecord` no pertenece a Appointment Management; este solo confirma el estado de la cita después de comprobar la referencia clínica. `MedicationPlan` no pertenece a Adherence & Gamification; este consume la evidencia de administración, sin modificar la dosis prescrita. `Clinic` conserva su horario institucional; Appointment Management consulta la disponibilidad bajo el contrato de aplicación, sin cambiar el perfil de la clínica. La identidad global proviene de IAM, pero la autorización de un paciente exige además relaciones de negocio activas.
 
 La siguiente tabla detalla cada relación del Context Map:
 
@@ -1167,23 +1256,38 @@ La siguiente tabla detalla cada relación del Context Map:
 | 10 | Medication Treatment, Nutrition Management, Adherence & Gamification | Firebase Cloud Messaging (externo) | Anticorruption Layer | Recordatorios de medicación y alimentación, notificación de ascenso | Síncrona |
 | 11 | Appointment Management | Servicio de calendario (externo) | Anticorruption Layer | Sincronización de citas confirmadas | Síncrona |
 
+**Correspondencia del Context Map con los contratos de aplicación**
+
+| Contexto consumidor | Contexto propietario de los datos | Contrato de integración del backend | Información intercambiada | Límite de responsabilidad |
+|---|---|---|---|---|
+| Pet & Clinical Care | Clinic Management / IAM | `IClinicalAuthorizationPort`, `IClinicalRelationshipPort` | Vinculación activa profesional–clínica y clínica–paciente; identidad | No crea usuarios, clínicas ni autorizaciones permanentes con el rol JWT. |
+| Pet & Clinical Care | Appointment Management | `IClinicalAppointmentLinkPort` | Relación por identificadores entre cita y atención | No marca citas como atendidas ni actualiza la agenda. |
+| Appointment Management | Pet & Clinical Care | `IAppointmentPatientPort`, `IAppointmentClinicalAttentionPort` | Mascota, titularidad y existencia de atención clínica | No crea ni modifica registros clínicos. |
+| Appointment Management | Clinic Management | `IAppointmentClinicPort` | Disponibilidad institucional y relación de profesionales | No modifica los horarios de la clínica. |
+| Clinic Management | Pet & Clinical Care | `IClinicPatientsProvider`, `IPetClinicPatientReadPort` | Listado de pacientes vinculados | No escribe en los historiales clínicos. |
+| Medication Treatment | Pet & Clinical Care / Clinic Management | `IMedicationPatientPort`, `IMedicationVeterinarianPort`, `IMedicationClinicalContextPort` | Titularidad, permisos y contexto clínico | No modifica mascotas, afiliaciones clínicas ni atenciones. |
+| Nutrition Management | Pet & Clinical Care / Clinic Management | `INutritionPatientPort`, `INutritionVeterinarianPort` | Propietario y autorización de prescripción | No modifica tratamientos farmacológicos ni historial clínico. |
+| Adherence & Gamification | Appointment Management / Medication Treatment | Eventos de cita atendida y dosis administrada; adaptación mediante `AdherenceSourceEventMapper` | Evidencias de cumplimiento | No modifica citas ni administraciones; evita contabilizar dos veces un mismo evento. |
+
+La tabla distingue **contratos de consulta presentes en la capa de aplicación** de los **eventos que forman parte del lenguaje de integración**. Un contrato de lectura no otorga propiedad de datos al consumidor. La implementación de los adaptadores queda fuera de las entidades de dominio y no transforma a los bounded contexts en microservicios independientes.
+
 ![Context Map de VetPax](./feature/Chapter-4/4.2.5-context-map.png)
 
 El Context Map resultante refleja a **Pet & Clinical Care** como el contexto central de VetPax, del cual dependen estructuralmente Appointment Management, Medication Treatment, Nutrition Management y Clinic Management para operar con datos fiables de la mascota. **Pet & Clinical Care, Medication Treatment, Nutrition Management y Adherence & Gamification** conforman los subdominios *core* que diferencian la propuesta de valor: el seguimiento clínico-nutricional continuo y la motivación de la constancia del dueño. **Appointment Management y Clinic Management** operan como subdominios de soporte que organizan la agenda y la información institucional de las veterinarias, mientras que **IAM** actúa como subdominio genérico transversal que provee seguridad a toda la solución.
 
-Esta organización responde directamente a la decisión de aplicar Domain-Driven Design con bounded contexts (ADD07) y refuerza los atributos de calidad de mantenibilidad e interoperabilidad, ya que cada contexto puede evolucionar de forma independiente y las integraciones externas quedan encapsuladas. Por último, WebSockets, al ser un mecanismo técnico de comunicación en tiempo real y no una capacidad del dominio, no se representa como relación entre contextos.
+Esta organización responde directamente a la decisión de organización modular orientada al dominio adoptada en la iteración 5 del ADD y refuerza los atributos de calidad de mantenibilidad e interoperabilidad, ya que cada contexto puede evolucionar de forma independiente y las integraciones externas quedan encapsuladas. Por último, WebSockets, al ser un mecanismo técnico de comunicación en tiempo real y no una capacidad del dominio, no se representa como relación entre contextos.
 
 ---
 
 ## 4.3. Software Architecture
 
-La arquitectura de software de VetPax se documenta siguiendo el modelo C4, que describe el sistema en niveles sucesivos de detalle: el ecosistema completo (System Landscape), el sistema y su entorno (Context), las aplicaciones y almacenes de datos que lo componen (Container) y su despliegue en infraestructura (Deployment). Los diagramas se construyeron con Structurizr DSL a partir de las decisiones arquitectónicas definidas en el Strategic-Level Attribute-Driven Design: arquitectura hexagonal (ADD01 y ADD02), APIs RESTful (ADD04), comunicación en tiempo real mediante WebSockets (ADD05), autenticación con Keycloak (ADD03), notificaciones con Firebase Cloud Messaging (ADD06) y adaptadores para servicios externos (ADD08).
+La arquitectura de software de VetPax se documenta siguiendo el modelo C4, que describe el sistema en niveles sucesivos de detalle: el ecosistema completo (System Landscape), el sistema y su entorno (Context), las aplicaciones y almacenes de datos que lo componen (Container) y su despliegue en infraestructura (Deployment). Los diagramas emplean Structurizr DSL como medio de representación y recogen las decisiones del proceso ADD: separación hexagonal de las responsabilidades (iteración 1), autenticación con Keycloak (iteración 2), canal de actualización en tiempo real previsto (iteración 3), procesamiento desacoplado de recordatorios (iteración 4), monolito modular (iteración 5) y criterios de disponibilidad y recuperación (iteraciones 6 a 9).
 
 ### 4.3.1. Software Architecture System Landscape Diagram
 
 *Expone el ecosistema completo donde nuestro sistema interactúa con múltiples sistemas externos, identificando dependencias y límites organizacionales.*
 
-El System Landscape Diagram incluye todos los sistemas de la solución, las personas que interactúan con ellos y los sistemas externos de los que dependen. Además de la **plataforma VetPax** (aplicación móvil, panel web y API), el ecosistema contempla la **VetPax Landing Page**, un sitio informativo independiente donde el visitante conoce la propuesta de valor y registra su interés; la landing envía esos leads a la plataforma y dirige a cada segmento hacia la aplicación correspondiente.
+El System Landscape Diagram incluye todos los sistemas de la solución, las personas que interactúan con ellos y los sistemas externos de los que dependen. Además de la **plataforma VetPax** (aplicación móvil, panel web y API), el ecosistema contempla la **VetPax Landing Page**, un sitio informativo independiente donde el visitante conoce la propuesta de valor y registra su interés; la arquitectura contempla la captación de interesados mediante un contrato específico y la navegación hacia los productos correspondientes; el envío efectivo de los registros depende de la integración implementada en la Landing Page y su API.
 
 **Personas**
 
@@ -1199,7 +1303,7 @@ El System Landscape Diagram incluye todos los sistemas de la solución, las pers
 | Sistema | Tipo | Descripción |
 | --- | --- | --- |
 | VetPax | Sistema propio | Plataforma de seguimiento clínico-nutricional continuo para mascotas geriátricas o con enfermedades crónicas. |
-| VetPax Landing Page | Sistema propio | Sitio informativo con propuesta de valor, testimonios y captura de leads. |
+| VetPax Landing Page | Sistema propio | Sitio informativo con propuesta de valor y acceso a los productos; la captación de interesados está prevista en TS11. |
 | Keycloak | Sistema externo | Proveedor de identidad: registro, autenticación y control de acceso basado en roles. |
 | Firebase Cloud Messaging | Sistema externo | Servicio de notificaciones push para recordatorios de medicación, alimentación, citas y reconocimientos. |
 | Servicio de calendario | Sistema externo | Servicio donde se sincronizan las citas confirmadas del veterinario. |
@@ -1217,7 +1321,7 @@ El System Context Diagram se enfoca únicamente en la **plataforma VetPax**, dej
 | Administrador de veterinaria | VetPax | Usa la plataforma desde el panel web. |
 | VetPax | Keycloak | Autentica usuarios y valida roles. |
 | VetPax | Firebase Cloud Messaging | Envía notificaciones push de recordatorios y reconocimientos. |
-| Firebase Cloud Messaging | VetPax | Entrega las notificaciones push al dispositivo del dueño. |
+| Firebase Cloud Messaging | Dispositivo del propietario | Entrega las notificaciones push solicitadas por VetPax. |
 | VetPax | Servicio de calendario | Sincroniza las citas confirmadas. |
 
 Las dependencias externas reflejan los atributos de calidad de seguridad (el control de acceso se delega en Keycloak, evitando gestionar credenciales dentro del dominio clínico) e interoperabilidad (las notificaciones y el calendario se consumen a través de interfaces desacopladas que pueden reemplazarse).
@@ -1229,9 +1333,9 @@ Las dependencias externas reflejan los atributos de calidad de seguridad (el con
 
 El Container Diagram descompone VetPax en sus aplicaciones cliente, backend y almacenamiento persistente. La aplicación móvil y el panel veterinario consumen los casos de uso expuestos mediante una API compartida.
 
-El backend se plantea como un monolito modular organizado mediante siete bounded contexts, cada uno con responsabilidades y reglas de negocio propias. La información se mantiene consistente mediante validaciones del dominio, operaciones transaccionales y contratos de comunicación entre módulos, no únicamente por utilizar una misma API.
+El backend está organizado como un monolito modular ASP.NET Core/.NET 10, con siete bounded contexts, cada uno con responsabilidades y reglas de negocio propias. La información se mantiene consistente mediante validaciones del dominio, operaciones transaccionales y contratos de comunicación entre módulos, no únicamente por utilizar una misma API.
 
-La Landing Page se comunica con el backend para registrar los datos de los interesados, mediante una funcionalidad de captación de leads diferenciada de los siete bounded contexts principales.
+En la arquitectura objetivo, la Landing Page registra el interés mediante una API específica asociada con TS11, separada de las siete capacidades clínicas. La publicación del contenido informativo no demuestra por sí misma la existencia de ese flujo de registro.
 
 **Contenedores**
 
@@ -1239,8 +1343,8 @@ La Landing Page se comunica con el backend para registrar los datos de los inter
 | --- | --- | --- |
 | Mobile Application | Aplicación móvil | Permite al dueño gestionar el historial de su mascota, citas, recordatorios, dietas y su nivel de constancia. |
 | Web Application | Aplicación web (SPA) | Panel de la veterinaria: pacientes, agenda, historial clínico, planes de dieta y perfil de la clínica. |
-| Backend API | REST API + WebSocket, arquitectura hexagonal | Expone los casos de uso de los siete bounded contexts y las actualizaciones en tiempo real. |
-| Database | Base de datos | Almacena mascotas, historiales clínicos, citas, tratamientos, planes nutricionales, clínicas y progreso de adherencia. |
+| Backend API | ASP.NET Core/.NET 10, REST API, arquitectura hexagonal | Expone los casos de uso de los siete bounded contexts; contempla un canal WebSocket de actualización definido en TS13. |
+| Database | MySQL / Entity Framework Core | Almacena los datos de negocio de VetPax; las identidades de Keycloak se almacenan por separado en PostgreSQL. |
 
 **Comunicación entre contenedores**
 
@@ -1249,27 +1353,27 @@ La Landing Page se comunica con el backend para registrar los datos de los inter
 | Mobile Application, Web Application | Backend API | Consumen los servicios de la plataforma | HTTPS/REST, JSON |
 | Mobile Application, Web Application | Backend API | Reciben actualizaciones clínicas en tiempo real | WebSocket |
 | Mobile Application, Web Application | Keycloak | Autentican al usuario | OpenID Connect/HTTPS |
-| Backend API | Keycloak | Valida tokens y roles | HTTPS |
+| Backend API | Keycloak | Obtiene metadatos y material de validación del proveedor de identidad cuando corresponde; autoriza localmente las solicitudes según token y reglas clínicas | OpenID Connect / HTTPS |
 | Backend API | Database | Lee y escribe datos | Acceso a datos |
 | Backend API | Firebase Cloud Messaging | Envía notificaciones push | HTTPS |
 | Firebase Cloud Messaging | Mobile Application | Entrega notificaciones push | Push |
 | Backend API | Servicio de calendario | Sincroniza citas confirmadas | HTTPS |
-| VetPax Landing Page | Backend API | Registra leads | HTTPS/REST, JSON |
+| VetPax Landing Page | Backend API | Contrato previsto para registrar interés (TS11) | HTTPS/REST, JSON |
 
 **Organización interna del Backend API.** El backend aplica arquitectura hexagonal: cada bounded context se organiza en capas de dominio, aplicación e infraestructura, y las integraciones externas (Keycloak, Firebase Cloud Messaging, calendario) se implementan como adaptadores en la capa de infraestructura, de modo que el dominio no depende de ningún proveedor. La siguiente tabla relaciona cada bounded context con los recursos que expone la API y sus adaptadores:
 
 | Bounded Context | Recursos expuestos | Adaptadores de infraestructura |
 | --- | --- | --- |
 | Pet & Clinical Care | `/api/v1/pets`, `/api/v1/pets/{petId}/clinical-records`, `/api/v1/pets/{petId}/evolution` | Persistencia |
-| Appointment Management | `/api/v1/appointments` | Servicio de calendario (TS04), persistencia |
+| Appointment Management | `/api/v1/appointments` | Persistencia; integración de calendario prevista en TS15 |
 | Medication Treatment | `/api/v1/pets/{petId}/medication-plans`, `/api/v1/medication-doses/{doseId}/administrations` | Firebase Cloud Messaging (TS06), persistencia |
 | Nutrition Management | `/api/v1/pets/{petId}/nutrition-plans` | Firebase Cloud Messaging (TS06), persistencia |
 | Clinic Management | `/api/v1/clinics/{clinicId}`, `/api/v1/clinics/{clinicId}/patients` | Persistencia |
 | Adherence & Gamification | Servicio de cálculo de adherencia (TS10) | Firebase Cloud Messaging (TS06), persistencia |
 | IAM | Autenticación y autorización con roles (TS12) | Keycloak |
-| Captación de leads | `/api/v1/leads` (TS11) | Persistencia |
+| Captación de interesados | API de registro de interés prevista en TS11 | Persistencia del registro cuando se implemente la integración |
 
-La comunicación en tiempo real mediante WebSockets (TS13) sincroniza las actualizaciones clínicas, los cambios de tratamiento y otros eventos relevantes entre la aplicación móvil del dueño y el panel web de la veterinaria, evitando consultas constantes al servidor.
+TS13 establece un canal de comunicación mediante WebSockets para las actualizaciones clínicas y otros avisos pertinentes. Este es un mecanismo arquitectónico previsto; el contrato `IClinicalUpdateNotifier` y su adaptador de desarrollo permiten aislar la notificación del dominio clínico sin que ello acredite por sí mismo la entrega en tiempo real a clientes conectados.
 
 
 #### Separación lógica y propiedad de datos
@@ -1288,7 +1392,7 @@ La separación puede implementarse mediante esquemas diferenciados o conjuntos d
 | Adherence & Gamification | `gamification` | Progreso, niveles y registros utilizados para calcular la constancia. |
 | Identity & Access Management | `iam` | Datos propios de perfiles y asociaciones de negocio que requiera VetPax. Las credenciales son gestionadas por Keycloak. |
 
-Los nombres de los esquemas son ilustrativos y deberán ajustarse a la tecnología de persistencia seleccionada.
+Los nombres de esquemas representan límites lógicos del diseño. En la implementación actual, Entity Framework Core utiliza MySQL para los datos del negocio, y Keycloak conserva sus credenciales y sesiones en PostgreSQL. La separación de los siete contextos no implica siete bases físicas ni demuestra por sí misma la existencia de esquemas SQL independientes.
 
 Cada módulo dispone de repositorios y adaptadores responsables de leer y modificar sus propios datos. Un contexto no debe realizar escrituras directas sobre las tablas de otro contexto.
 
@@ -1315,6 +1419,8 @@ La principal ventaja de esta propuesta es su menor complejidad operativa inicial
 
 
 
+**Verificación de límites y modificabilidad del backend.** La separación de los siete bounded contexts es lógica y se complementa con la dirección de referencias de los proyectos .NET: `Domain` no referencia `Application`, `Infrastructure` ni `Api`; `Application` depende de `Domain`; e `Infrastructure` materializa los puertos. Esta estructura permite medir el alcance de los cambios de las facetas de persistencia, notificaciones e identidad según QAS07 y QAS15. La presencia de un puerto y un adaptador constituye evidencia estructural; la confirmación del objetivo de cero regresiones requiere registrar el resultado de la prueba de sustitución del adaptador.
+
 ![Container Diagram](./feature/Chapter-4/4.3.3-container-diagram.png)
 
 ### 4.3.4. Software Architecture Deployment Diagrams
@@ -1322,7 +1428,7 @@ La principal ventaja de esta propuesta es su menor complejidad operativa inicial
 
 El Deployment Diagram representa la distribución de los componentes de VetPax sobre la infraestructura propuesta para su operación.
 
-La arquitectura contempla un Backend API que agrupa los siete bounded contexts como módulos de un monolito modular y una base de datos centralizada que almacena la información de negocio.
+La arquitectura contempla un Backend API ASP.NET Core que agrupa los siete bounded contexts como módulos de un monolito modular, una base MySQL para información de negocio y un almacenamiento PostgreSQL separado para el proveedor Keycloak.
 
 La separación del backend y la base de datos en nodos distintos facilita la administración de sus recursos y permite evaluar estrategias de escalamiento según el crecimiento de la plataforma. Sin embargo, no garantiza un escalamiento completamente independiente, debido a que los módulos comparten la misma unidad de despliegue y la infraestructura de persistencia.
 
@@ -1334,9 +1440,9 @@ Esta decisión prioriza una menor complejidad operativa durante las etapas inici
 | Dispositivo móvil del dueño | Mobile Application | Android / iOS |
 | Navegador del veterinario | Web Application | Navegador web |
 | Hosting de la landing page | VetPax Landing Page | Hosting web |
-| Proveedor cloud → Servidor de aplicaciones | Backend API | Servicio de hosting del backend |
-| Proveedor cloud → Servidor de base de datos | Database | Servicio de base de datos administrado |
-| Proveedor cloud → Servidor de identidad | Keycloak | Keycloak Server |
+| Railway → Servicio de aplicaciones | Backend API | ASP.NET Core/.NET 10 |
+| Persistencia del negocio | Database | MySQL; Entity Framework Core |
+| Servicio de identidad | Keycloak | Keycloak con PostgreSQL propio |
 | Google Cloud | Firebase Cloud Messaging | Firebase |
 | Proveedor de calendario | Servicio de calendario | Servicio externo |
 

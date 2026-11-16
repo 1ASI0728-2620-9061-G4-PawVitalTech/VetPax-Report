@@ -1,53 +1,42 @@
 
+<div align="center">
 
-<p align="center">
-    <strong>Universidad Peruana de Ciencias Aplicadas</strong><br>
-        <strong>Facultad de Ingeniería</strong><br>        
-    <img src="https://upload.wikimedia.org/wikipedia/commons/f/fc/UPC_logo_transparente.png"></img><br>
-    <strong>1ASI0728 - Arquitecturas De Software Emergentes</strong><br>
-    <strong>NRC: 9061</strong><br>
-    <br><strong>Profesor: Ernesto Ocampo Tello</strong><br>
-    <br><strong><b>INFORME DEL TRABAJO FINAL </b> </strong><br>
-</p>
+<img src="https://upload.wikimedia.org/wikipedia/commons/f/fc/UPC_logo_transparente.png"
+     alt="Logo de la UPC"
+     width="85">
 
-<p align="center">
-    <strong>Startup del Proyecto: PawVital Tech</strong><br>
-    <strong>Producto: VetPax</strong><br>
-</p>
+<br><br>
 
-<div>
-    <h3 align="center">Integrantes:</h3>
-</div>
+<strong>UNIVERSIDAD PERUANA DE CIENCIAS APLICADAS</strong><br>
+<strong>INGENIERÍA DE SOFTWARE</strong><br>
+<strong>CURSO: 1ASI0728 – ARQUITECTURAS DE SOFTWARE EMERGENTES</strong><br>
+<strong>NRC: 9061</strong><br>
+<strong>PROFESOR(A): Ernesto Ocampo Tello</strong><br>
+<strong>INFORME DE TRABAJO FINAL</strong><br>
+<strong>CICLO: 2026-02</strong>
 
-<div>
-    <table align="center">
-        <tr>
-            <th style="text-align:center;">Código</th>
-            <th style="text-align:center;">Apellidos y Nombres</th>
-        </tr>
-            <tr>
-                <td>U202315628</td>
-                <td>Alvarez Falen, Esteban Valentino</td>
-            </tr>
-            <tr>
-                <td>U201819674</td>
-                <td>Diaz Gutierrez, Henry Kevin</td>
-            </tr>
-            <tr>
-                <td>U202312318</td>
-                <td>Dominguez Vargas, Rafael Alexander</td>
-            </tr>
-            <tr>
-                <td>U202010334</td>
-                <td>Valerio Garcia, Adrian Emanuel</td>
-            </tr>
-    </table>
-    </div>
-</body>
+<br><br>
 
-<p align="center">
-<br><strong>2026-02</strong></p>
+<strong>STARTUP: PawVital Tech</strong><br>
+<strong>PRODUCTO: VetPax</strong>
+
+<br><br>
+
+<strong>INTEGRANTES:</strong>
+
 <br>
 
----
+Alvarez Falen, Esteban Valentino (U202315628)<br>
+Diaz Gutierrez, Henry Kevin (U201819674)<br>
+Dominguez Vargas, Rafael Alexander (U202312318)<br>
+Valerio Garcia, Adrian Emanuel (U202010334)
 
+<br><br>
+
+<strong>Noviembre - 2026</strong>
+
+</div>
+
+<br><br>
+
+---
