@@ -8,6 +8,39 @@ La separación lógica puede implementarse mediante esquemas o grupos de tablas 
 
 La trazabilidad tecnológica utiliza **TS04** para la programación de recordatorios, **TS15** para la integración propuesta con un calendario externo y **TS17** para respaldo y recuperación, conforme a la especificación y al Product Backlog del capítulo III. Las capacidades diseñadas y las efectivamente implementadas se distinguen mediante referencias al código cuando existe evidencia.
 
+**Propiedad de agregados y límites de consistencia entre contextos**
+
+VetPax utiliza siete bounded contexts dentro de un mismo proceso backend. El límite de un contexto se define por su lenguaje, agregados, reglas y contratos, no por un servidor o una base de datos individual. Los cambios de estado de cada agregado se ejecutan desde los casos de uso de su contexto y se confirman mediante su infraestructura de persistencia. Los demás contextos utilizan referencias e interfaces de consulta o eventos, sin modificar directamente el agregado proveedor.
+
+| Bounded context | Aggregate Roots en el backend | Elementos pertenecientes al contexto | Información administrada exclusivamente |
+|---|---|---|---|
+| **Pet & Clinical Care** | `Pet`, `ClinicalRecord` | `ClinicalAttention`, `ClinicalIndicator`, `ClinicalEvolution` | Mascotas, titularidad, atenciones e historial clínico. |
+| **Clinic Management** | `Clinic` | `ClinicGeneralData`, `OpeningSchedule`, `DailyOpeningHours` | Perfil y horario institucional, administración y pertenencia de profesionales a clínicas. |
+| **Appointment Management** | `Appointment` | `AppointmentSlot`, estados y eventos de cita | Reservas, disponibilidad de agenda y estados de cita. |
+| **Identity & Access Management** | `UserAccount` | `UserRole`, `AccessPermission`, `UserId` | Identidad lógica y permisos globales; credenciales y sesiones en Keycloak. |
+| **Medication Treatment** | `MedicationPlan` | `MedicationSchedule`, `MedicationDose`, `DoseAdministration`, recordatorios persistidos | Prescripciones, horarios, dosis, administraciones y avisos de medicación. |
+| **Nutrition Management** | `FeedingPlan` | `FeedingPlanRevision`, `FeedingSchedule`, `FeedingPortion` | Plan nutricional, revisiones, porciones y recordatorios de alimentación. |
+| **Adherence & Gamification** | `Adherence` | `Recognition`, `AdherenceScore`, `ConstancyLevel`, `AdherencePolicy` | Evidencias contabilizadas, puntuación, nivel y reconocimientos. |
+
+**Matriz de dependencias y contratos entre bounded contexts**
+
+La dirección de la relación indica quién **consume** información y quién la **provee**. Las interfaces citadas se encuentran en la capa `VetPax.Application` del repositorio backend; sus implementaciones adaptadoras pertenecen a `VetPax.Infrastructure`.
+
+| Contexto consumidor | Contexto proveedor | Información intercambiada | Contrato o mecanismo identificado | Restricción de dependencia |
+|---|---|---|---|---|
+| Pet & Clinical Care | IAM / Clinic Management | Identidad y validez de vínculo veterinario–clínica | `IClinicalAuthorizationPort`, `IClinicalRelationshipPort`; `VerifiedClinicalAuthorizationAdapter` | El historial no administra usuarios ni modifica el perfil de la clínica. |
+| Pet & Clinical Care | Appointment Management | Identificador y correspondencia entre cita y atención | `IClinicalAppointmentLinkPort`; `ClinicalAppointmentLinkAdapter` | Una atención no cambia directamente el estado de una cita. |
+| Clinic Management | Pet & Clinical Care | Resumen de pacientes vinculados a una clínica | `IClinicPatientsProvider` y `IPetClinicPatientReadPort`; `ClinicPatientsAdapter` | La clínica no escribe diagnósticos ni atenciones. |
+| Clinic Management | IAM | Identidad del profesional y roles | `IClinicMembershipPort` y proveedor de identidad | El rol global no sustituye la asociación concreta con la clínica. |
+| Appointment Management | Clinic Management | Pertenencia profesional y horarios de atención | `IAppointmentClinicPort`; `AppointmentClinicAdapter` | Appointment no modifica horarios institucionales. |
+| Appointment Management | Pet & Clinical Care | Titularidad y vinculación del paciente; existencia de atención | `IAppointmentPatientPort`, `IAppointmentClinicalAttentionPort` | Appointment no escribe en el historial clínico. |
+| Medication Treatment | Pet & Clinical Care / Clinic Management | Propietario, autorización y correspondencia clínica | `IMedicationPatientPort`, `IMedicationClinicalContextPort`, `IMedicationVeterinarianPort` | Medication no crea mascotas ni modifica afiliaciones clínicas. |
+| Nutrition Management | Pet & Clinical Care / Clinic Management | Propietario del paciente y autorización de prescripción | `INutritionPatientPort`, `INutritionVeterinarianPort` | Nutrition no cambia atenciones ni medicaciones. |
+| Adherence & Gamification | Appointment Management / Medication Treatment | Hechos de cita atendida y dosis administrada | `AppointmentAttendedEvent`, `MedicationDoseAdministeredEvent`; `AdherenceSourceEventMapper` | Adherence no confirma citas ni registra dosis en nombre del contexto emisor. |
+| Los contextos de negocio | IAM | Identificador autenticado y roles | `IAuthenticatedUserPort`, políticas de autorización específicas | Un token válido por sí solo no autoriza cualquier paciente. |
+
+La matriz refleja la separación aplicada en código. La capa `VetPax.Domain` contiene los siete módulos y no realiza imports `using` hacia dominios de otros bounded contexts. Los adaptadores pueden consultar información ajena mediante interfaces, manteniendo fuera de los agregados los detalles de integración. El registro compartido de tokens de dispositivo utilizado por las notificaciones de medicación, nutrición y reconocimientos es una dependencia **técnica de infraestructura**: su utilización no otorga a un contexto la propiedad de los tratamientos ni del cálculo de adherencia.
+
 ### 5.1. Bounded Context: Pet & Clinical Care
 
 Pet & Clinical Care registra el perfil de cada mascota y mantiene su historial clínico longitudinal y trazable (atenciones, diagnósticos, tratamientos y evolución), de modo que el tratamiento tenga continuidad aunque el dueño cambie de veterinaria. Se clasifica como un subdominio **core**, con modelo de negocio Revenue Generator / Engagement, y cumple los roles de **Execution Context** y **Audit Context**.
@@ -124,6 +157,12 @@ La Domain Layer concentra las reglas de la mascota y de su historial clínico. M
 | PetRepository, ClinicalRecordRepository | persisten | Pet, ClinicalRecord |
 | Pet, ClinicalRecord | producen | Domain Events |
 
+##### Contratos clínicos y límites de propiedad
+
+`IPetRepository` e `IClinicalRecordRepository` son puertos de persistencia del dominio clínico. Para las colaboraciones entre contextos, `IClinicalRelationshipPort` verifica la pertenencia activa del profesional a la clínica y el vínculo activo entre clínica y mascota; `IClinicalAuthorizationPort` representa el resultado de la autorización para los casos de uso. Cuando una atención proviene de una cita, `IClinicalAppointmentLinkPort` prepara una asociación verificable por identificadores sin trasladar la propiedad de `ClinicalAttention` al contexto de citas.
+
+La relación propietario–mascota se verifica en Pet & Clinical Care. La clínica puede consultar un resumen de pacientes mediante `IPetClinicPatientReadPort`, pero no puede cambiar directamente la historia clínica. La prescripción y las reservas consumen el identificador de mascota sin modificar el agregado `Pet`.
+
 #### 5.1.2. Interface Layer
 
 La Interface Layer recibe las solicitudes de la aplicación móvil y del panel web, valida su estructura y las transforma en comandos o consultas para la capa de aplicación. No ejecuta reglas de negocio.
@@ -152,7 +191,7 @@ El listado de pacientes de una clínica se expone en `/api/v1/clinics/{clinicId}
 | **Resources de entrada** | `RegisterPetRequest`, `RegisterClinicalAttentionRequest`. |
 | **Resources de salida** | `PetResponse`, `ClinicalAttentionResponse`, `ClinicalHistoryResponse`, `ClinicalEvolutionResponse`. |
 | **Assemblers** | Transforman los resources en comandos o consultas y los resultados en respuestas, para que el modelo no dependa del formato HTTP. |
-| **Canal WebSocket de actualizaciones clínicas** | Según TS13, comunica a los clientes autorizados conectados que la información clínica cambió y devuelve el estado actualizado al reconectarse. |
+| **Puerto de avisos clínicos (`IClinicalUpdateNotifier`)** | Encapsula el aviso de modificación clínica posterior al commit; su implementación de desarrollo utiliza logging. TS13 describe el canal WebSocket previsto para clientes autorizados. |
 
 Los controles de acceso usan la identidad y los roles de IAM. El dueño ejecuta US01 y US02; el veterinario ejecuta US03 y US11.
 
@@ -193,9 +232,18 @@ La Infrastructure Layer implementa la persistencia, la publicación de eventos y
 | **Adaptador del Repositorio ClinicalRecord** | Implementa `ClinicalRecordRepository`, almacena las atenciones y sus indicadores y conserva su trazabilidad. |
 | **Adaptador de Read Models** | Resuelve `PatientListReadModel`, `ClinicalRecordViewReadModel` y `PatientEvolutionViewReadModel` mediante consultas que no modifican el estado. |
 | **Adaptador del Publicador de Eventos de Dominio** | Conecta la publicación de eventos con el mecanismo de infraestructura seleccionado. |
-| **Adaptador WebSocket** | Implementa `ClinicalUpdateNotifier`: distribuye las actualizaciones a los clientes autorizados y permite recuperar el estado al reconectarse (TS13). |
+| **Adaptador de notificación clínica** | `DevelopmentClinicalUpdateNotifier` implementa `IClinicalUpdateNotifier` y registra la actualización mediante `ILogger`; la recuperación del estado vigente se realiza por la API REST. El canal WebSocket corresponde al diseño de TS13. |
 | **Validación de tokens y roles** | Respalda la identidad entregada por IAM en cada solicitud. |
 
+
+**Trazabilidad de la atención clínica.** El recorrido `ClinicalRecordsController` → `RegisterClinicalAttentionHandler` → `IClinicalAuthorizationPort` → `ClinicalRecord` → `IClinicalRecordRepository` → `IUnitOfWork` mantiene la autorización y la persistencia separadas de HTTP. El controlador identifica la solicitud; el caso de uso comprueba la mascota, la relación clínica y los datos; el agregado incorpora la atención, y el commit confirma su almacenamiento. La atención conserva `clinicId`, `veterinarianId`, `attentionDate` y los datos clínicos, que constituyen evidencia persistida del proceso. Después del commit, el handler publica los eventos del historial y utiliza `IClinicalUpdateNotifier` para comunicar la actualización. La bitácora técnica y la trazabilidad clínica son mecanismos distintos: la primera describe el procesamiento y sus fallos; la segunda conserva quién registró la atención y cuándo.
+
+| Etapa del proceso | Elemento de implementación | Dato trazable |
+|---|---|---|
+| Solicitud | `ClinicalRecordsController` | Operación HTTP y resultado devuelto. |
+| Autorización | `RegisterClinicalAttentionHandler`, `VerifiedClinicalAuthorizationAdapter` | Identidad del veterinario, clínica y vinculación del paciente. |
+| Persistencia | `ClinicalRecordRepository`, `IUnitOfWork` | Identificador de atención, profesional responsable y fecha de atención. |
+| Publicación | `IDomainEventPublisher`, `IClinicalUpdateNotifier` | Cambio clínico confirmado; el adaptador de desarrollo registra un aviso mediante `ILogger`. |
 
 #### 5.1.5. Bounded Context Software Architecture Component Level Diagrams
 
@@ -203,7 +251,7 @@ El diagrama muestra de forma resumida el controlador, los casos de uso, los agre
 
 ![Component Level Diagram - Pet & Clinical Care](feature/Chapter-5/PetClinicalCareComponents.png)
 
-Los flujos clínicos deben diferenciar los actores: **Propietario → Controller → Caso de Uso ConsultarHistorial → Read Model** para consultar; y **Veterinario autorizado → Controller → Caso de Uso RegistrarAtenciónClínica → ClinicalRecord → Adaptador de Repositorio** para registrar. Una vez persistida la atención, el publicador emite los eventos y el adaptador WebSocket comunica el aviso a los clientes autorizados, quienes pueden consultar la información vigente mediante REST.
+Los flujos clínicos deben diferenciar los actores: **Propietario → Controller → Caso de Uso ConsultarHistorial → Read Model** para consultar; y **Veterinario autorizado → Controller → Caso de Uso RegistrarAtenciónClínica → ClinicalRecord → Adaptador de Repositorio** para registrar. Una vez persistida la atención, el publicador emite los eventos y el puerto de notificación clínica desacopla el aviso del registro; los clientes recuperan el estado persistido mediante REST.
 
 #### 5.1.6. Bounded Context Software Architecture Code Level Diagrams
 
@@ -323,6 +371,12 @@ La Domain Layer concentra las reglas del perfil de la clínica y de sus horarios
 | ClinicRepository | persiste | Clinic |
 | Clinic | produce | PerfilDeClínicaActualizado |
 
+##### Contratos de asociación y reglas de propiedad
+
+La cuenta de IAM, la pertenencia profesional y el paciente son conceptos diferentes. `Clinic` controla el perfil y la administración institucional; `IClinicMembershipPort` permite verificar pertenencias activas, mientras que `ClinicPatientsAdapter` implementa `IClinicPatientsProvider` consumiendo `IPetClinicPatientReadPort` desde Pet & Clinical Care. El adaptador transforma las respuestas clínicas a `PatientSummary`; no accede al agregado `ClinicalRecord` para modificar sus entidades.
+
+Una cuenta con rol `veterinarian` no obtiene automáticamente acceso a todas las clínicas. La autorización requiere la asociación profesional–clínica activa y, para los datos de una mascota, el vínculo clínica–paciente. La revocación de la asociación afecta operaciones posteriores sin eliminar los registros clínicos históricos.
+
 #### 5.2.2. Interface Layer
 
 La Interface Layer recibe las solicitudes del panel web de la veterinaria, valida su estructura y las transforma en comandos o consultas para la capa de aplicación. No ejecuta reglas de negocio.
@@ -382,6 +436,8 @@ La Infrastructure Layer implementa la persistencia, la obtención de pacientes y
 | **Adaptador de Pacientes** | Implementa `ClinicPatientsProvider` consultando a Pet & Clinical Care los pacientes vinculados y traduciéndolos a `PatientSummary`. |
 | **Adaptador del Publicador de Eventos de Dominio** | Conecta la publicación de `PerfilDeClínicaActualizado` con el mecanismo de infraestructura seleccionado. |
 | **Validación de tokens y roles** | Respalda la identidad entregada por IAM en cada solicitud. |
+
+**Trazabilidad de las operaciones de clínica.** Los casos de uso `AssignVeterinarianHandler`, `GetClinicPatientsHandler` y `UpdateClinicProfileHandler` separan respectivamente la asignación profesional, la lectura de pacientes y la modificación administrativa. El control de acceso se apoya en la identidad autenticada y los puertos de pertenencia; el resultado observable es una relación de pertenencia activa, un listado restringido o un cambio de perfil persistido. El evento `ClinicProfileUpdatedEvent` documenta el cambio del perfil desde el dominio, sin incorporar datos de atenciones ni de tratamientos.
 
 #### 5.2.5. Bounded Context Software Architecture Component Level Diagrams
 
@@ -482,6 +538,12 @@ El Read Model **Agenda veterinaria**, identificado en el EventStorming, permite 
 | Contrato de persistencia de citas | Abstracción de repositorio | Separar las operaciones de almacenamiento de la tecnología utilizada. |
 | Agenda veterinaria | Read Model | Presentar las citas para la consulta del veterinario. |
 
+##### Contratos e invariantes para la coordinación de citas
+
+La programación utiliza `IAppointmentClinicPort` para consultar disponibilidad institucional y pertenencia profesional, e `IAppointmentPatientPort` para comprobar que la mascota pertenece al propietario y está vinculada a la clínica. La confirmación de una cita atendida depende de `IAppointmentClinicalAttentionPort`, que responde si existe una atención clínica relacionada con la cita y los identificadores del paciente, clínica y profesional. Estas consultas son contratos de lectura: no permiten que Appointment Management modifique `ClinicalRecord`.
+
+La operación de reserva exige comprobar el horario y completar una escritura consistente. La validación previa de disponibilidad no sustituye la protección transaccional frente a solicitudes simultáneas. La integración de calendario de TS15 se define como efecto posterior a la persistencia de la cita, distinto de los recordatorios internos identificados como TS04.
+
 #### 5.3.2. Interface Layer
 
 La Interface Layer recibe las solicitudes de la aplicación móvil y del panel web, valida su estructura y las transforma en comandos o consultas para la capa de aplicación. Devuelve los resultados de las operaciones sin ejecutar directamente las reglas de disponibilidad o transición de estado.
@@ -537,11 +599,13 @@ El repositorio de citas almacena las reservas, sus cambios de estado y los datos
 
 **Adaptador del servicio de calendario**
 
-La integración se encapsulará mediante un adaptador, de acuerdo con la separación de puertos y adaptadores y con la relación Anticorruption Layer definida en el Context Map. Este componente traducirá la información de la cita al contrato del proveedor y permitirá registrar el identificador del evento externo cuando la sincronización sea exitosa. También permitirá actualizar dicho evento al reprogramar la cita. Una solicitud de sincronización pendiente se conservará con un identificador que permita reintentar la operación y reducir el riesgo de duplicar eventos externos. Esta capacidad corresponde a TS15 del capítulo III; TS04 se reserva al servicio de programación de recordatorios.
+La integración se define mediante un adaptador, de acuerdo con la separación de puertos y adaptadores y con la relación Anticorruption Layer definida en el Context Map. Este componente traducirá la información de la cita al contrato del proveedor y permitirá registrar el identificador del evento externo cuando la sincronización sea exitosa. También permitirá actualizar dicho evento al reprogramar la cita. Una solicitud de sincronización pendiente se conservará con un identificador que permita reintentar la operación y reducir el riesgo de duplicar eventos externos. Esta capacidad corresponde a TS15 del capítulo III; TS04 se reserva al servicio de programación de recordatorios.
 
 **Integración de mensajes**
 
 La infraestructura deberá dar soporte a la recepción de los horarios publicados por Clinic Management y a la comunicación de los eventos del ciclo de vida de la cita. Las relaciones con Clinic Management y Adherence & Gamification se realizarán mediante los mensajes asíncronos definidos en el Context Map.
+
+**Bitácora de operaciones de agenda y entregas.** El estado de la cita y los eventos `AppointmentScheduledEvent`, `AppointmentRescheduledEvent`, `AppointmentCancelledEvent` y `AppointmentAttendedEvent` permiten identificar la operación de negocio. Los procesos de infraestructura `AppointmentOutboxProcessor` y `AppointmentReminderProcessor` incorporan `ILogger` para registrar fallos de procesamiento; `AppointmentDeliveryHostedService` registra el ciclo de ejecución del servicio. Estas trazas operativas se relacionan por identificador de cita o recordatorio y se mantienen separadas del historial clínico.
 
 #### 5.3.5. Bounded Context Software Architecture Component Level Diagrams
 
@@ -549,11 +613,11 @@ El modelo de componentes reúne la interfaz de citas, los comandos y consultas, 
 
 ![AppointmentComponent](feature/Chapter-5/AppointmentComponentDiagram.png)
 
-### 5.3.6. Bounded Context Software Architecture Code Level Diagrams
+#### 5.3.6. Bounded Context Software Architecture Code Level Diagrams
 
 ##### 5.3.6.1. Bounded Context Domain Layer Class Diagrams
 
-El diagrama de clases tendrá como alcance el agregado Appointment y las reglas de su ciclo de vida.
+El diagrama de clases representa el agregado Appointment y las reglas de su ciclo de vida.
 
 ![AppointmentClassComponent](feature/Chapter-5/AppointmentClass.png)
 
@@ -610,6 +674,12 @@ La autorización también debe respetar las restricciones de cada contexto: US02
 
 La relación con el proveedor se realizará mediante un contrato que permita obtener los resultados de las operaciones de identidad sin introducir dependencias del proveedor en el modelo.
 
+##### Frontera entre identidad y autorización de negocio
+
+`UserAccount` pertenece a IAM, pero las relaciones `ClinicVeterinarianRow` y `PetClinicLinkRow` se administran en los módulos responsables de pertenencias y pacientes. La vigencia del access token responde a Keycloak; la autorización para una clínica o un paciente se reevalúa sobre sus vínculos activos en cada operación protegida. Un cambio en la afiliación clínica no exige modificar el agregado de cuenta ni las credenciales del proveedor de identidad.
+
+La interacción con Keycloak se mantiene detrás de `IIdentityProvisioningPort` e `IAuthenticatedUserPort`. Las autorizaciones de pacientes, prescripciones, agendas y perfiles son decisiones de sus respectivos casos de uso, y no reglas globales trasladadas a IAM.
+
 #### 5.4.2. Interface Layer
 
 La Interface Layer articula las interacciones de registro, autenticación y acceso protegido utilizadas por las aplicaciones. Presenta los resultados de esos procesos y permite que el backend reciba solicitudes asociadas a una identidad verificada.
@@ -622,7 +692,7 @@ La aplicación móvil y la aplicación web se autenticarán con Keycloak mediant
 | --- | --- | --- |
 | Registro de cuenta | Datos obligatorios válidos y correo no registrado. | Creación de identidad mediante Keycloak y asignación del perfil correspondiente, según US20. |
 | Inicio de sesión | Credenciales del usuario registrado. | Acceso cuando las credenciales son válidas o rechazo sin exponer información sensible, según US21. |
-| Acceso a funcionalidad protegida | Identidad autenticada y permisos para la operación. | Autorización o denegación de la solicitud, según US22 y TS12. |
+| Acceso a funcionalidad protegida | Identidad autenticada y permisos para la operación. | Autorización o denegación de la solicitud, según RF-04 y TS12. |
 | Acceso con sesión expirada | Sesión que ha superado su validez. | Solicitud de nueva autenticación, según US21. |
 
 Los recursos de intercambio deberán limitarse a la información necesaria para estos procesos y mantener separados el modelo de IAM y el formato del proveedor.
@@ -653,7 +723,7 @@ La Infrastructure Layer concentra la integración de IAM con Keycloak y los meca
 
 **Adaptador del proveedor de identidad**
 
-El adaptador de Keycloak implementará la integración con el proveedor y traducirá sus resultados al modelo utilizado por VetPax. Responde al patrón Adapter de ADD08 y a la Anticorruption Layer definida en el Context Map. Su objetivo es encapsular los contratos externos para que el dominio clínico y los demás contextos no dependan de detalles del proveedor.
+El adaptador de Keycloak encapsula la integración con el proveedor y traduce sus resultados al modelo utilizado por VetPax. Responde al patrón Adapter de ADD08 y a la Anticorruption Layer definida en el Context Map. Su objetivo es encapsular los contratos externos para que el dominio clínico y los demás contextos no dependan de detalles del proveedor.
 
 **Protección de solicitudes**
 
@@ -662,6 +732,8 @@ De acuerdo con la sección 4.3.3, los clientes utilizarán OpenID Connect sobre 
 **Persistencia e identidad**
 
 La gestión de identidad y credenciales permanece delegada en Keycloak. IAM integra la identidad autenticada y los roles con las operaciones protegidas de VetPax mediante el adaptador del proveedor.
+
+**Trazabilidad de identidad.** Las operaciones de inicio de sesión, registro y validación de permisos se articulan mediante `AuthenticateUserHandler`, `RegisterAccountHandler` y `ValidatePermissionHandler`. La capa de infraestructura utiliza `KeycloakAuthenticatedUserAdapter` y `KeycloakIdentityProvisioningAdapter` para aislar el proveedor. La información de diagnóstico técnico se limita al estado y tipo de operación, evitando conservar credenciales, tokens de acceso o contraseñas en bitácoras de aplicación.
 
 #### 5.4.5. Bounded Context Software Architecture Component Level Diagrams
 
@@ -685,19 +757,19 @@ El diagrama de clases tendrá como alcance los conceptos de cuenta y roles, y lo
 
 
 
-# 5.5. Bounded Context: Medication Treatment
+### 5.5. Bounded Context: Medication Treatment
 
 **Medication Treatment** es un Bounded Context **core** con el rol de **Execution Context**. Su propósito es gestionar los tratamientos con medicación activos de cada mascota, activar los recordatorios de dosis y registrar la administración de cada dosis por parte del propietario. **Solo un profesional veterinario autorizado registra o modifica la prescripción**, mientras que el propietario consulta las indicaciones y registra el cumplimiento de las dosis. El Bounded Context Canvas identifica al profesional, al propietario y a **Pet & Clinical Care** como colaboradores de entrada, y a **Adherence & Gamification** y **Firebase Cloud Messaging** como colaboradores de salida.
 
-### 5.5.1. Domain Layer
+#### 5.5.1. Domain Layer
 
-La capa de dominio representa el tratamiento con medicación y las reglas establecidas. La descomposición táctica mantiene `Medication Treatment` como **Aggregate Root** y representa las dosis y los recordatorios como elementos contenidos dentro de dicho agregado.
+La capa de dominio representa el tratamiento con medicación y las reglas establecidas. La implementación utiliza `MedicationPlan` como **Aggregate Root**. `MedicationSchedule` representa las pautas de administración; `MedicationDose` representa las dosis generadas, y los recordatorios tienen estado de procesamiento persistente. El término Medication Treatment designa el bounded context, no el nombre de la clase agregada.
 
 | Elemento | Responsabilidad |
 |---|---|
-| **Agregado Medication Treatment** | Mantiene el tratamiento activo con medicación y sus invariantes de negocio. |
+| **Agregado `MedicationPlan`** | Mantiene la prescripción, sus horarios, vigencia y reglas de tratamiento. |
 | **Entidad Medication Dose** | Representa una dosis programada y su estado de administración. |
-| **Entidad Medication Reminder** | Representa la configuración/estado del recordatorio asociado a una dosis. |
+| **Registro de recordatorio de medicación** | Conserva la elegibilidad, la versión del horario y el estado de envío de un recordatorio asociado a la dosis. |
 | **Repositorio Medication Treatment** | Puerto de persistencia para el agregado de tratamiento con medicación. |
 | **Puerto de Notificaciones** | Puerto mediante el cual la aplicación solicita el envío de notificaciones push sin acoplar el dominio a Firebase. |
 | **Eventos de Dominio** | `RecordatoriosDeMedicaciónActivados`, `RecordatorioDeMedicaciónGenerado`, `DosisDeMedicaciónAdministrada`. |
@@ -725,7 +797,11 @@ La capa de dominio representa el tratamiento con medicación y las reglas establ
 | Tres workers concurrentes | Tres intentos sobre el mismo `ReminderId` pendiente | Una sola adquisición válida durante el lease |
 | Falla de FCM | Error al enviar una notificación elegible | Registro del fallo y nuevo intento según backoff; tratamiento conservado |
 
-### 5.5.2. Interface Layer
+**Contratos del contexto de medicación.** `IMedicationPatientPort` obtiene la identidad del propietario desde Pet & Clinical Care; `IMedicationVeterinarianPort` verifica el permiso de prescripción conforme a las relaciones de clínica y paciente; `IMedicationClinicalContextPort` comprueba la correspondencia con una atención cuando se referencia una. Los adaptadores `MedicationPatientAdapter`, `MedicationVeterinarianAdapter` y `MedicationClinicalContextAdapter` implementan esas consultas sin otorgar a Medication Treatment autoridad para modificar mascotas, pertenencias clínicas o atenciones.
+
+La salida asíncrona utiliza `IMedicationOutboxPort` y el adaptador de envío `IMedicationNotificationSender`. El worker procesa tareas persistidas y utiliza el identificador de la dosis y el recordatorio para evitar que dos instancias adquieran simultáneamente el mismo trabajo. La reserva temporal controla la ejecución concurrente; la confirmación final de entrega depende del resultado del proveedor externo y de la persistencia del estado correspondiente.
+
+#### 5.5.2. Interface Layer
 
 Se define los siguientes recursos REST para Medication Treatment:
 
@@ -738,7 +814,7 @@ Se define los siguientes recursos REST para Medication Treatment:
 
 La interfaz delega la ejecución de la lógica de negocio a la Capa de Aplicación. IAM proporciona la identidad autenticada y el rol; Medication Treatment verifica las restricciones de negocio sobre la mascota y la operación. En particular, el alta o modificación de un plan de medicación requiere un veterinario autorizado, mientras que el registro de dosis administradas corresponde al propietario autorizado. La interfaz no permite que el registro de cumplimiento modifique la prescripción.
 
-### 5.5.3. Application Layer
+#### 5.5.3. Application Layer
 
 La Capa de Aplicación coordina los comandos y consultas identificados en el Bounded Context Canvas:
 
@@ -754,7 +830,7 @@ La Capa de Aplicación coordina los comandos y consultas identificados en el Bou
 
 La Capa de Aplicación no define las reglas de negocio de la medicación; se encarga de orquestar el dominio y los puertos.
 
-### 5.5.4. Infrastructure Layer
+#### 5.5.4. Infrastructure Layer
 
 | Componente de infraestructura | Responsabilidad |
 |---|---|
@@ -764,7 +840,9 @@ La Capa de Aplicación no define las reglas de negocio de la medicación; se enc
 | **Adaptador de Programación de Recordatorios** | Proporciona el mecanismo técnico reemplazable utilizado para procesar los recordatorios programados. |
 | **Adaptador del Publicador de Eventos de Dominio** | Conecta la publicación de eventos de dominio con el mecanismo de infraestructura seleccionado. |
 
-### 5.5.5. Bounded Context Software Architecture Component Level Diagram
+**Bitácora del proceso de medicación.** `MedicationReminderProcessor` registra errores con `ILogger<MedicationReminderProcessor>` y conserva en persistencia el estado, `LeaseToken`, `LockedUntilUtc` y los intentos de procesamiento. `MedicationOutboxProcessor` registra los fallos de publicación de eventos. Así se distinguen cuatro hitos: dosis programada, recordatorio adquirido por un worker, intento de envío al proveedor y estado de procesamiento almacenado. Un envío externo ejecutado antes de una interrupción del proceso puede volver a intentarse si todavía no se confirmó el estado final; por ello, los bloqueos temporales no representan una garantía de entrega exactamente una vez.
+
+#### 5.5.5. Bounded Context Software Architecture Component Level Diagram
 
 ![MedicationComponents](feature/Chapter-5/MedicationComponents.png)
 
@@ -774,15 +852,15 @@ La Capa de Aplicación no define las reglas de negocio de la medicación; se enc
 
 Para los recordatorios, la capacidad de programación invoca el caso de uso de recordatorios, que genera el evento de dominio correspondiente y solicita la notificación mediante el Puerto de Notificaciones. El adaptador de FCM entrega la notificación push. `DosisDeMedicaciónAdministrada` se publica hacia **Adherence & Gamification**.
 
-### 5.5.6. Bounded Context Software Architecture Code Level Diagrams
+#### 5.5.6. Bounded Context Software Architecture Code Level Diagrams
 
-#### 5.5.6.1. Bounded Context Domain Layer Class Diagram
+##### 5.5.6.1. Bounded Context Domain Layer Class Diagram
 
 ![MedicationDomain](feature/Chapter-5/medication-treatment-domain.png)
 
-La vista a nivel de clases se centra en `MedicationTreatment` como **Aggregate Root**. `MedicationDose` y `MedicationReminder` están contenidos por el agregado. Las interfaces de repositorio y notificaciones se representan como puertos, mientras que los eventos de dominio representan los resultados publicados por el contexto.
+La vista representa conceptualmente Medication Treatment; su Aggregate Root implementado es `MedicationPlan`. Las entidades `MedicationSchedule` y `MedicationDose` materializan horarios y administraciones, mientras los recordatorios se gestionan con persistencia de infraestructura. Las interfaces de repositorio y notificaciones se representan como puertos, mientras que los eventos de dominio representan los resultados publicados por el contexto.
 
-#### 5.5.6.2. Bounded Context Database Design Diagram
+##### 5.5.6.2. Bounded Context Database Design Diagram
 
 ![MedicationDatabase](feature/Chapter-5/medication-treatment.png)
 
@@ -794,11 +872,11 @@ La vista a nivel de clases se centra en `MedicationTreatment` como **Aggregate R
 
 ---
 
-# 5.6. Bounded Context: Nutrition Management
+### 5.6. Bounded Context: Nutrition Management
 
 **Nutrition Management** es un Bounded Context **core** con los roles de **Specification Context** y **Execution Context**. Su propósito es permitir que el veterinario prescriba y actualice planes de alimentación personalizados de acuerdo con la condición de la mascota y genere recordatorios de alimentación para el propietario. La prescripción pertenece al veterinario autorizado; el propietario consulta el plan vigente y recibe los recordatorios, sin cambiar por su cuenta las indicaciones clínicas.
 
-### 5.6.1. Domain Layer
+#### 5.6.1. Domain Layer
 
 | Elemento | Responsabilidad |
 |---|---|
@@ -816,7 +894,11 @@ La vista a nivel de clases se centra en `MedicationTreatment` como **Aggregate R
 4. Los recordatorios se calculan únicamente a partir del plan activo y sus horarios definidos. Si el plan queda inactivo, no se deben generar nuevas entregas correspondientes a ese plan (US09 E02, RF-17).
 5. Una falla del proveedor de notificaciones no modifica la prescripción ya persistida; el mecanismo de reintento debe gestionar la misma referencia al recordatorio para no generar nuevas pautas de alimentación (RNF-13, TS06).
 
-### 5.6.2. Interface Layer
+**Agregados y contratos de colaboración.** `FeedingPlan` conserva la prescripción nutricional y sus revisiones (`FeedingPlanRevision`), horarios (`FeedingSchedule`) y porciones (`FeedingPortion`). `INutritionPatientPort` obtiene el propietario del paciente y `INutritionVeterinarianPort` determina si el profesional puede prescribir para la combinación de clínica y mascota. Los adaptadores de infraestructura resuelven estas consultas sin otorgar al módulo acceso de escritura a `Pet` ni a `Clinic`.
+
+Los recordatorios se coordinan mediante `INutritionReminderPort` y la persistencia de operaciones se confirma por `INutritionUnitOfWork`; la salida hacia Firebase utiliza `INutritionPushGateway`. El registro de tokens de dispositivo compartido con otras capacidades de notificación se utiliza exclusivamente en infraestructura y no forma parte de las reglas del agregado `FeedingPlan`.
+
+#### 5.6.2. Interface Layer
 
 | Elemento de interfaz | Responsabilidad |
 |---|---|
@@ -824,7 +906,7 @@ La vista a nivel de clases se centra en `MedicationTreatment` como **Aggregate R
 | **Modelos de Solicitud/Respuesta de Nutrition Management** | Representan los datos de entrada y salida de la API. |
 | `/api/v1/pets/{petId}/nutrition-plans` | Recurso para los planes nutricionales asociados a una mascota. |
 
-### 5.6.3. Application Layer
+#### 5.6.3. Application Layer
 
 | Componente de aplicación | Responsabilidad |
 |---|---|
@@ -835,7 +917,7 @@ La vista a nivel de clases se centra en `MedicationTreatment` como **Aggregate R
 | **Servicio de Programación de Recordatorios** | Coordina el procesamiento de los recordatorios de alimentación. |
 | **Publicador de Eventos de Dominio de Nutrition Management** | Publica los eventos de dominio de nutrición. |
 
-### 5.6.4. Infrastructure Layer
+#### 5.6.4. Infrastructure Layer
 
 | Componente de infraestructura | Responsabilidad |
 |---|---|
@@ -844,7 +926,9 @@ La vista a nivel de clases se centra en `MedicationTreatment` como **Aggregate R
 | **Adaptador de Firebase Cloud Messaging** | Entrega las notificaciones de recordatorios de alimentación. |
 | **Adaptador del Publicador de Eventos de Dominio** | Conecta la publicación de eventos de nutrición con el mecanismo de infraestructura seleccionado. |
 
-### 5.6.5. Bounded Context Software Architecture Component Level Diagram
+**Bitácora de alimentación.** `NutritionBackgroundService` incorpora mensajes de inicio, iteraciones y errores mediante `ILogger<NutritionBackgroundService>`. `NutritionReminderProcessor` registra fallos de procesamiento y `NutritionFirebasePushGateway` registra advertencias del proveedor de notificaciones. Las tareas persistentes se asocian con la referencia del plan y del recordatorio; los errores de entrega no modifican el contenido ni la vigencia del plan nutricional confirmado.
+
+#### 5.6.5. Bounded Context Software Architecture Component Level Diagram
 
 ![NutritionComponents](feature/Chapter-5/NutritionComponents.png)
 
@@ -854,15 +938,15 @@ La interacción principal es:
 
 Para los recordatorios, la capacidad de programación invoca el caso de uso de recordatorios y el Puerto de Notificaciones es implementado por el adaptador de FCM.
 
-### 5.6.6. Bounded Context Software Architecture Code Level Diagrams
+#### 5.6.6. Bounded Context Software Architecture Code Level Diagrams
 
-#### 5.6.6.1. Bounded Context Domain Layer Class Diagram
+##### 5.6.6.1. Bounded Context Domain Layer Class Diagram
 
 ![NutritionDomain](feature/Chapter-5/nutrition-management-domain.png)
 
 La vista a nivel de clases se centra en `FeedingPlan` como **Aggregate Root**. `FeedingReminder` se representa como una entidad contenida por el plan. Los contratos de repositorio y notificaciones son puertos y los tres eventos de dominio representan las salidas identificadas.
 
-#### 5.6.6.2. Bounded Context Database Design Diagram
+##### 5.6.6.2. Bounded Context Database Design Diagram
 
 ![NutritionDatabase](feature/Chapter-5/nutrition-management.png)
 
@@ -873,13 +957,13 @@ La vista a nivel de clases se centra en `FeedingPlan` como **Aggregate Root**. `
 
 ---
 
-# 5.7. Bounded Context: Adherence & Gamification
+### 5.7. Bounded Context: Adherence & Gamification
 
 **Adherence & Gamification** es un Bounded Context **core** con el rol de **Analysis Context**. Su propósito es evaluar la constancia del propietario en los controles y tratamientos de la mascota, calcular el nivel de adherencia (**Bronce, Plata u Oro**) y reconocer los ascensos de nivel.
 
 A diferencia de los contextos de medicación y nutrición, este contexto no ejecuta directamente la actividad clínica. Consume evidencias generadas por otros contextos, particularmente `CitaVeterinariaAtendida` proveniente de **Appointment Management** y `DosisDeMedicaciónAdministrada` proveniente de **Medication Treatment**.
 
-### 5.7.1. Domain Layer
+#### 5.7.1. Domain Layer
 
 | Elemento | Responsabilidad |
 |---|---|
@@ -899,9 +983,13 @@ A diferencia de los contextos de medicación y nutrición, este contexto no ejec
 4. `CitaVeterinariaAtendida` y `DosisDeMedicaciónAdministrada` proporcionan evidencias de adherencia.
 5. Un mismo evento de cumplimiento debe contabilizarse una sola vez. Si vuelve a recibirse un identificador de evento ya procesado, el cálculo de constancia no debe incrementarse nuevamente.
 
-Los umbrales exactos, si el propietario puede descender de nivel, el período de evaluación y si el cumplimiento nutricional cuenta como evidencia permanecen como preguntas abiertas.
+La política de constancia se encapsula en `AdherencePolicy`, que define `MinimumEvidence`, los umbrales crecientes `BronzeThreshold`, `SilverThreshold` y `GoldThreshold`, y `AllowDemotion`. `EvidenceCountScoreCalculator` utiliza el número de evidencias verificadas como puntuación en la implementación considerada. El agregado no asigna un nivel antes de alcanzar la evidencia mínima y solo genera un reconocimiento cuando ocurre un ascenso posterior al nivel inicial.
 
-### 5.7.2. Interface Layer
+**Contrato de recepción de evidencias.** Adherence & Gamification recibe `AppointmentAttendedEvent` y `MedicationDoseAdministeredEvent`; `AdherenceSourceEventMapper` traduce ambos tipos hacia `IngestAdherenceEvidenceCommand`. `IAdherenceEvidenceStore` comprueba si el identificador ya fue procesado y mantiene el registro necesario para la idempotencia. El contexto conserva su propia política `AdherencePolicy` y no invoca métodos de los agregados `Appointment` ni `MedicationPlan` para modificarlos.
+
+Los eventos de cita utilizan el `AppointmentId` como referencia estable de deduplicación; los eventos de medicación utilizan el `EventId` propio. Este contrato evita que un reintento de publicación incremente dos veces la evidencia contabilizada.
+
+#### 5.7.2. Interface Layer
 
 Se identifica  `ConsultarNivelDeConstancia` y el servicio de cálculo de adherencia (TS10).
 
@@ -911,7 +999,7 @@ Se identifica  `ConsultarNivelDeConstancia` y el servicio de cálculo de adheren
 | **Interfaz de Cálculo de Adherencia** | Expone la capacidad de cálculo de adherencia cuando sea requerida por el contrato de la API. |
 | **Modelos de Solicitud/Respuesta de Adherence** | Representan las consultas de adherencia y los resultados calculados. |
 
-### 5.7.3. Application Layer
+#### 5.7.3. Application Layer
 
 | Componente de aplicación | Responsabilidad |
 |---|---|
@@ -924,7 +1012,7 @@ Se identifica  `ConsultarNivelDeConstancia` y el servicio de cálculo de adheren
 
 La Capa de Aplicación coordina el procesamiento de evidencias y las operaciones de dominio sin hacer responsable a Adherence & Gamification de las operaciones clínicas.
 
-### 5.7.4. Infrastructure Layer
+#### 5.7.4. Infrastructure Layer
 
 | Componente de infraestructura | Responsabilidad |
 |---|---|
@@ -934,7 +1022,9 @@ La Capa de Aplicación coordina el procesamiento de evidencias y las operaciones
 | **Adaptador de Firebase Cloud Messaging** | Entrega las notificaciones de reconocimiento después de un ascenso. |
 | **Adaptador del Publicador de Eventos de Dominio** | Conecta la publicación de eventos de adherencia con el mecanismo de infraestructura seleccionado. |
 
-### 5.7.5. Bounded Context Software Architecture Component Level Diagram
+**Bitácora de adherencia y reconocimientos.** `AdherenceDomainEventPublisher` incorpora registros operativos con `ILogger`, `AdherenceOutboxProcessor` registra fallos de procesamiento y `RecognitionNotificationProcessor` documenta errores al entregar reconocimientos. `ProcessedAdherenceEventRow` conserva la referencia del evento consumido. Estos elementos permiten distinguir la recepción de una evidencia, su contabilización y el envío de un reconocimiento, sin atribuir a Adherence & Gamification la modificación de las citas o las dosis originales.
+
+#### 5.7.5. Bounded Context Software Architecture Component Level Diagram
 
 ![AdherenceComponents](feature/Chapter-5/AdherenceComponents.png)
 
@@ -946,15 +1036,15 @@ Los principales flujos de entrada son:
 
 El propietario consulta el progreso resultante mediante la interfaz de adherencia. Cuando las reglas de negocio identifican un ascenso, el contexto emite `PropietarioAscendióDeNivel` y solicita el envío del reconocimiento mediante FCM. Cada evidencia se identifica y procesa de manera idempotente para que una retransmisión del mismo evento no altere nuevamente la puntuación.
 
-### 5.7.6. Bounded Context Software Architecture Code Level Diagrams
+#### 5.7.6. Bounded Context Software Architecture Code Level Diagrams
 
-#### 5.7.6.1. Bounded Context Domain Layer Class Diagram
+##### 5.7.6.1. Bounded Context Domain Layer Class Diagram
 
 ![AdherenceDomain](feature/Chapter-5/adherence-gamification-domain.png)
 
 La vista a nivel de clases se centra en `Adherence` como **Aggregate Root**. `AdherenceScore` y `ConstancyLevel` son Value Objects, mientras que `Recognition` representa el resultado de un ascenso de nivel. Las interfaces de repositorio y notificaciones son puertos, y los cuatro eventos de dominio identificados se representan explícitamente.
 
-#### 5.7.6.2. Bounded Context Database Design Diagram
+##### 5.7.6.2. Bounded Context Database Design Diagram
 
 ![AdherenceDatabase](feature/Chapter-5/adherence-gamification.png)
 
@@ -962,20 +1052,4 @@ La vista a nivel de clases se centra en `Adherence` como **Aggregate Root**. `Ad
 |---|---|---|
 | **Adherence** | Almacena el estado/progreso de adherencia del propietario y el nivel actual. | Padre de los reconocimientos. |
 | **Recognition** | Almacena los reconocimientos generados por ascensos de nivel. | Pertenece a Adherence. |
-| **ProcessedAdherenceEvent** (propuesta) | Conserva el identificador único del evento externo de cumplimiento ya contabilizado y la fecha de procesamiento, para prevenir duplicaciones. | Referencia lógica al evento de origen; es propiedad de Adherence & Gamification. |
-
-### 5.8. Invariantes transversales y trazabilidad de decisiones
-
-Las relaciones entre bounded contexts se basan en identificadores y contratos de aplicación; su separación lógica no implica siete procesos ni siete bases de datos físicamente independientes. El backend ASP.NET Core se despliega como monolito modular, con MySQL como persistencia del negocio y PostgreSQL como almacenamiento de Keycloak. Los límites de autorización se aplican por recurso y por relación de negocio, no exclusivamente por el rol incluido en el token.
-
-| Aspecto | Contexto propietario | Contrato o mecanismo | Referencia de requisitos |
-|---|---|---|---|
-| Identidad y expiración de sesión | IAM | Keycloak; validación de tokens y roles | US21, US22, TS12, RNF-01 |
-| Autorización clínica revocable | Pet & Clinical Care / Clinic Management | Pertenencia profesional–clínica activa y vínculo clínica–paciente activo | US02, US03, US10, RNF-18 |
-| Medicación y horarios | Medication Treatment | `MedicationPlan`, `MedicationSchedule`, `MedicationDose` y versión de programación | US07, US17, US18, TS05 |
-| Concurrencia de recordatorios | Medication Treatment | `MedicationReminderProcessor`, `LeaseToken`, `LockedUntilUtc` y backoff | TS04, TS06, RNF-17 |
-| Reserva y modificación de citas | Appointment Management | Disponibilidad y persistencia consistente ante conflictos | US04, US05, TS03, RNF-17 |
-| Sincronización con calendario externo | Appointment Management | Adaptador desacoplado y estado de sincronización | TS15 |
-| Respaldo y restauración | Infraestructura de VetPax e IAM | Procedimiento separado para MySQL y PostgreSQL; verificación de integridad | TS17, RNF-16 |
-
-El control de concurrencia de recordatorios se verifica en el procesamiento persistente y no implica tolerancia automática a cualquier fallo externo. Los objetivos RTO/RPO y los mecanismos de redundancia descritos en el capítulo IV se mantienen como requisitos de arquitectura, cuya conformidad operativa depende de una restauración efectivamente ensayada. La trazabilidad vincula estas decisiones con los requerimientos del capítulo III y con los escenarios de calidad del capítulo IV.
+| **ProcessedAdherenceEvent** | Conserva el identificador único del evento externo de cumplimiento ya contabilizado y la fecha de procesamiento, para prevenir duplicaciones. | Referencia lógica al evento de origen; es propiedad de Adherence & Gamification. |
